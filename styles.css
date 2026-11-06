@@ -393,6 +393,7 @@ body.cookie-consent-open { overflow: hidden; }
 [data-theme="dark"] .navbar-toggler-icon, [data-theme="dark"] .btn-close, [data-theme="dark"] .accordion-button::after {filter: brightness(0) invert(1);}
 .content-panel small {color: var(--navy);}
 [data-theme="dark"] .accordion-body { color: var(--ink); }
+[data-theme="dark"] .breadcrumb-item+.breadcrumb-item::before {color: #a9c5ff;}
 
 @media (min-width: 1200px) {
   .mega-dropdown .mega-menu.dropdown-menu[data-bs-popper] { left: 50%; }
