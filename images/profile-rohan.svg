@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Illustrated South Asian man portrait">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9eee8"/><stop offset="1" stop-color="#8dc6b5"/></linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d65b2b"/><stop offset="1" stop-color="#9f351e"/></linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="80" fill="url(#bg)"/>
+  <path d="M19 160c5-31 25-47 61-47s56 16 61 47" fill="url(#top)"/>
+  <path d="M60 104h40v29c-10 10-30 10-40 0z" fill="#91563e"/>
+  <ellipse cx="80" cy="70" rx="31" ry="39" fill="#a9694c"/>
+  <path d="M48 66c-1-26 8-45 31-48 24-3 39 13 34 47-8-4-15-12-18-22-9 10-25 16-47 17z" fill="#211c1a"/>
+  <path d="M58 76c5-3 10-3 15 0m14 0c5-3 10-3 15 0" fill="none" stroke="#35211b" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="66" cy="81" r="2.2" fill="#241714"/><circle cx="94" cy="81" r="2.2" fill="#241714"/>
+  <path d="M79 83c-1 7-2 10-4 13m-10 7c9 8 22 8 31 0" fill="none" stroke="#633526" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M49 69c-5 0-7 4-6 10 1 5 4 8 8 8m58-18c5 0 7 4 6 10-1 5-4 8-8 8" fill="#a9694c"/>
+  <path d="M58 121c13 8 31 8 44 0" fill="none" stroke="#ffd8b9" stroke-width="3"/>
+</svg>

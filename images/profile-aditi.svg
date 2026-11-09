@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Illustrated South Asian woman portrait">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe0ca"/><stop offset="1" stop-color="#f9a36e"/></linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#174f55"/><stop offset="1" stop-color="#0c343c"/></linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="80" fill="url(#bg)"/>
+  <path d="M22 160c4-30 22-46 58-46s54 16 58 46" fill="url(#top)"/>
+  <path d="M58 105h44v30c-12 12-32 12-44 0z" fill="#8e4f37"/>
+  <path d="M43 69c0-34 15-52 38-52 27 0 39 22 37 52l-8 39H51z" fill="#171a20"/>
+  <ellipse cx="80" cy="72" rx="29" ry="37" fill="#a96549"/>
+  <path d="M51 66c1-29 12-47 32-47 20 0 33 16 35 42-11-3-19-12-23-23-8 13-22 21-44 22z" fill="#171a20"/>
+  <path d="M55 77c5-3 10-3 15 0m20 0c5-3 10-3 15 0" fill="none" stroke="#321e1a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="64" cy="82" r="2" fill="#241714"/><circle cx="96" cy="82" r="2" fill="#241714"/>
+  <path d="M77 84c-1 6-2 9-4 12m-5 10c8 6 16 6 24 0" fill="none" stroke="#633526" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M49 73c-5 0-7 4-6 10 1 5 4 8 8 7m58-17c5 0 7 4 6 10-1 5-4 8-8 7" fill="#a96549"/>
+  <path d="M57 121c13 11 33 11 46 0" fill="none" stroke="#fd6003" stroke-width="5"/>
+</svg>
