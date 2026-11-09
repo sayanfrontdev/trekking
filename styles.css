@@ -460,7 +460,7 @@ body.cookie-consent-open { overflow: hidden; }
 [data-theme="dark"] .accordion-body { color: var(--ink); }
 [data-theme="dark"] .breadcrumb-item+.breadcrumb-item::before {color: var(--accent);}
 .sidebar-card>p { display: flex; align-items: center; }
-.btn { display: flex; align-items: center; justify-content: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; }
 
 @media (min-width: 1200px) {
   .mega-dropdown .mega-menu.dropdown-menu[data-bs-popper] { left: 50%; }
