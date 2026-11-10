@@ -1145,9 +1145,96 @@ function distinctGalleryPage() {
     ["photo-1519681393784-d120267933ba", "Mountain silhouettes at dusk"],
     ["photo-1473448912268-2022ce9509d8", "A forest trail"],
     ["photo-1448375240586-882707db888b", "Tall trees along a woodland path"],
-    ["photo-1433086966358-54859d0ed716", "Water falling through a forest valley"]
+    ["photo-1433086966358-54859d0ed716", "Water falling through a forest valley"],
+    ["photo-1501785888041-af3ef285b470", "A mountain lake below green hills"],
+    ["photo-1470252649378-9c29740c9fa8", "Sunrise over a quiet valley"],
+    ["photo-1500530855697-b586d89ba3ee", "A winding path through the mountains"],
+    ["photo-1500534314209-a25ddb2bd429", "A trail across an open hillside"],
+    ["photo-1486870591958-9b9d0d1dda99", "High peaks above a mountain valley"],
+    ["photo-1494783367193-149034c05e8f", "Clouds drifting across the hills"],
+    ["photo-1454496522488-7a8e488e8606", "Snowy peaks in the morning light"],
+    ["photo-1482938289607-e9573fc25ebb", "A river winding through the mountains"],
+    ["photo-1516026672322-bc52d61a55d5", "A forested mountain landscape"],
+    ["photo-1464278533981-50106e6176b1", "A still lake beneath high peaks"]
   ];
-  return `${pageHero("Landscapes along the way", "A visual field guide to ridgelines, forest paths, water, and the changing light of the hills.", photo("photo-1494783367193-149034c05e8f"))}<section class="page-content"><div class="container"><div class="photo-grid">${images.map(([src, alt]) => image(photo(src, 800), alt)).join("")}</div></div></section>`;
+  return `${pageHero("Landscapes along the way", "A visual field guide to ridgelines, forest paths, water, and the changing light of the hills.", photo("photo-1494783367193-149034c05e8f"))}<section class="page-content"><div class="container"><div class="photo-grid">${images.map(([src, alt], index) => {
+    const size = index % 5 === 0 ? "tall" : index % 3 === 0 ? "medium" : "regular";
+    return `<button class="gallery-photo" type="button" data-gallery-index="${index}" data-gallery-size="${size}" aria-label="View image ${index + 1}: ${alt}" ${index >= 11 ? "hidden" : ""}>${image(photo(src, 800), alt)}</button>`;
+  }).join("")}</div><div class="gallery-load-more-wrap"><button class="btn btn-outline-navy" type="button" data-gallery-load-more>Load more photos <i class="bi bi-arrow-down ms-2" aria-hidden="true"></i></button></div></div></section><div class="gallery-lightbox" id="galleryLightbox" hidden aria-hidden="true"><div class="gallery-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1"><button class="gallery-lightbox-close" type="button" data-gallery-close aria-label="Close image viewer"><i class="bi bi-x-lg" aria-hidden="true"></i></button><button class="gallery-lightbox-nav gallery-lightbox-prev" type="button" data-gallery-prev aria-label="Previous image"><i class="bi bi-chevron-left" aria-hidden="true"></i></button><figure class="gallery-lightbox-figure"><img data-gallery-image alt=""><figcaption><span data-gallery-caption></span><small data-gallery-count></small></figcaption></figure><button class="gallery-lightbox-nav gallery-lightbox-next" type="button" data-gallery-next aria-label="Next image"><i class="bi bi-chevron-right" aria-hidden="true"></i></button></div></div>`;
+}
+function setupGalleryLightbox(root) {
+  const modal = root.querySelector("#galleryLightbox");
+  const thumbs = [...root.querySelectorAll("[data-gallery-index]")];
+  if (!modal || !thumbs.length) return;
+  const loadMore = root.querySelector("[data-gallery-load-more]");
+  const grid = root.querySelector(".photo-grid");
+  let layoutFrame = 0;
+  const layoutMasonry = () => {
+    cancelAnimationFrame(layoutFrame);
+    layoutFrame = requestAnimationFrame(() => {
+      thumbs.forEach(thumb => {
+        if (thumb.hidden) return;
+        const rowSize = parseFloat(getComputedStyle(grid).gridAutoRows) || 8;
+        const rowGap = parseFloat(getComputedStyle(grid).rowGap) || 12;
+        const span = Math.ceil((thumb.getBoundingClientRect().height + rowGap) / (rowSize + rowGap));
+        thumb.style.gridRowEnd = `span ${span}`;
+      });
+    });
+  };
+  if (root._galleryMasonryResize) window.removeEventListener("resize", root._galleryMasonryResize);
+  root._galleryMasonryResize = layoutMasonry;
+  window.addEventListener("resize", layoutMasonry, { passive: true });
+  thumbs.forEach(thumb => thumb.querySelector("img")?.addEventListener("load", layoutMasonry, { once: true }));
+  layoutMasonry();
+  loadMore?.addEventListener("click", () => {
+    const hiddenThumbs = thumbs.filter(thumb => thumb.hidden);
+    hiddenThumbs.slice(0, 6).forEach(thumb => { thumb.hidden = false; });
+    if (!thumbs.some(thumb => thumb.hidden)) loadMore.hidden = true;
+    layoutMasonry();
+  });
+  const imageEl = modal.querySelector("[data-gallery-image]");
+  const caption = modal.querySelector("[data-gallery-caption]");
+  const count = modal.querySelector("[data-gallery-count]");
+  let current = 0;
+  let returnFocus = null;
+  const show = index => {
+    current = (index + thumbs.length) % thumbs.length;
+    const thumb = thumbs[current].querySelector("img");
+    imageEl.src = thumb.src.replace(/w=800/, "w=1800");
+    imageEl.alt = thumb.alt;
+    caption.textContent = thumb.alt;
+    count.textContent = `${current + 1} / ${thumbs.length}`;
+  };
+  const close = () => {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("gallery-lightbox-open");
+    returnFocus?.focus();
+  };
+  thumbs.forEach((button, index) => button.addEventListener("click", () => {
+    returnFocus = button;
+    show(index);
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("gallery-lightbox-open");
+    modal.querySelector("[data-gallery-close]").focus();
+  }));
+  modal.addEventListener("click", event => {
+    if (event.target === modal || event.target.closest("[data-gallery-close]")) close();
+    else if (event.target.closest("[data-gallery-prev]")) show(current - 1);
+    else if (event.target.closest("[data-gallery-next]")) show(current + 1);
+  });
+  modal.addEventListener("keydown", event => {
+    if (event.key === "Escape") close();
+    if (event.key === "ArrowLeft") show(current - 1);
+    if (event.key === "ArrowRight") show(current + 1);
+    if (event.key === "Tab") {
+      const focusable = [...modal.querySelectorAll("button:not([disabled])")];
+      const first = focusable[0], last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
 }
 function route() {
   const path = main.dataset.staticPage || location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, "");
@@ -1303,6 +1390,7 @@ function route() {
     if (legalContact) legalContact.innerHTML = `Use the <a href="contact.html">contact form</a> to prepare a policy question. This static website has no verified business email or phone number configured.`;
   }
   if (path === "planner") setupPlannerWizard();
+  if (path === "gallery") setupGalleryLightbox(main);
   if (!path) {
     main.insertAdjacentHTML("beforeend", storyFilmTemplate());
     storyFilmCleanup = setupStoryFilm();
