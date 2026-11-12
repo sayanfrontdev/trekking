@@ -466,7 +466,7 @@ function setupCookieConsent() {
   return { openSettings, close };
 }
 function authPopupTemplate() {
-  return `<div class="auth-popup" id="authPopup" hidden aria-hidden="true"><section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authPopupTitle" tabindex="-1"><button class="auth-close" type="button" data-auth-close aria-label="Continue browsing"><i class="bi bi-x-lg" aria-hidden="true"></i></button><span class="eyebrow">A place for your plans</span><h2 id="authPopupTitle">Sign in or create an account</h2><p class="auth-intro">Save the journeys you’re considering and keep your trip enquiries together.</p><div class="auth-tabs" role="tablist" aria-label="Account access"><button class="auth-tab active" id="authLoginTab" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel" data-auth-mode="login">Sign in</button><button class="auth-tab" id="authSignupTab" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel" data-auth-mode="signup">Create account</button></div><div class="auth-social-buttons"><button class="auth-social-button" type="button" data-auth-provider="Google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.8 6-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 2-6.8 2-5.2 0-9.7-3.5-11.3-8.2H5.8v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.7 27.9a12 12 0 0 1 0-7.8v-5.3H5.8a20 20 0 0 0 0 18.4l6.9-5.3Z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.1 29.5 4 24 4A20 20 0 0 0 5.8 14.8l6.9 5.3c1.6-4.7 6.1-8 11.3-8Z"/></svg><span>Continue with Google</span></button><button class="auth-social-button" type="button" data-auth-provider="Apple"><i class="bi bi-apple" aria-hidden="true"></i><span>Continue with Apple</span></button></div><div class="auth-divider"><span>or continue with email</span></div><p class="auth-service-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Google, Apple, and email account access are not connected yet. Forms won’t send or store your password.</p><form id="authLoginPanel" data-auth-panel="login" role="tabpanel" aria-labelledby="authLoginTab"><label class="form-label" for="authLoginEmail">Email address</label><input class="form-control" id="authLoginEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authLoginPassword">Password</label><input class="form-control" id="authLoginPassword" type="password" autocomplete="current-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Sign in</button></form><form id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab" hidden><label class="form-label" for="authSignupName">Your name</label><input class="form-control" id="authSignupName" autocomplete="name" required><label class="form-label mt-3" for="authSignupEmail">Email address</label><input class="form-control" id="authSignupEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authSignupPassword">Create a password</label><input class="form-control" id="authSignupPassword" type="password" autocomplete="new-password" required minlength="8"><label class="form-label mt-3" for="authSignupConfirm">Confirm password</label><input class="form-control" id="authSignupConfirm" type="password" autocomplete="new-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Create account</button></form><p class="auth-form-status" id="authFormStatus" role="status" aria-live="polite"></p><button class="auth-guest-link" type="button" data-auth-close>Continue browsing as a guest</button></section></div>`;
+  return `<div class="auth-popup" id="authPopup" hidden aria-hidden="true"><section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authPopupTitle" tabindex="-1"><button class="auth-close" type="button" data-auth-close aria-label="Continue browsing"><i class="bi bi-x-lg" aria-hidden="true"></i></button><span class="eyebrow">A place for your plans</span><h2 id="authPopupTitle">Sign in or create an account</h2><p class="auth-intro">Save the journeys you’re considering and keep your trip enquiries together.</p><div class="auth-tabs" role="tablist" aria-label="Account access"><button class="auth-tab active" id="authLoginTab" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel" data-auth-mode="login">Sign in</button><button class="auth-tab" id="authSignupTab" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel" data-auth-mode="signup">Create account</button></div><div class="auth-social-buttons"><button class="auth-social-button" type="button" data-auth-provider="Google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.8 6-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 2-6.8 2-5.2 0-9.7-3.5-11.3-8.2H5.8v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.7 27.9a12 12 0 0 1 0-7.8v-5.3H5.8a20 20 0 0 0 0 18.4l6.9-5.3Z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.1 29.5 4 24 4A20 20 0 0 0 5.8 14.8l6.9 5.3c1.6-4.7 6.1-8 11.3-8Z"/></svg><span>Continue with Google</span></button><button class="auth-social-button" type="button" data-auth-provider="Apple"><i class="bi bi-apple" aria-hidden="true"></i><span>Continue with Apple</span></button></div><div class="auth-divider"><span>or continue with email</span></div><p class="auth-service-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Email accounts are ready. Google and Apple sign-in become available when their OAuth credentials are configured on the server.</p><form id="authLoginPanel" data-auth-panel="login" role="tabpanel" aria-labelledby="authLoginTab"><label class="form-label" for="authLoginEmail">Email address</label><input class="form-control" id="authLoginEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authLoginPassword">Password</label><input class="form-control" id="authLoginPassword" type="password" autocomplete="current-password" required minlength="12"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Sign in</button></form><form id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab" hidden><label class="form-label" for="authSignupName">Your name</label><input class="form-control" id="authSignupName" autocomplete="name" required><label class="form-label mt-3" for="authSignupEmail">Email address</label><input class="form-control" id="authSignupEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authSignupPassword">Create a password</label><input class="form-control" id="authSignupPassword" type="password" autocomplete="new-password" required minlength="12" aria-describedby="authPasswordHelp"><small class="form-text" id="authPasswordHelp">Use at least 12 characters.</small><label class="form-label mt-3" for="authSignupConfirm">Confirm password</label><input class="form-control" id="authSignupConfirm" type="password" autocomplete="new-password" required minlength="12"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Create account</button></form><p class="auth-form-status" id="authFormStatus" role="status" aria-live="polite"></p><button class="auth-guest-link" type="button" data-auth-close>Continue browsing as a guest</button></section></div>`;
 }
 function enhancePasswordFields(root = document) {
   root.querySelectorAll('input[type="password"]').forEach(input => {
@@ -501,6 +501,29 @@ function setupAuthPopup() {
   const status = overlay.querySelector("#authFormStatus");
   const sessionKey = "trekking-auth-prompt-seen";
   let returnFocus = null;
+  let signedInUser = null;
+  const logoutButton = document.createElement("button");
+  logoutButton.className = "auth-guest-link";
+  logoutButton.type = "button";
+  logoutButton.dataset.authLogout = "";
+  logoutButton.textContent = "Sign out";
+  logoutButton.hidden = true;
+  status.insertAdjacentElement("afterend", logoutButton);
+
+  function renderAccountState() {
+    document.querySelectorAll("[data-open-auth]").forEach(button => {
+      const label = signedInUser ? `Hi, ${signedInUser.name.split(/\s+/)[0]}` : "Sign in";
+      button.querySelector(".auth-header-label")?.replaceChildren(document.createTextNode(label));
+      button.setAttribute("aria-label", signedInUser ? `Signed in as ${signedInUser.name}` : "Sign in or create an account");
+      button.title = signedInUser ? `Signed in as ${signedInUser.name}` : "Sign in or create an account";
+    });
+    overlay.querySelectorAll("[data-auth-panel]").forEach(panel => { panel.hidden = Boolean(signedInUser) || panel.dataset.authPanel !== "login"; });
+    overlay.querySelector(".auth-social-buttons").hidden = Boolean(signedInUser);
+    overlay.querySelector(".auth-divider").hidden = Boolean(signedInUser);
+    overlay.querySelector(".auth-service-note").hidden = Boolean(signedInUser);
+    overlay.querySelector("[data-auth-logout]").hidden = !signedInUser;
+    if (signedInUser) status.textContent = `Signed in as ${signedInUser.email}.`;
+  }
 
   function setMode(mode) {
     overlay.querySelectorAll("[data-auth-mode]").forEach(tab => {
@@ -510,9 +533,11 @@ function setupAuthPopup() {
       tab.tabIndex = active ? 0 : -1;
     });
     overlay.querySelectorAll("[data-auth-panel]").forEach(panel => {
-      panel.hidden = panel.dataset.authPanel !== mode;
+      panel.hidden = Boolean(signedInUser) || panel.dataset.authPanel !== mode;
     });
-    status.textContent = "";
+    status.textContent = signedInUser ? `Signed in as ${signedInUser.email}.` : "";
+    overlay.querySelector("[data-auth-logout]").hidden = !signedInUser;
+    if (signedInUser) return;
     overlay.querySelector(mode === "login" ? "#authLoginEmail" : "#authSignupName").focus();
   }
   function close() {
@@ -535,21 +560,64 @@ function setupAuthPopup() {
     setMode("login");
   }
 
-  overlay.addEventListener("click", event => {
+  overlay.addEventListener("click", async event => {
     const modeTab = event.target.closest("[data-auth-mode]");
     if (modeTab) setMode(modeTab.dataset.authMode);
-    else if (event.target.closest("[data-auth-provider]")) status.textContent = `${event.target.closest("[data-auth-provider]").dataset.authProvider} sign-in isn’t connected yet. No account was created or accessed.`;
+    else if (event.target.closest("[data-auth-provider]")) {
+      const provider = event.target.closest("[data-auth-provider]").dataset.authProvider.toLowerCase();
+      try {
+        const response = await fetch("/api/auth/providers");
+        const result = await response.json();
+        if (result.providers?.[provider]) location.assign(`/auth/${provider}`);
+        else status.textContent = `${provider === "google" ? "Google" : "Apple"} sign-in needs its OAuth credentials configured on the server.`;
+      } catch {
+        status.textContent = "Social sign-in is unavailable right now. Please try email and password.";
+      }
+    }
+    else if (event.target.closest("[data-auth-logout]")) {
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+        signedInUser = null;
+        renderAccountState();
+        setMode("login");
+      } catch {
+        status.textContent = "Sign-out could not be completed. Please try again.";
+      }
+    }
     else if (event.target === overlay || event.target.closest("[data-auth-close]")) close();
   });
-  overlay.addEventListener("submit", event => {
+  overlay.addEventListener("submit", async event => {
     if (!event.target.matches("[data-auth-panel]")) return;
     event.preventDefault();
-    if (event.target.dataset.authPanel === "signup" && event.target.querySelector("#authSignupPassword").value !== event.target.querySelector("#authSignupConfirm").value) {
+    const isSignup = event.target.dataset.authPanel === "signup";
+    if (isSignup && event.target.querySelector("#authSignupPassword").value !== event.target.querySelector("#authSignupConfirm").value) {
       status.textContent = "Those passwords don’t match. Please check them and try again.";
       event.target.querySelector("#authSignupConfirm").focus();
       return;
     }
-    status.textContent = "Account access is not connected yet. Your details were not sent or saved. Continue as a guest while the account service is being set up.";
+    const button = event.target.querySelector('button[type="submit"]');
+    button.disabled = true;
+    status.textContent = "Connecting securely…";
+    try {
+      const response = await fetch(`/api/auth/${isSignup ? "register" : "login"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: isSignup ? event.target.querySelector("#authSignupName").value : undefined,
+          email: event.target.querySelector(isSignup ? "#authSignupEmail" : "#authLoginEmail").value,
+          password: event.target.querySelector(isSignup ? "#authSignupPassword" : "#authLoginPassword").value
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Account access failed.");
+      signedInUser = result.user;
+      renderAccountState();
+      setMode("login");
+    } catch (error) {
+      status.textContent = error.message || "Account access is temporarily unavailable.";
+    } finally {
+      button.disabled = false;
+    }
   });
   overlay.addEventListener("keydown", event => {
     if (overlay.hidden) return;
@@ -567,6 +635,11 @@ function setupAuthPopup() {
       }
     }
   });
+
+  fetch("/api/auth/me").then(response => response.json()).then(result => {
+    signedInUser = result.user;
+    renderAccountState();
+  }).catch(() => {});
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-open-auth]")) return;
     event.preventDefault();
@@ -1100,7 +1173,7 @@ function faqAnswer(question) {
   return "Weather, access, and local guidance can change. Confirm the latest route conditions with the provider shortly before travel and follow local safety advice.";
 }
 function contactPage() {
-  return `${pageHero("Let's talk about the trip", "A question, an idea or just not sure where to start? Tell us a little and a real person from our team will be in touch.", photo("photo-1470770841072-f978cf4d019e"))}<section class="page-content"><div class="container"><div class="row g-5"><div class="col-lg-5"><span class="eyebrow">Say hello</span><h2 class="mt-3">We're good listeners.</h2><p class="mt-3">Share what you're dreaming about. We'll help you figure out the rest, one thoughtful step at a time.</p><div class="sidebar-card mt-4"><h3>Reach our team</h3><p><i class="bi bi-telephone me-2"></i><a href="tel:+911234567890">+91 12345 67890</a></p><p><i class="bi bi-envelope me-2"></i><a href="mailto:hello@trekking.example">hello@trekking.example</a></p><p><i class="bi bi-whatsapp me-2"></i>WhatsApp: +91 12345 67890</p><p><i class="bi bi-geo-alt me-2"></i>Office address — add your business address</p><small>Replace contact placeholders with your verified business details.</small></div></div><div class="col-lg-7"><form class="content-panel" data-message="Thanks for reaching out. We'll be in touch soon."><div class="row g-3"><div class="col-md-6"><label class="form-label" for="contactName">Your name</label><input id="contactName" class="form-control" required autocomplete="name" placeholder="Name"></div><div class="col-md-6"><label class="form-label" for="contactEmail">Email address</label><input id="contactEmail" class="form-control" type="email" required autocomplete="email" placeholder="you@example.com"></div><div class="col-md-6"><label class="form-label" for="contactPhone">Phone (optional)</label><input id="contactPhone" class="form-control" type="tel" autocomplete="tel" placeholder="+91"></div><div class="col-md-6"><label class="form-label" for="contactInterest">What are you interested in?</label><select id="contactInterest" class="form-select"><option>Help me choose</option><option>Trekking</option><option>Weekend trip</option><option>Custom journey</option><option>Existing booking</option></select></div><div class="col-12"><label class="form-label" for="contactMessage">Your message</label><textarea id="contactMessage" class="form-control" rows="5" required placeholder="Tell us what you have in mind..."></textarea></div><div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="privacyAgree" required><label class="form-check-label small" for="privacyAgree">I agree to the <a href="#/legal/privacy">Privacy Policy</a> and consent to being contacted about this enquiry.</label></div></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Send your note <i class="bi bi-arrow-up-right ms-2"></i></button><p class="form-hint small mt-3 mb-0">Demo form: connect a secure form endpoint before accepting real enquiries.</p></div></div></form></div></div></div></section>`;
+  return `${pageHero("Let's talk about the trip", "A question, an idea or just not sure where to start? Send a note for the TREKKING team to review.", photo("photo-1470770841072-f978cf4d019e"))}<section class="page-content"><div class="container"><div class="row g-5"><div class="col-lg-5"><span class="eyebrow">Say hello</span><h2 class="mt-3">We're good listeners.</h2><p class="mt-3">Share what you're dreaming about. We'll help you figure out the rest, one thoughtful step at a time.</p><div class="sidebar-card mt-4"><h3>Reach our team</h3><p><i class="bi bi-telephone me-2"></i><a href="tel:+911234567890">+91 12345 67890</a></p><p><i class="bi bi-envelope me-2"></i><a href="mailto:hello@trekking.example">hello@trekking.example</a></p><p><i class="bi bi-whatsapp me-2"></i>WhatsApp: +91 12345 67890</p><p><i class="bi bi-geo-alt me-2"></i>Office address — add your business address</p><small>Replace contact placeholders with your verified business details.</small></div></div><div class="col-lg-7"><form class="content-panel" data-message="Thanks for reaching out. We'll be in touch soon."><div class="row g-3"><div class="col-md-6"><label class="form-label" for="contactName">Your name</label><input id="contactName" class="form-control" required autocomplete="name" placeholder="Name"></div><div class="col-md-6"><label class="form-label" for="contactEmail">Email address</label><input id="contactEmail" class="form-control" type="email" required autocomplete="email" placeholder="you@example.com"></div><div class="col-md-6"><label class="form-label" for="contactPhone">Phone (optional)</label><input id="contactPhone" class="form-control" type="tel" autocomplete="tel" placeholder="+91"></div><div class="col-md-6"><label class="form-label" for="contactInterest">What are you interested in?</label><select id="contactInterest" class="form-select"><option>Help me choose</option><option>Trekking</option><option>Weekend trip</option><option>Custom journey</option><option>Existing booking</option></select></div><div class="col-12"><label class="form-label" for="contactMessage">Your message</label><textarea id="contactMessage" class="form-control" rows="5" required placeholder="Tell us what you have in mind..."></textarea></div><div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="privacyAgree" required><label class="form-check-label small" for="privacyAgree">I agree to the <a href="#/legal/privacy">Privacy Policy</a> and consent to being contacted about this enquiry.</label></div></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Send your note <i class="bi bi-arrow-up-right ms-2"></i></button><p class="form-hint small mt-3 mb-0">Your message is saved on this server for team review. No email notification is sent.</p></div></div></form></div></div></div></section>`;
 }
 function setupPlannerWizard() {
   const form = main.querySelector("#plannerForm");
@@ -1172,17 +1245,10 @@ function setupPlannerWizard() {
 }
 
 function plannerPage() {
-  return `${pageHero("Your trip, your way", "A good journey starts with a conversation. Tell us what matters to you and we'll help shape the right kind of escape.", photo("photo-1464822759023-fed622ff2c3b"))}<section class="page-content"><div class="container"><div class="trip-planner content-panel"><div class="step-indicator"><span class="active"></span><span></span><span></span></div><h2 class="h3">Let's start with the big picture.</h2><p class="small mb-4">No need to have it all figured out. This is just a helpful starting point.</p><form id="plannerForm"><div class="row g-3"><div class="col-md-6"><label for="plannerPlace" class="form-label">Where would you love to go?</label><select class="form-select" id="plannerPlace" required><option value="">Choose a place</option>${destinations.map(d => `<option>${d.title}</option>`).join("")}<option>Open to ideas</option></select></div><div class="col-md-6"><label for="plannerStyle" class="form-label">What feels like your kind of trip?</label><select class="form-select" id="plannerStyle" required><option value="">Choose a travel style</option><option>Trekking & walking</option><option>Culture & nature</option><option>Weekend escape</option><option>A bit of everything</option></select></div><div class="col-md-6"><label for="plannerDates" class="form-label">When are you thinking?</label><input class="form-control" id="plannerDates" placeholder="A month or rough dates"></div><div class="col-md-6"><label for="plannerPeople" class="form-label">How many people?</label><select class="form-select" id="plannerPeople"><option>Just me</option><option>2 people</option><option>3–5 people</option><option>6+ people</option></select></div><div class="col-12"><label for="plannerDream" class="form-label">Anything else we should know?</label><textarea class="form-control" id="plannerDream" rows="3" placeholder="A pace you love, a special occasion, a place you've always wanted to see..."></textarea></div><div class="col-md-6"><label for="plannerEmail" class="form-label">Your email</label><input type="email" class="form-control" id="plannerEmail" required placeholder="you@example.com"></div><div class="col-md-6"><label for="plannerName" class="form-label">Your name</label><input class="form-control" id="plannerName" required placeholder="Name"></div><div class="col-12 mt-3"><div class="alert alert-light border small mb-3">Submitting this sample form does not create a booking. Connect a secure enquiry service before launch.</div><button class="btn btn-primary-navy" type="submit">Start the conversation <i class="bi bi-arrow-right ms-2"></i></button></div></div></form></div></div></section>`;
+  return `${pageHero("Your trip, your way", "A good journey starts with a conversation. Tell us what matters to you and we'll help shape the right kind of escape.", photo("photo-1464822759023-fed622ff2c3b"))}<section class="page-content"><div class="container"><div class="trip-planner content-panel"><div class="step-indicator"><span class="active"></span><span></span><span></span></div><h2 class="h3">Let's start with the big picture.</h2><p class="small mb-4">No need to have it all figured out. This is just a helpful starting point.</p><form id="plannerForm"><div class="row g-3"><div class="col-md-6"><label for="plannerPlace" class="form-label">Where would you love to go?</label><select class="form-select" id="plannerPlace" required><option value="">Choose a place</option>${destinations.map(d => `<option>${d.title}</option>`).join("")}<option>Open to ideas</option></select></div><div class="col-md-6"><label for="plannerStyle" class="form-label">What feels like your kind of trip?</label><select class="form-select" id="plannerStyle" required><option value="">Choose a travel style</option><option>Trekking & walking</option><option>Culture & nature</option><option>Weekend escape</option><option>A bit of everything</option></select></div><div class="col-md-6"><label for="plannerDates" class="form-label">When are you thinking?</label><input class="form-control" id="plannerDates" placeholder="A month or rough dates"></div><div class="col-md-6"><label for="plannerPeople" class="form-label">How many people?</label><select class="form-select" id="plannerPeople"><option>Just me</option><option>2 people</option><option>3–5 people</option><option>6+ people</option></select></div><div class="col-12"><label for="plannerDream" class="form-label">Anything else we should know?</label><textarea class="form-control" id="plannerDream" rows="3" placeholder="A pace you love, a special occasion, a place you've always wanted to see..."></textarea></div><div class="col-md-6"><label for="plannerEmail" class="form-label">Your email</label><input type="email" class="form-control" id="plannerEmail" required placeholder="you@example.com"></div><div class="col-md-6"><label for="plannerName" class="form-label">Your name</label><input class="form-control" id="plannerName" required placeholder="Name"></div><div class="col-12 mt-3"><div class="alert alert-light border small mb-3">Submitting saves a trip enquiry for the TREKKING team. This is not a booking confirmation.</div><button class="btn btn-primary-navy" type="submit">Start the conversation <i class="bi bi-arrow-right ms-2"></i></button></div></div></form></div></div></section>`;
 }
 function bookingPage() {
-  return `${pageHero("A few details, then the daydreaming", "Send us your booking request. We'll check availability and confirm the trip details with you before anything is final.", photo("photo-1470770841072-f978cf4d019e"))}<section class="page-content"><div class="container"><div class="row g-5"><div class="col-lg-7"><form class="content-panel" id="bookingForm"><h2 class="h3 mb-4">Booking details</h2><div class="row g-3"><div class="col-12"><label class="form-label" for="bookingTrip">Choose a journey</label><select class="form-select" id="bookingTrip" required>${trips.map(t => `<option>${t.title}</option>`).join("")}</select></div><div class="col-md-6"><label class="form-label" for="bookingName">Full name</label><input class="form-control" id="bookingName" required autocomplete="name"></div><div class="col-md-6"><label class="form-label" for="bookingEmail">Email address</label><input class="form-control" id="bookingEmail" required type="email" autocomplete="email"></div><div class="col-md-6"><label class="form-label" for="bookingDate">Preferred departure</label><select class="form-select" id="bookingDate"><option>Nov 18, 2026</option><option>Dec 09, 2026</option><option>Jan 20, 2027</option><option>Flexible dates</option></select></div><div class="col-md-6"><label class="form-label" for="bookingGuests">Travellers</label><select class="form-select" id="bookingGuests"><option>1 traveller</option><option>2 travellers</option><option>3 travellers</option><option>4+ travellers</option></select></div><div class="col-12"><label class="form-label" for="bookingNotes">Anything we should know?</label><textarea class="form-control" id="bookingNotes" rows="3"></textarea></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Request to book <i class="bi bi-arrow-right ms-2"></i></button><p class="small mt-3 mb-0">This is a demo booking request. No payment is collected and no reservation is confirmed.</p></div></div></form></div><aside class="col-lg-5"><div class="sidebar-card"><h3>What happens next?</h3><p>1. We check availability for your preferred departure.</p><p>2. We send confirmed trip details, inclusions and terms.</p><p>3. Your booking is final only after you confirm and complete the agreed payment.</p><a href="#/legal/cancellation">Read cancellation information <i class="bi bi-arrow-right"></i></a></div></aside></div></div></section>`;
-}
-function statusPage(kind) {
-  const success = kind === "confirmation" || kind === "payment-success";
-  const failed = kind === "payment-failed";
-  const heading = kind === "confirmation" ? "Request received." : kind === "payment-success" ? "Payment successful." : failed ? "Payment didn't go through." : "You're all set.";
-  const copy = kind === "confirmation" ? "Your demo booking request has been received. A member of our team will contact you to confirm availability and next steps." : kind === "payment-success" ? "This is a sample confirmation screen. In a live booking flow, your receipt and trip details would be sent to your email." : failed ? "No payment has been recorded. You can try another method or contact our team for help." : "Thanks for getting in touch. Your message is ready for our team.";
-  return `<section class="section section-soft min-vh-50"><div class="container text-center py-5"><div class="display-1 ${success ? "text-success" : "text-warning"}"><i class="bi ${success ? "bi-check-circle" : failed ? "bi-exclamation-circle" : "bi-envelope-check"}"></i></div><h1 class="h2 mt-4">${heading}</h1><p class="mx-auto my-3" style="max-width:540px">${copy}</p><p class="small">Reference: ${success ? "TRK-2026-0481" : "DEMO-REQUEST"}</p><a class="btn btn-primary-navy mt-3" href="#/">Back to the home page</a> <a class="btn btn-outline-navy mt-3" href="#/contact">Contact us</a>${kind === "confirmation" ? `<div class="mt-4"><small class="d-block mb-2">Demo payment screens only — no payment will be processed.</small><a class="text-link mx-2" href="#/payment-success">Payment success preview</a><a class="text-link mx-2" href="#/payment-failed">Payment failure preview</a></div>` : ""}</div></section>`;
+  return `${pageHero("A few details, then the daydreaming", "Send us your booking request. We'll check availability and confirm the trip details with you before anything is final.", photo("photo-1470770841072-f978cf4d019e"))}<section class="page-content"><div class="container"><div class="row g-5"><div class="col-lg-7"><form class="content-panel" id="bookingForm"><h2 class="h3 mb-4">Booking details</h2><div class="row g-3"><div class="col-12"><label class="form-label" for="bookingTrip">Choose a journey</label><select class="form-select" id="bookingTrip" required>${trips.map(t => `<option value="${t.slug}">${t.title}</option>`).join("")}</select></div><div class="col-md-6"><label class="form-label" for="bookingName">Full name</label><input class="form-control" id="bookingName" required autocomplete="name"></div><div class="col-md-6"><label class="form-label" for="bookingEmail">Email address</label><input class="form-control" id="bookingEmail" required type="email" autocomplete="email"></div><div class="col-md-6"><label class="form-label" for="bookingDate">Preferred departure</label><select class="form-select" id="bookingDate"><option>Nov 18, 2026</option><option>Dec 09, 2026</option><option>Jan 20, 2027</option><option>Flexible dates</option></select></div><div class="col-md-6"><label class="form-label" for="bookingGuests">Travellers</label><select class="form-select" id="bookingGuests"><option>1 traveller</option><option>2 travellers</option><option>3 travellers</option><option>4+ travellers</option></select></div><div class="col-12"><label class="form-label" for="bookingNotes">Anything we should know?</label><textarea class="form-control" id="bookingNotes" rows="3"></textarea></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Request to book <i class="bi bi-arrow-right ms-2"></i></button><p class="small mt-3 mb-0">Your request will be saved for the trip team. It is not confirmed until availability and payment terms are agreed.</p></div></div></form></div><aside class="col-lg-5"><div class="sidebar-card"><h3>What happens next?</h3><p>1. We check availability for your preferred departure.</p><p>2. We send confirmed trip details, inclusions and terms.</p><p>3. Your booking is final only after you confirm and complete the agreed payment.</p><a href="#/legal/cancellation">Read cancellation information <i class="bi bi-arrow-right"></i></a></div></aside></div></div></section>`;
 }
 function departuresPage() {
   return `${pageHero("Good days to get outside", "Find an upcoming group departure, or talk with us about dates that work better for you.", photo("photo-1464822759023-fed622ff2c3b"))}<section class="page-content"><div class="container"><div class="content-panel">${[["Sandakphu: the trail above the clouds","Nov 18 – Nov 24, 2026","7 days","₹18,500"],["Sikkim, slowly","Dec 09 – Dec 14, 2026","6 days","₹24,900"],["A little further into the hills","Jan 15 – Jan 17, 2027","3 days","₹6,400"],["Himachal beyond the postcards","Jan 20 – Jan 24, 2027","5 days","₹21,000"]].map((d,i)=>`<div class="departure-row"><div><strong>${d[0]}</strong><small>${d[1]}</small></div><div><small>Length</small>${d[2]}</div><div><small>From</small><span class="price">${d[3]}</span></div><div><span class="status-pill">${i === 0 ? "4 spots left" : "Open"}</span></div><a class="btn btn-outline-navy btn-sm" href="#/booking">Details</a></div>`).join("")}</div></div></section>`;
@@ -1224,14 +1290,51 @@ function aboutNotFound() {
   return `${pageHero("A quieter kind of adventure", "Thoughtfully planned journeys through mountain places, made better by the people who call them home.", photo("photo-1464822759023-fed622ff2c3b"))}<section class="page-content"><div class="container"><div class="row g-4">${trips.slice(0,3).map(t=>`<div class="col-md-4">${tripCard(t)}</div>`).join("")}</div></div></section>`;
 }
 function honestStatusPage(kind) {
-  const paymentUnavailable = kind === "payment-success" || kind === "payment-failed";
-  const heading = kind === "confirmation" ? "No booking has been submitted" : paymentUnavailable ? "Online payment is not available" : "Your message has not been sent";
+  const isPayment = kind === "payment-success" || kind === "payment-failed";
+  const heading = kind === "confirmation" ? "Your request is not confirmed" : isPayment ? "Checking payment status…" : "Your message has not been sent";
   const copy = kind === "confirmation"
-    ? "This website is not connected to a booking service. No reservation or enquiry was created. Contact the site owner to connect a secure submission service before accepting bookings."
-    : paymentUnavailable
-      ? "This website does not process payments. No payment or transaction has taken place; confirm current booking arrangements directly before paying."
-      : "This website is not connected to a contact service. Your message was not sent or stored.";
-  return `<section class="section section-soft"><div class="container text-center py-5"><div class="display-1 text-warning"><i class="bi bi-info-circle" aria-hidden="true"></i></div><h1 class="h2 mt-4">${heading}</h1><p class="mx-auto my-3" style="max-width:640px">${copy}</p><a class="btn btn-primary-navy mt-3" href="index.html">Return home</a> <a class="btn btn-outline-navy mt-3" href="contact.html">View contact options</a></div></section>`;
+    ? "A booking request must be submitted from the booking form. Requests are not confirmed until the trip team confirms availability and next steps."
+    : isPayment
+      ? "We’re checking the payment record with the booking service. This page will only show a successful payment after the server verifies it."
+      : "A contact message must be submitted from the contact form.";
+  return `<section class="section section-soft"><div class="container text-center py-5"><div class="display-1 text-warning" id="paymentStatusIcon"><i class="bi ${isPayment ? "bi-hourglass-split" : "bi-info-circle"}" aria-hidden="true"></i></div><h1 class="h2 mt-4" id="paymentStatusHeading">${heading}</h1><p class="mx-auto my-3" style="max-width:640px" id="paymentStatusCopy">${copy}</p><p class="small" id="paymentStatusReference" hidden></p><a class="btn btn-primary-navy mt-3" href="index.html">Return home</a> <a class="btn btn-outline-navy mt-3" href="contact.html">View contact options</a></div></section>`;
+}
+async function resolvePaymentStatus(kind) {
+  const reference = new URLSearchParams(location.search).get("ref");
+  const heading = document.querySelector("#paymentStatusHeading");
+  const copy = document.querySelector("#paymentStatusCopy");
+  const icon = document.querySelector("#paymentStatusIcon");
+  const referenceLine = document.querySelector("#paymentStatusReference");
+  if (!heading || !copy || !icon) return;
+  if (!reference) {
+    heading.textContent = "Payment not verified";
+    copy.textContent = "No booking reference was provided, so the site cannot confirm a payment. Check your booking email or contact the trip team.";
+    icon.innerHTML = '<i class="bi bi-exclamation-circle" aria-hidden="true"></i>';
+    return;
+  }
+  try {
+    const response = await fetch(`/api/bookings/${encodeURIComponent(reference)}`, { cache: "no-store" });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Booking not found.");
+    referenceLine.hidden = false;
+    referenceLine.textContent = `Booking reference: ${result.reference}`;
+    if (result.paymentStatus === "paid") {
+      heading.textContent = "Deposit received";
+      copy.textContent = `Your payment has been verified for ${result.trip}. The trip request still needs availability and itinerary confirmation from the TREKKING team.`;
+      icon.className = "display-1 text-success";
+      icon.innerHTML = '<i class="bi bi-check-circle" aria-hidden="true"></i>';
+    } else {
+      heading.textContent = kind === "payment-failed" ? "Payment not completed" : "Payment not verified";
+      copy.textContent = "No successful payment is recorded for this booking request. You can return to booking or contact the trip team for help.";
+      icon.className = "display-1 text-warning";
+      icon.innerHTML = '<i class="bi bi-exclamation-circle" aria-hidden="true"></i>';
+    }
+  } catch {
+    heading.textContent = "Payment not verified";
+    copy.textContent = "We could not find a verified payment for this reference. Please contact the trip team before trying again.";
+    icon.className = "display-1 text-warning";
+    icon.innerHTML = '<i class="bi bi-exclamation-circle" aria-hidden="true"></i>';
+  }
 }
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
@@ -1366,6 +1469,7 @@ function route() {
   blogPaginationCleanup?.();
   blogPaginationCleanup = null;
   main.innerHTML = html;
+  if (path === "payment-success" || path === "payment-failed") resolvePaymentStatus(path);
   const detailTripSlug = path.startsWith("trip/") ? parts[1] : path === "trip-detail" ? new URLSearchParams(location.search).get("trip") : "";
   const detailTrip = trips.find(trip => trip.slug === detailTripSlug);
   if (detailTrip) finalizeTripDetail(main, detailTrip);
@@ -1439,7 +1543,7 @@ function route() {
   }
   if (path === "contact") {
     const intro = main.querySelector(".page-hero p");
-    if (intro) intro.textContent = "Use the form to draft a question about routes, travel style, or planning. This static site does not send or store submissions yet.";
+    if (intro) intro.textContent = "Send a trip question or planning request. Your message will be saved securely so the team can follow up.";
     const contactPanel = main.querySelector(".sidebar-card");
     if (contactPanel) contactPanel.innerHTML = `<h3>Helpful enquiry details</h3><p>Include the destination you have in mind, your preferred travel window, walking experience, and any access or dietary requirements you want to discuss.</p><p class="mb-0">No email address, phone number, or office location has been provided for this site.</p>`;
   }
@@ -1451,7 +1555,7 @@ function route() {
   }
   if (path === "booking") {
     const bookingIntro = main.querySelector(".page-hero p");
-    if (bookingIntro) bookingIntro.textContent = "Review the information you would need to prepare a booking enquiry. This static site is not connected to a booking or payment service.";
+    if (bookingIntro) bookingIntro.textContent = "Send a booking request for the journey and departure you prefer. Your request is saved for follow-up; it is not confirmed until availability and terms are agreed.";
     const dateSelect = main.querySelector("#bookingDate");
     if (dateSelect) {
       const monthInput = document.createElement("input");
@@ -1463,13 +1567,13 @@ function route() {
       main.querySelector('label[for="bookingDate"]').textContent = "Preferred travel month";
     }
     const note = main.querySelector("#bookingForm .small");
-    if (note) note.textContent = "This form does not send or save information. No reservation is created.";
+    if (note) note.textContent = "Your booking request will be stored with a reference number. No trip is confirmed until availability and price are agreed.";
     const submit = main.querySelector('#bookingForm button[type="submit"]');
     if (submit) submit.innerHTML = `Review enquiry <i class="bi bi-arrow-right ms-2"></i>`;
   }
   if (path === "planner") {
     const previewNote = main.querySelector("#plannerForm .alert");
-    if (previewNote) previewNote.textContent = "This planner is not connected to a submission service. Your entries stay in this page and are not sent or saved.";
+    if (previewNote) previewNote.textContent = "Your trip preferences will be saved securely as an enquiry. Submitting does not confirm a booking.";
   }
   if (path.startsWith("legal/")) {
     main.querySelector(".legal-updated")?.remove();
@@ -1584,7 +1688,57 @@ cookieConsentController = setupCookieConsent();
 authPopupController = setupAuthPopup();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
-document.addEventListener("submit", event => {
+async function postLocalRequest(endpoint, payload) {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "The request could not be saved.");
+  return result;
+}
+let razorpayScriptPromise;
+async function startRazorpayCheckout(reference) {
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.append(script);
+    });
+  }
+  await razorpayScriptPromise;
+  const order = await postLocalRequest("/api/payments/create-order", { reference });
+  const checkout = new Razorpay({
+    key: order.key,
+    amount: order.amount,
+    currency: order.currency,
+    name: "TREKKING",
+    description: `Booking deposit · ${order.trip}`,
+    order_id: order.orderId,
+    prefill: { name: order.name, email: order.email },
+    notes: { booking_reference: reference },
+    theme: { color: "#fd6003" },
+    handler: async payment => {
+      try {
+        await postLocalRequest("/api/payments/verify", {
+          reference,
+          orderId: payment.razorpay_order_id,
+          paymentId: payment.razorpay_payment_id,
+          signature: payment.razorpay_signature
+        });
+        location.assign(`payment-success.html?ref=${encodeURIComponent(reference)}`);
+      } catch (error) {
+        showToast(error.message || "Payment verification is pending. Contact the trip team with your booking reference.");
+      }
+    },
+    modal: { ondismiss: () => showToast("Checkout closed. Your booking request is still saved.") }
+  });
+  checkout.open();
+}
+document.addEventListener("submit", async event => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
   if (form.id === "tripSearch") {
@@ -1601,13 +1755,62 @@ document.addEventListener("submit", event => {
       return;
     }
     if (!form.reportValidity()) return;
-    showToast("This planner is not connected to a submission service. Your details were not sent or saved.");
+    const submitButton = form.querySelector('button[type="submit"]');
+    const message = form.querySelector(".alert");
+    submitButton.disabled = true;
+    try {
+      const result = await postLocalRequest("/api/inquiries/planner", {
+        name: form.querySelector("#plannerName").value,
+        email: form.querySelector("#plannerEmail").value,
+        place: form.querySelector("#plannerPlace").value,
+        style: form.querySelector("#plannerStyle").value,
+        dates: form.querySelector("#plannerDates").value,
+        people: form.querySelector("#plannerPeople").value,
+        message: form.querySelector("#plannerDream").value
+      });
+      if (message) { message.className = "alert alert-success border small mb-3"; message.textContent = `Your trip enquiry is saved. Reference: ${result.reference}. This is not a booking confirmation.`; }
+      submitButton.textContent = "Enquiry saved";
+    } catch (error) {
+      if (message) message.textContent = error.message;
+      submitButton.disabled = false;
+    }
     return;
   }
   if (form.id === "bookingForm") {
     event.preventDefault();
     if (!form.reportValidity()) return;
-    showToast("Booking is not connected on this site. No reservation or payment was created.");
+    const submitButton = form.querySelector('button[type="submit"]');
+    const note = form.querySelector(".small");
+    submitButton.disabled = true;
+    try {
+      const result = await postLocalRequest("/api/bookings", {
+        name: form.querySelector("#bookingName").value,
+        email: form.querySelector("#bookingEmail").value,
+        trip: form.querySelector("#bookingTrip").value,
+        date: form.querySelector("#bookingDate").value,
+        guests: form.querySelector("#bookingGuests").value,
+        message: form.querySelector("#bookingNotes").value
+      });
+      if (note) note.textContent = `Request saved · Reference ${result.reference}. This is not a confirmed booking.`;
+      submitButton.textContent = "Request saved";
+      const paymentConfig = await fetch(`/api/payments/config?trip=${encodeURIComponent(form.querySelector("#bookingTrip").value)}`).then(response => response.json());
+      if (paymentConfig.enabled && note) {
+        const payButton = document.createElement("button");
+        payButton.className = "btn btn-primary-navy mt-3";
+        payButton.type = "button";
+        payButton.textContent = `Pay booking deposit · ₹${paymentConfig.amountInr.toLocaleString("en-IN")}`;
+        payButton.addEventListener("click", async () => {
+          payButton.disabled = true;
+          try { await startRazorpayCheckout(result.reference); }
+          catch (error) { showToast(error.message || "Checkout could not be started. Your request is still saved."); }
+          finally { payButton.disabled = false; }
+        });
+        note.insertAdjacentElement("afterend", payButton);
+      }
+    } catch (error) {
+      if (note) note.textContent = error.message;
+      submitButton.disabled = false;
+    }
     return;
   }
   if (form.id === "cookiePreferences") {
@@ -1621,7 +1824,27 @@ document.addEventListener("submit", event => {
   if (form.dataset.message) {
     event.preventDefault();
     if (!form.reportValidity()) return;
-    showToast("This form is not connected to a submission service. Your information was not sent or saved.");
+    if (form.querySelector("#contactName")) {
+      const submitButton = form.querySelector('button[type="submit"]');
+      const note = form.querySelector(".form-hint");
+      submitButton.disabled = true;
+      try {
+        const result = await postLocalRequest("/api/inquiries/contact", {
+          name: form.querySelector("#contactName").value,
+          email: form.querySelector("#contactEmail").value,
+          phone: form.querySelector("#contactPhone").value,
+          interest: form.querySelector("#contactInterest").value,
+          message: form.querySelector("#contactMessage").value
+        });
+        if (note) note.textContent = `Your message is saved. Reference: ${result.reference}. Your message is saved in the local enquiries file for team review; no email notification is sent.`;
+        submitButton.textContent = "Message saved";
+      } catch (error) {
+        if (note) note.textContent = error.message;
+        submitButton.disabled = false;
+      }
+    } else {
+      showToast("Email signup delivery is not configured yet; your address was not added.");
+    }
   }
 });
 function updateDestinationPreview(event) {
