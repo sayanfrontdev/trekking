@@ -3,19 +3,46 @@ const profilePortraits = {
   "photo-1500648767791-00dcc994a43e": "images/profile-rohan.svg",
   "photo-1531123897727-8f129e1688ce": "images/profile-nima.svg"
 };
-const photo = (id, width = 900) => profilePortraits[id] || `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=82`;
+const localPhotos = {
+  "photo-1464822759023-fed622ff2c3b": "images/sandakphu-ridge.jpg",
+  "photo-1454496522488-7a8e488e8606": "images/sandakphu-snow.jpg",
+  "photo-1551632811-561732d1e306": "images/sandakphu-tonglu-hut.jpg",
+  "photo-1500530855697-b586d89ba3ee": "images/darjeeling-teascape.jpg",
+  "photo-1470252649378-9c29740c9fa8": "images/darjeeling-tea-garden.jpg",
+  "photo-1511497584788-876760111969": "images/darjeeling-kanchenjunga.jpg",
+  "photo-1470770841072-f978cf4d019e": "images/sikkim-tsomgo.jpg",
+  "photo-1482938289607-e9573fc25ebb": "images/sikkim-tsomgo-mist.jpg",
+  "photo-1448375240586-882707db888b": "images/sikkim-enchey-monastery.jpg",
+  "photo-1516026672322-bc52d61a55d5": "images/sikkim-rumtek-monastery.jpg",
+  "photo-1464278533981-50106e6176b1": "images/kashmir-dal-lake.jpg",
+  "photo-1500534623283-312aade485b7": "images/kashmir-baisaran.jpg",
+  "photo-1501785888041-af3ef285b470": "images/kashmir-pahalgam-trail.jpg",
+  "photo-1472396961693-142e6e269027": "images/himachal-baspa-valley.jpg",
+  "photo-1441974231531-c6227db76b6e": "images/himachal-barshaini.jpg",
+  "photo-1473448912268-2022ce9509d8": "images/himachal-manali-mountains.jpg",
+  "photo-1519681393784-d120267933ba": "images/himachal-key-monastery.jpg",
+  "photo-1470071459604-3b5ec3a7fe05": "images/himachal-spiti-river.jpg",
+  "photo-1433086966358-54859d0ed716": "images/sikkim-tsomgo-mist.jpg",
+  "photo-1486870591958-9b9d0d1dda99": "images/sandakphu-ridge.jpg",
+  "photo-1500534314209-a25ddb2bd429": "images/darjeeling-tea-garden.jpg",
+  "photo-1523712999610-f77fbcfc3843": "images/sikkim-rumtek-monastery.jpg",
+  "photo-1483728642387-6c3bdd6c93e5": "images/himachal-manali-mountains.jpg",
+  "photo-1494783367193-149034c05e8f": "images/sandakphu-snow.jpg",
+  "photo-1510798831971-661eb04b3739": "images/himachal-key-monastery.jpg"
+};
+const photo = id => profilePortraits[id] || (id.startsWith("images/") ? id : localPhotos[id] || "images/sandakphu-ridge.jpg");
 const trips = [
-  { slug: "sandakphu", title: "Sandakphu: the trail above the clouds", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Moderate", image: photo("photo-1464822759023-fed622ff2c3b"), description: "Trace the high ridge above Singalila, with long views toward the Himalayan range and quiet stops in mountain settlements.", badge: "High ridge" },
-  { slug: "sandakphu-village-trail", title: "Singalila ridge and quiet villages", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Easy", image: photo("photo-1551632811-561732d1e306"), description: "Take a gentler route through forest paths and ridge-top settlements near Sandakphu, with time to pause between walks.", badge: "Gentle pace" },
-  { slug: "sikkim", title: "Sikkim, slowly", category: "Culture & nature", region: "Sikkim", destinations: ["sikkim"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Culture & nature"], level: "Easy", image: photo("photo-1470770841072-f978cf4d019e"), description: "Explore monastery courtyards, mountain villages, and the quieter roads of the eastern Himalayas.", badge: "Monastery routes" },
-  { slug: "sikkim-village-walk", title: "Sikkim village walks and monastery stays", category: "Culture & nature", region: "Sikkim", destinations: ["sikkim"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Culture & nature"], level: "Moderate", image: photo("photo-1464278533981-50106e6176b1"), description: "Build a journey around village trails, local food, and time to learn about the region's living traditions.", badge: "Village routes" },
-  { slug: "darjeeling", title: "Tea trails & Darjeeling mornings", category: "Weekend escape", region: "Darjeeling", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Easy", image: photo("photo-1500530855697-b586d89ba3ee"), description: "Walk among tea gardens, explore old hill-town lanes, and make room for an unhurried morning.", badge: "Tea garden walk" },
-  { slug: "darjeeling-tea-country", title: "Darjeeling tea country by foot", category: "Weekend escape", region: "Darjeeling", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Moderate", image: photo("photo-1470252649378-9c29740c9fa8"), description: "Follow paths through tea country and hillside lanes, with time to meet local growers and hosts along the way.", badge: "Tea garden walk" },
-  { slug: "kashmir", title: "Kashmir, the great outdoors", category: "Nature escape", region: "Kashmir", destinations: ["kashmir"], seasons: ["apr-jun"], styles: ["Culture & nature"], level: "Easy", image: photo("photo-1500534623283-312aade485b7"), description: "Spend time beside clear lakes and open meadows, and take the valley at a pace that leaves room for local encounters.", badge: "Valley landscape" },
-  { slug: "kashmir-meadows", title: "Kashmir meadow and lake escape", category: "Nature escape", region: "Kashmir", destinations: ["kashmir"], seasons: ["apr-jun", "oct-dec"], styles: ["Culture & nature"], level: "Moderate", image: photo("photo-1501785888041-af3ef285b470"), description: "Pair lakeside pauses with walks through the valley's changing landscapes and seasonal meadows.", badge: "Lakes & meadows" },
-  { slug: "himachal", title: "Himachal beyond the postcards", category: "Mountain journey", region: "Himachal Pradesh", destinations: ["himachal"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Trekking"], level: "Moderate", image: photo("photo-1472396961693-142e6e269027"), description: "Take the scenic way through pine forests, rivers, and mountain hamlets, with stops shaped around the route and conditions.", badge: "Pine forest route" },
-  { slug: "himachal-forest-paths", title: "Pine forest paths of Himachal", category: "Mountain journey", region: "Himachal Pradesh", destinations: ["himachal"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Trekking"], level: "Easy", image: photo("photo-1441974231531-c6227db76b6e"), description: "Start with a relaxed mountain walk through pine woods and riverside villages, with room to find your own rhythm.", badge: "Forest walk" },
-  { slug: "weekend", title: "A little further into the hills", category: "Weekend escape", region: "North Bengal", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Easy", image: photo("photo-1473448912268-2022ce9509d8"), description: "Step away from the usual routine for a short hill-country escape built around fresh air, local food, and unhurried time.", badge: "Short escape" }
+  { slug: "sandakphu", title: "Sandakphu: the trail above the clouds", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Moderate", image: "images/sandakphu-ridge.jpg", description: "Trace the high ridge above Singalila, with long views toward the Himalayan range and quiet stops in mountain settlements.", badge: "High ridge" },
+  { slug: "sandakphu-village-trail", title: "Singalila ridge and quiet villages", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Easy", image: "images/sandakphu-tonglu-hut.jpg", description: "Take a gentler route through forest paths and ridge-top settlements near Sandakphu, with time to pause between walks.", badge: "Gentle pace" },
+  { slug: "sikkim", title: "Sikkim, slowly", category: "Culture & nature", region: "Sikkim", destinations: ["sikkim"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Culture & nature"], level: "Easy", image: "images/sikkim-enchey-monastery.jpg", description: "Explore monastery courtyards, mountain villages, and the quieter roads of the eastern Himalayas.", badge: "Monastery routes" },
+  { slug: "sikkim-village-walk", title: "Sikkim village walks and monastery stays", category: "Culture & nature", region: "Sikkim", destinations: ["sikkim"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Culture & nature"], level: "Moderate", image: "images/sikkim-rumtek-monastery.jpg", description: "Build a journey around village trails, local food, and time to learn about the region's living traditions.", badge: "Village routes" },
+  { slug: "darjeeling", title: "Tea trails & Darjeeling mornings", category: "Weekend escape", region: "Darjeeling", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Easy", image: "images/darjeeling-teascape.jpg", description: "Walk among tea gardens, explore old hill-town lanes, and make room for an unhurried morning.", badge: "Tea garden walk" },
+  { slug: "darjeeling-tea-country", title: "Darjeeling tea country by foot", category: "Weekend escape", region: "Darjeeling", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Moderate", image: "images/darjeeling-tea-garden.jpg", description: "Follow paths through tea country and hillside lanes, with time to meet local growers and hosts along the way.", badge: "Tea garden walk" },
+  { slug: "kashmir", title: "Kashmir, the great outdoors", category: "Nature escape", region: "Kashmir", destinations: ["kashmir"], seasons: ["apr-jun"], styles: ["Culture & nature"], level: "Easy", image: "images/kashmir-dal-lake.jpg", description: "Spend time beside clear lakes and open meadows, and take the valley at a pace that leaves room for local encounters.", badge: "Valley landscape" },
+  { slug: "kashmir-meadows", title: "Kashmir meadow and lake escape", category: "Nature escape", region: "Kashmir", destinations: ["kashmir"], seasons: ["apr-jun", "oct-dec"], styles: ["Culture & nature"], level: "Moderate", image: "images/kashmir-baisaran.jpg", description: "Pair lakeside pauses with walks through the valley's changing landscapes and seasonal meadows.", badge: "Lakes & meadows" },
+  { slug: "himachal", title: "Himachal beyond the postcards", category: "Mountain journey", region: "Himachal Pradesh", destinations: ["himachal"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Trekking"], level: "Moderate", image: "images/himachal-baspa-valley.jpg", description: "Take the scenic way through pine forests, rivers, and mountain hamlets, with stops shaped around the route and conditions.", badge: "Pine forest route" },
+  { slug: "himachal-forest-paths", title: "Pine forest paths of Himachal", category: "Mountain journey", region: "Himachal Pradesh", destinations: ["himachal"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Trekking"], level: "Easy", image: "images/himachal-barshaini.jpg", description: "Start with a relaxed mountain walk through pine woods and riverside villages, with room to find your own rhythm.", badge: "Forest walk" },
+  { slug: "weekend", title: "A little further into the hills", category: "Weekend escape", region: "North Bengal", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Easy", image: "images/darjeeling-kanchenjunga.jpg", description: "Step away from the usual routine for a short hill-country escape built around fresh air, local food, and unhurried time.", badge: "Short escape" }
 ];
 const articles = [
   { title: "How to prepare for your first Himalayan trek", category: "Trail notes", read: "7 min read", author: "TREKKING Journal", image: photo("photo-1519681393784-d120267933ba"), excerpt: "A practical guide to choosing a route, building confidence on local walks, and preparing for changing mountain conditions." },
@@ -26,11 +53,21 @@ const articles = [
   { title: "Five beautiful weekends in the hills", category: "Inspiration", read: "6 min read", author: "TREKKING Journal", image: photo("photo-1433086966358-54859d0ed716"), excerpt: "Ideas for a short change of scene, from tea-country walks to quiet forest paths and lakeside pauses." }
 ];
 const destinations = [
-  { title: "Sandakphu", sub: "West Bengal · India", image: photo("photo-1454496522488-7a8e488e8606", 850), aboutImage: photo("photo-1486870591958-9b9d0d1dda99", 600), slug: "sandakphu" },
-  { title: "Darjeeling", sub: "West Bengal · India", image: photo("photo-1500534623283-312aade485b7", 850), aboutImage: photo("photo-1500534314209-a25ddb2bd429", 600), slug: "darjeeling" },
-  { title: "Sikkim", sub: "Eastern Himalayas", image: photo("photo-1482938289607-e9573fc25ebb", 850), aboutImage: photo("photo-1516026672322-bc52d61a55d5", 600), slug: "sikkim" },
-  { title: "Kashmir", sub: "Northern India", image: photo("photo-1464278533981-50106e6176b1", 850), aboutImage: photo("photo-1454496522488-7a8e488e8606", 600), slug: "kashmir" },
-  { title: "Himachal Pradesh", sub: "Western Himalayas", image: photo("photo-1510798831971-661eb04b3739", 850), aboutImage: photo("photo-1486870591958-9b9d0d1dda99", 600), slug: "himachal" }
+  { title: "Sandakphu", sub: "West Bengal · India", image: "images/sandakphu-ridge.jpg", aboutImage: "images/sandakphu-snow.jpg", slug: "sandakphu" },
+  { title: "Darjeeling", sub: "West Bengal · India", image: "images/darjeeling-teascape.jpg", aboutImage: "images/darjeeling-kanchenjunga.jpg", slug: "darjeeling" },
+  { title: "Sikkim", sub: "Eastern Himalayas", image: "images/sikkim-tsomgo.jpg", aboutImage: "images/sikkim-enchey-monastery.jpg", slug: "sikkim" },
+  { title: "Kashmir", sub: "Northern India", image: "images/kashmir-dal-lake.jpg", aboutImage: "images/kashmir-baisaran.jpg", slug: "kashmir" },
+  { title: "Himachal Pradesh", sub: "Western Himalayas", image: "images/himachal-baspa-valley.jpg", aboutImage: "images/himachal-key-monastery.jpg", slug: "himachal" }
+];
+// Demo examples sourced from Trekking Alps on Trustpilot, not reviews for this India-travel site.
+// Keep the demo disclosure visible anywhere these examples are rendered.
+const customerReviews = [
+  { name: "S. Spence", initials: "SS", image: "images/profile-rohan.svg", rating: 5, summary: "Said the self-guided route and arrangements matched their group’s needs and went smoothly.", journey: "8-day Val Maira self-guided hike", source: "https://www.trustpilot.com/reviews/6ab933c47048e6a70f35957f" },
+  { name: "Benedetta", initials: "B", image: "images/profile-aditi.svg", rating: 4.5, summary: "Enjoyed a challenging Gran Paradiso hike, scenic views, welcoming hospitality, and good food in the mountain huts.", journey: "Gran Paradiso four-day hike", source: "https://www.trustpilot.com/reviews/6aa91756a2bd03766f9054d6" },
+  { name: "D. Karimi", initials: "DK", image: "images/profile-nima.svg", rating: 4, summary: "Praised the guide, beautiful hike, food, and warm group atmosphere.", journey: "Italian Alps hike", source: "https://www.trustpilot.com/reviews/6aa6d01babd334626046af8c" },
+  { name: "Sarah Hickey", initials: "SH", image: "images/profile-aditi.svg", rating: 4.8, summary: "Described a well-planned family trek with balanced routes, dependable transfers, comfortable stays, and thoughtful support.", journey: "Val d’Ayas & Monterosa week-long hut-to-hut trek", source: "https://www.trustpilot.com/reviews/6a82654ac0c6422cf8619d9f" },
+  { name: "Cindy Carpenter", initials: "CC", image: "images/profile-rohan.svg", rating: 4.2, summary: "Said a custom Val Maira route fit the group’s requested dates, distance, and elevation, with arrangements running smoothly.", journey: "Five-day Val Maira hike", source: "https://www.trustpilot.com/reviews/6a6f54d3e25b98b2466aef43" },
+  { name: "Egle Tiskeviciute", initials: "ET", image: "images/profile-nima.svg", rating: 3.5, summary: "Enjoyed a Susa Valley hut-to-hut trek and highlighted the guide’s care, communication, local stories, and wildlife.", journey: "Four-day Susa Valley Ring Trek", source: "https://www.trustpilot.com/reviews/6a67797f698c7a0ca57ad9bd" }
 ];
 const legalData = {
   privacy: { title: "Privacy policy", intro: "Your trust matters to us. Here's how we handle the information you share when exploring or booking a TREKKING journey.", sections: [
@@ -81,13 +118,14 @@ const legalData = {
 const main = document.querySelector("#main-content");
 const footer = document.querySelector("#site-footer");
 function destinationMenuTemplate() {
-  const feature = { title: "Mountain landscapes", image: photo("photo-1510798831971-661eb04b3739") };
+  const feature = { title: "India, beyond the ordinary", image: photo("photo-1464822759023-fed622ff2c3b", 700) };
   const destinationLink = destination => `<a href="${pageFile(`destination/${destination.slug}`)}" data-feature-image="${destination.image}" data-feature-title="${destination.title}">${destination.title}</a>`;
-  return `<li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle" href="destinations.html" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Destinations</a><div class="dropdown-menu mega-menu"><div class="row g-4"><div class="col-md-4"><span class="mega-label">Find your landscape</span><a class="mega-feature" data-destination-feature-link href="destinations.html"><img data-destination-feature src="${feature.image}" alt="${feature.title} landscape"><span data-destination-feature-title>Explore ${feature.title}<i class="bi bi-arrow-up-right"></i></span></a></div><div class="col-md-4"><span class="mega-label">The Himalayas</span>${destinations.slice(0, 3).map(destinationLink).join("")}</div><div class="col-md-4"><span class="mega-label">Slow travel favorites</span>${destinations.slice(3).map(destinationLink).join("")}<a href="destinations.html" class="mega-all">Explore all destinations <i class="bi bi-arrow-right"></i></a></div></div></div></li>`;
+  return `<li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle" href="destinations.html" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Destinations</a><div class="dropdown-menu mega-menu"><div class="row g-4"><div class="col-md-4"><span class="mega-label">Find your landscape</span><a class="mega-feature" data-destination-feature-link data-default-href="destinations.html" href="destinations.html"><img data-destination-feature data-default-image="${feature.image}" src="${feature.image}" alt="${feature.title} landscape"><span data-destination-feature-title data-default-title="${feature.title}">${feature.title}<i class="bi bi-arrow-up-right"></i></span></a></div><div class="col-md-4"><span class="mega-label">The Himalayas</span>${destinations.slice(0, 3).map(destinationLink).join("")}</div><div class="col-md-4"><span class="mega-label">Slow travel favorites</span>${destinations.slice(3).map(destinationLink).join("")}<a href="destinations.html" class="mega-all">Explore all destinations <i class="bi bi-arrow-right"></i></a></div></div></div></li>`;
 }
-if (!document.querySelector(".theme-toggle")) {
-  document.body.insertAdjacentHTML("afterbegin", `<div class="announcement-bar"><div class="container"><p class="mb-0"><i class="bi bi-stars me-2"></i>New season, new stories — <a href="upcoming-departures.html">discover upcoming departures</a></p></div></div><header class="site-header sticky-top"><nav class="navbar"><div class="container flex-wrap"><a class="navbar-brand" href="index.html"><img src="images/logo.svg" alt="TREKKING" width="154" height="41"><span class="brand-tagline">Explore More. Experience Life.</span></a><div class="header-actions d-flex align-items-center gap-2 ms-auto"><button class="btn theme-toggle" type="button" aria-label="Switch color theme"><i class="bi bi-moon-stars"></i></button><a class="btn btn-outline-navy" href="booking-details.html">Book now</a><a class="btn btn-primary-navy" href="trip-planner.html">Plan your trip</a></div><div class="navbar-collapse"><ul class="navbar-nav flex-row flex-wrap justify-content-center"><li class="nav-item"><a class="nav-link" href="index.html">Home</a></li><li class="nav-item"><a class="nav-link" href="destinations.html">Destinations</a></li><li class="nav-item"><a class="nav-link" href="destination-sandakphu.html">Sandakphu</a></li><li class="nav-item"><a class="nav-link" href="destination-sikkim.html">Sikkim</a></li><li class="nav-item"><a class="nav-link" href="destination-darjeeling.html">Darjeeling</a></li><li class="nav-item"><a class="nav-link" href="destination-kashmir.html">Kashmir</a></li><li class="nav-item"><a class="nav-link" href="destination-himachal.html">Himachal</a></li><li class="nav-item"><a class="nav-link" href="tour-packages.html">Tour packages</a></li><li class="nav-item"><a class="nav-link" href="trekking.html">Trekking</a></li><li class="nav-item"><a class="nav-link" href="weekend-trips.html">Weekend trips</a></li><li class="nav-item"><a class="nav-link" href="about.html">About</a></li><li class="nav-item"><a class="nav-link" href="blog.html">Journal</a></li><li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li></ul></div></div></nav></header>`);
+function siteHeaderTemplate() {
+  return `<div class="announcement-bar"><div class="container"><p class="mb-0"><i class="bi bi-stars me-2"></i>New season, new stories — <a href="upcoming-departures.html">discover upcoming departures</a></p></div></div><header class="site-header sticky-top"><nav class="navbar"><div class="container flex-wrap"><a class="navbar-brand" href="index.html"><img src="images/logo.svg" alt="TREKKING" width="154" height="41"><span class="brand-tagline">Explore More. Experience Life.</span></a><div class="header-actions d-flex align-items-center gap-2 ms-auto"><button class="btn theme-toggle" type="button" aria-label="Switch color theme"><i class="bi bi-moon-stars"></i></button><a class="btn btn-outline-navy" href="booking-details.html">Book now</a><a class="btn btn-primary-navy" href="trip-planner.html">Plan your trip</a></div><div class="navbar-collapse"><ul class="navbar-nav flex-row flex-wrap justify-content-center"><li class="nav-item"><a class="nav-link" href="index.html">Home</a></li><li class="nav-item"><a class="nav-link" href="destinations.html">Destinations</a></li><li class="nav-item"><a class="nav-link" href="destination-sandakphu.html">Sandakphu</a></li><li class="nav-item"><a class="nav-link" href="destination-sikkim.html">Sikkim</a></li><li class="nav-item"><a class="nav-link" href="destination-darjeeling.html">Darjeeling</a></li><li class="nav-item"><a class="nav-link" href="destination-kashmir.html">Kashmir</a></li><li class="nav-item"><a class="nav-link" href="destination-himachal.html">Himachal</a></li><li class="nav-item"><a class="nav-link" href="tour-packages.html">Tour packages</a></li><li class="nav-item"><a class="nav-link" href="trekking.html">Trekking</a></li><li class="nav-item"><a class="nav-link" href="weekend-trips.html">Weekend trips</a></li><li class="nav-item"><a class="nav-link" href="about.html">About</a></li><li class="nav-item"><a class="nav-link" href="blog.html">Journal</a></li><li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li></ul></div></div></nav></header>`;
 }
+if (!document.querySelector(".site-header")) document.body.insertAdjacentHTML("afterbegin", siteHeaderTemplate());
 if (!document.querySelector("#mobileNav")) {
   const generatedNavbar = document.querySelector(".site-header .navbar");
   const generatedNav = generatedNavbar.querySelector(".navbar-collapse");
@@ -115,11 +153,17 @@ function setDestinationMenuOpen(isOpen) {
 }
 document.querySelectorAll(".mega-dropdown").forEach(dropdown => {
   const toggle = dropdown.querySelector(".dropdown-toggle");
-  dropdown.addEventListener("mouseenter", () => setDestinationMenuOpen(true));
+  dropdown.addEventListener("mouseenter", () => {
+    setDestinationMenuOpen(true);
+    resetDestinationPreview(dropdown.querySelector(".mega-menu"));
+  });
   dropdown.addEventListener("mouseleave", () => {
     if (!toggle.classList.contains("show")) setDestinationMenuOpen(false);
   });
-  toggle.addEventListener("shown.bs.dropdown", () => setDestinationMenuOpen(true));
+  toggle.addEventListener("shown.bs.dropdown", () => {
+    setDestinationMenuOpen(true);
+    resetDestinationPreview(dropdown.querySelector(".mega-menu"));
+  });
   toggle.addEventListener("hidden.bs.dropdown", () => {
     if (!dropdown.matches(":hover")) setDestinationMenuOpen(false);
   });
@@ -134,7 +178,36 @@ function initializeNoticeTicker() {
   announcementBar.setAttribute("aria-label", "Important travel notice");
   announcementBar.innerHTML = `<div class="container notice-ticker-window"><div class="notice-ticker-track" aria-hidden="true"><span>${notice} <a href="contact.html">Contact the trip team</a><i class="bi bi-circle-fill"></i></span><span>${notice} <a href="contact.html">Contact the trip team</a><i class="bi bi-circle-fill"></i></span></div><p class="visually-hidden mb-0">${notice} Contact the trip team for current details.</p></div>`;
 }
+function initializeSpecialOffer() {
+  const header = document.querySelector(".site-header");
+  if (!header || document.querySelector(".offer-banner")) return;
+  header.insertAdjacentHTML("afterend", `<aside class="offer-banner" aria-label="Special offer"><div class="container offer-banner-inner"><p class="offer-banner-copy mb-0"><i class="bi bi-stars" aria-hidden="true"></i><strong>Special offer</strong><span>Save 10% on select winter journeys</span><a href="upcoming-departures.html">Explore trips <i class="bi bi-arrow-right" aria-hidden="true"></i></a></p><div class="offer-countdown" aria-label="Offer countdown" data-offer-deadline="2026-12-01T23:59:59+05:30"><span class="offer-countdown-label">Ends in</span><span class="offer-countdown-unit"><b data-countdown-days>00</b><small>days</small></span><span class="offer-countdown-unit"><b data-countdown-hours>00</b><small>hrs</small></span><span class="offer-countdown-unit"><b data-countdown-minutes>00</b><small>min</small></span><span class="offer-countdown-unit"><b data-countdown-seconds>00</b><small>sec</small></span></div><p class="offer-expired mb-0" hidden>Offer ended. <a href="contact.html">Ask us about current offers</a></p></div></aside>`);
+  const countdown = document.querySelector(".offer-banner [data-offer-deadline]");
+  const deadline = new Date(countdown.dataset.offerDeadline).getTime();
+  let countdownTimer;
+  const updateCountdown = () => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      countdown.hidden = true;
+      document.querySelector(".offer-banner-copy").hidden = true;
+      document.querySelector(".offer-expired").hidden = false;
+      window.clearInterval(countdownTimer);
+      return;
+    }
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    countdown.querySelector("[data-countdown-days]").textContent = String(days).padStart(2, "0");
+    countdown.querySelector("[data-countdown-hours]").textContent = String(hours).padStart(2, "0");
+    countdown.querySelector("[data-countdown-minutes]").textContent = String(minutes).padStart(2, "0");
+    countdown.querySelector("[data-countdown-seconds]").textContent = String(seconds).padStart(2, "0");
+  };
+  updateCountdown();
+  countdownTimer = window.setInterval(updateCountdown, 1000);
+}
 initializeNoticeTicker();
+initializeSpecialOffer();
 const headerAuthActions = document.querySelector(".site-header .header-actions");
 if (headerAuthActions && !headerAuthActions.querySelector("[data-open-auth]")) {
   const authButton = document.createElement("button");
@@ -278,16 +351,15 @@ function statsMarkup() {
 function statsSection() {
   return `<section class="stats-section section-soft" aria-label="TREKKING at a glance"><div class="container">${statsMarkup()}</div></section>`;
 }
-function ratingStars(rating, maxRating = 5) {
+function ratingStars(rating, maxRating = 5, labelPrefix = "Rated") {
   const numericRating = Number(rating);
   const safeRating = Number.isFinite(numericRating) ? Math.min(maxRating, Math.max(0, numericRating)) : 0;
-  const roundedRating = Math.round(safeRating * 2) / 2;
-  const fullStars = Math.floor(roundedRating);
-  const hasHalfStar = roundedRating - fullStars === 0.5;
-  const emptyStars = maxRating - fullStars - Number(hasHalfStar);
-  const displayRating = Number.isInteger(roundedRating) ? String(roundedRating) : roundedRating.toFixed(1);
-  const icons = `${'<i class="bi bi-star-fill" aria-hidden="true"></i>'.repeat(fullStars)}${hasHalfStar ? '<i class="bi bi-star-half" aria-hidden="true"></i>' : ""}${'<i class="bi bi-star" aria-hidden="true"></i>'.repeat(emptyStars)}`;
-  return `<div class="review-stars" role="img" aria-label="Rated ${displayRating} out of ${maxRating}">${icons}<span class="rating-score" aria-hidden="true">${displayRating}/${maxRating}</span></div>`;
+  const displayRating = Number.isInteger(safeRating) ? String(safeRating) : safeRating.toFixed(1);
+  const icons = Array.from({ length: maxRating }, (_, index) => {
+    const fill = Math.round(Math.max(0, Math.min(1, safeRating - index)) * 100);
+    return `<span class="rating-star" style="--star-fill:${fill}%" aria-hidden="true"><i class="bi bi-star"></i><i class="bi bi-star-fill"></i></span>`;
+  }).join("");
+  return `<div class="review-stars" role="img" aria-label="${labelPrefix} ${displayRating} out of ${maxRating}">${icons}<span class="rating-score" aria-hidden="true">${displayRating}/${maxRating}</span></div>`;
 }
 function cookieConsentTemplate() {
   return `<div class="cookie-consent" id="cookieConsent" hidden aria-hidden="true"><section class="cookie-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="cookieConsentTitle" tabindex="-1"><div class="cookie-consent-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></div><p class="eyebrow">A little note about privacy</p><h2 id="cookieConsentTitle">Your privacy matters.</h2><p class="cookie-consent-copy">We use essential storage to make this site work. With your permission, we’d also like to save optional analytics and marketing preferences on this device.</p><div class="cookie-consent-actions" data-cookie-actions><button class="btn btn-outline-navy" type="button" data-cookie-choice="necessary">Only necessary</button><button class="btn btn-outline-navy" type="button" data-cookie-manage>Choose settings</button><button class="btn btn-primary-navy" type="button" data-cookie-choice="all">Accept all</button></div><form class="cookie-settings" data-cookie-settings hidden><div class="cookie-setting-row"><div><strong>Essential</strong><small>Required for basic site operation; always active.</small></div><input class="form-check-input" type="checkbox" checked disabled aria-label="Essential storage always active"></div><label class="cookie-setting-row" for="cookieConsentAnalytics"><span><strong>Analytics</strong><small>Help us understand how the site is used.</small></span><input class="form-check-input" type="checkbox" id="cookieConsentAnalytics"></label><label class="cookie-setting-row" for="cookieConsentMarketing"><span><strong>Marketing</strong><small>Help measure promotions and campaigns.</small></span><input class="form-check-input" type="checkbox" id="cookieConsentMarketing"></label><div class="cookie-consent-actions"><button class="btn btn-outline-navy" type="button" data-cookie-back>Back</button><button class="btn btn-primary-navy" type="submit">Save choices</button></div></form><p class="cookie-consent-footnote">You can change your choice later on our <a href="cookie-policy.html">Cookie policy</a> page.</p></section></div>`;
@@ -394,11 +466,37 @@ function setupCookieConsent() {
   return { openSettings, close };
 }
 function authPopupTemplate() {
-  return `<div class="auth-popup" id="authPopup" hidden aria-hidden="true"><section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authPopupTitle" tabindex="-1"><button class="auth-close" type="button" data-auth-close aria-label="Continue browsing"><i class="bi bi-x-lg" aria-hidden="true"></i></button><span class="eyebrow">A place for your plans</span><h2 id="authPopupTitle">Sign in or create an account</h2><p class="auth-intro">Save the journeys you’re considering and keep your trip enquiries together.</p><div class="auth-tabs" role="tablist" aria-label="Account access"><button class="auth-tab active" id="authLoginTab" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel" data-auth-mode="login">Sign in</button><button class="auth-tab" id="authSignupTab" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel" data-auth-mode="signup">Create account</button></div><p class="auth-service-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Account access is not connected yet. Forms won’t send or store your password.</p><form id="authLoginPanel" data-auth-panel="login" role="tabpanel" aria-labelledby="authLoginTab"><label class="form-label" for="authLoginEmail">Email address</label><input class="form-control" id="authLoginEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authLoginPassword">Password</label><input class="form-control" id="authLoginPassword" type="password" autocomplete="current-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Sign in</button></form><form id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab" hidden><label class="form-label" for="authSignupName">Your name</label><input class="form-control" id="authSignupName" autocomplete="name" required><label class="form-label mt-3" for="authSignupEmail">Email address</label><input class="form-control" id="authSignupEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authSignupPassword">Create a password</label><input class="form-control" id="authSignupPassword" type="password" autocomplete="new-password" required minlength="8"><label class="form-label mt-3" for="authSignupConfirm">Confirm password</label><input class="form-control" id="authSignupConfirm" type="password" autocomplete="new-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Create account</button></form><p class="auth-form-status" id="authFormStatus" role="status" aria-live="polite"></p><button class="auth-guest-link" type="button" data-auth-close>Continue browsing as a guest</button></section></div>`;
+  return `<div class="auth-popup" id="authPopup" hidden aria-hidden="true"><section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authPopupTitle" tabindex="-1"><button class="auth-close" type="button" data-auth-close aria-label="Continue browsing"><i class="bi bi-x-lg" aria-hidden="true"></i></button><span class="eyebrow">A place for your plans</span><h2 id="authPopupTitle">Sign in or create an account</h2><p class="auth-intro">Save the journeys you’re considering and keep your trip enquiries together.</p><div class="auth-tabs" role="tablist" aria-label="Account access"><button class="auth-tab active" id="authLoginTab" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel" data-auth-mode="login">Sign in</button><button class="auth-tab" id="authSignupTab" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel" data-auth-mode="signup">Create account</button></div><div class="auth-social-buttons"><button class="auth-social-button" type="button" data-auth-provider="Google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-8.8 6-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.1c-1.8 1.2-4 2-6.8 2-5.2 0-9.7-3.5-11.3-8.2H5.8v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.7 27.9a12 12 0 0 1 0-7.8v-5.3H5.8a20 20 0 0 0 0 18.4l6.9-5.3Z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.1 29.5 4 24 4A20 20 0 0 0 5.8 14.8l6.9 5.3c1.6-4.7 6.1-8 11.3-8Z"/></svg><span>Continue with Google</span></button><button class="auth-social-button" type="button" data-auth-provider="Apple"><i class="bi bi-apple" aria-hidden="true"></i><span>Continue with Apple</span></button></div><div class="auth-divider"><span>or continue with email</span></div><p class="auth-service-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Google, Apple, and email account access are not connected yet. Forms won’t send or store your password.</p><form id="authLoginPanel" data-auth-panel="login" role="tabpanel" aria-labelledby="authLoginTab"><label class="form-label" for="authLoginEmail">Email address</label><input class="form-control" id="authLoginEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authLoginPassword">Password</label><input class="form-control" id="authLoginPassword" type="password" autocomplete="current-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Sign in</button></form><form id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab" hidden><label class="form-label" for="authSignupName">Your name</label><input class="form-control" id="authSignupName" autocomplete="name" required><label class="form-label mt-3" for="authSignupEmail">Email address</label><input class="form-control" id="authSignupEmail" type="email" autocomplete="email" required><label class="form-label mt-3" for="authSignupPassword">Create a password</label><input class="form-control" id="authSignupPassword" type="password" autocomplete="new-password" required minlength="8"><label class="form-label mt-3" for="authSignupConfirm">Confirm password</label><input class="form-control" id="authSignupConfirm" type="password" autocomplete="new-password" required minlength="8"><button class="btn btn-primary-navy w-100 mt-4" type="submit">Create account</button></form><p class="auth-form-status" id="authFormStatus" role="status" aria-live="polite"></p><button class="auth-guest-link" type="button" data-auth-close>Continue browsing as a guest</button></section></div>`;
+}
+function enhancePasswordFields(root = document) {
+  root.querySelectorAll('input[type="password"]').forEach(input => {
+    if (input.closest(".password-field")) return;
+    const wrapper = document.createElement("span");
+    wrapper.className = "password-field";
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.append(input);
+    const toggle = document.createElement("button");
+    toggle.className = "password-visibility-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "Show password");
+    toggle.setAttribute("aria-controls", input.id);
+    toggle.title = "Show password";
+    toggle.innerHTML = '<i class="bi bi-eye" aria-hidden="true"></i>';
+    toggle.addEventListener("click", () => {
+      const reveal = input.type === "password";
+      input.type = reveal ? "text" : "password";
+      toggle.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+      toggle.title = reveal ? "Hide password" : "Show password";
+      toggle.innerHTML = `<i class="bi ${reveal ? "bi-eye-slash" : "bi-eye"}" aria-hidden="true"></i>`;
+      input.focus({ preventScroll: true });
+    });
+    wrapper.append(toggle);
+  });
 }
 function setupAuthPopup() {
   if (!document.querySelector("#authPopup")) document.body.insertAdjacentHTML("beforeend", authPopupTemplate());
   const overlay = document.querySelector("#authPopup");
+  enhancePasswordFields(overlay);
   const dialog = overlay.querySelector(".auth-dialog");
   const status = overlay.querySelector("#authFormStatus");
   const sessionKey = "trekking-auth-prompt-seen";
@@ -440,6 +538,7 @@ function setupAuthPopup() {
   overlay.addEventListener("click", event => {
     const modeTab = event.target.closest("[data-auth-mode]");
     if (modeTab) setMode(modeTab.dataset.authMode);
+    else if (event.target.closest("[data-auth-provider]")) status.textContent = `${event.target.closest("[data-auth-provider]").dataset.authProvider} sign-in isn’t connected yet. No account was created or accessed.`;
     else if (event.target === overlay || event.target.closest("[data-auth-close]")) close();
   });
   overlay.addEventListener("submit", event => {
@@ -910,6 +1009,7 @@ function collectionPage(kind) {
 }
 function tripSearchResultsPage() {
   const params = new URLSearchParams(location.search);
+  const editSearchLink = `index.html${location.search}#tripSearch`;
   const requestedDestination = params.get("destination");
   const destination = destinations.find(item => item.slug === requestedDestination);
   const seasonLabels = { "oct-dec": "October – December", "jan-mar": "January – March", "apr-jun": "April – June" };
@@ -933,8 +1033,8 @@ function tripSearchResultsPage() {
   const intro = filters ? `Trips matching your selections: ${[destination?.title, season?.label, style].filter(Boolean).join(" · ")}.` : "Explore all of our thoughtfully planned journeys across the Himalayas.";
   const results = matches.length
     ? `<div class="row g-4">${matches.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div>`
-    : `${noResultsMarkup("Try another season or travel style to see more options.")}<div class="text-center mt-3"><a class="btn btn-primary-navy" href="index.html#tripSearch">Update your search <i class="bi bi-arrow-right ms-2"></i></a></div>`;
-  return `${pageHero(title, intro, destination?.image || photo("photo-1494783367193-149034c05e8f"), [{ label: "Tour packages", href: "tour-packages.html" }])}<section class="page-content"><div class="container"><div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"><div><span class="eyebrow">Your search results</span><h2 class="h3 mt-2 mb-0">${matches.length} ${matches.length === 1 ? "journey" : "journeys"} found</h2></div><a class="btn btn-outline-navy" href="index.html#tripSearch">Edit search</a></div>${filters ? `<div class="d-flex flex-wrap gap-2 mb-4" aria-label="Selected search filters">${filters}</div>` : ""}${results}</div></section>`;
+    : `${noResultsMarkup("Try another season or travel style to see more options.")}<div class="text-center mt-3"><a class="btn btn-primary-navy" href="${editSearchLink}">Update your search <i class="bi bi-arrow-right ms-2"></i></a></div>`;
+  return `${pageHero(title, intro, destination?.image || photo("photo-1494783367193-149034c05e8f"), [{ label: "Tour packages", href: "tour-packages.html" }])}<section class="page-content"><div class="container"><div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"><div><span class="eyebrow">Your search results</span><h2 class="h3 mt-2 mb-0">${matches.length} ${matches.length === 1 ? "journey" : "journeys"} found</h2></div><a class="btn btn-outline-navy" href="${editSearchLink}">Edit search</a></div>${filters ? `<div class="d-flex flex-wrap gap-2 mb-4" aria-label="Selected search filters">${filters}</div>` : ""}${results}</div></section>`;
 }
 function destinationDetail(slug) {
   const dest = destinations.find(d => d.slug === slug) || destinations[0];
@@ -1088,8 +1188,7 @@ function departuresPage() {
   return `${pageHero("Good days to get outside", "Find an upcoming group departure, or talk with us about dates that work better for you.", photo("photo-1464822759023-fed622ff2c3b"))}<section class="page-content"><div class="container"><div class="content-panel">${[["Sandakphu: the trail above the clouds","Nov 18 – Nov 24, 2026","7 days","₹18,500"],["Sikkim, slowly","Dec 09 – Dec 14, 2026","6 days","₹24,900"],["A little further into the hills","Jan 15 – Jan 17, 2027","3 days","₹6,400"],["Himachal beyond the postcards","Jan 20 – Jan 24, 2027","5 days","₹21,000"]].map((d,i)=>`<div class="departure-row"><div><strong>${d[0]}</strong><small>${d[1]}</small></div><div><small>Length</small>${d[2]}</div><div><small>From</small><span class="price">${d[3]}</span></div><div><span class="status-pill">${i === 0 ? "4 spots left" : "Open"}</span></div><a class="btn btn-outline-navy btn-sm" href="#/booking">Details</a></div>`).join("")}</div></div></section>`;
 }
 function reviewsPage() {
-  const ratings = [5, 4.5, 4.5, 4, 5, 3.5];
-  return `${pageHero("Good company, great stories", "A few notes from people who came along for the view and left with a little more.", photo("photo-1500530855697-b586d89ba3ee"))}<section class="page-content"><div class="container"><div class="row g-4">${Array.from({ length: 6 }, (_, i) => `<div class="col-md-6 col-lg-4"><article class="review-card">${ratingStars(ratings[i])}<blockquote>“${["The kind of trip that makes you breathe differently.", "Every detail felt considered, but never over-planned.", "We came as strangers and left with a new favourite place.", "The local stories were every bit as memorable as the views.", "A wonderful pace, lovely people and the best cups of tea.", "I felt looked after, while still free to discover my own rhythm."][i]}”</blockquote><div class="review-person">${image(photo(["photo-1534528741775-53994a69daeb","photo-1500648767791-00dcc994a43e","photo-1531123897727-8f129e1688ce"][i%3], 100), "Traveller") }<div><strong>${["Maya R.","Arjun K.","Neha & Dev","Samira P.","Kabir M.","Leela D."][i]}</strong><small>${trips[i%trips.length].title}</small></div></div></article></div>`).join("")}</div><p class="small mt-4">Sample review content for design preview. Replace with permissioned, verified customer testimonials before publication.</p></div></section>`;
+  return `${pageHero("Customer reviews", "Example reviews from a public trekking company profile. These are demo content and are not reviews of this website or its India journeys.", photo("photo-1500530855697-b586d89ba3ee"))}${customerReviewsSection(false)}`;
 }
 function galleryPage() {
   const gallery = ["photo-1464822759023-fed622ff2c3b","photo-1500530855697-b586d89ba3ee","photo-1470770841072-f978cf4d019e","photo-1500534623283-312aade485b7","photo-1472396961693-142e6e269027","photo-1551632811-561732d1e306","photo-1470252649378-9c29740c9fa8","photo-1500530855697-b586d89ba3ee","photo-1464822759023-fed622ff2c3b","photo-1470770841072-f978cf4d019e","photo-1500534623283-312aade485b7"];
@@ -1098,8 +1197,20 @@ function galleryPage() {
 function aboutPage() {
   return `${pageHero("Travel should feel like something.", "We're a small team of curious people who believe the best journeys start with listening — to a place, to its people, and to what you need from a little time away.", photo("photo-1470770841072-f978cf4d019e"))}<section class="section"><div class="container"><div class="feature-split"><div class="feature-image">${image(photo("photo-1500530855697-b586d89ba3ee", 1000), "A sunrise in the hills")}${image(photo("photo-1551632811-561732d1e306", 500), "Walking together", "image-inset")}</div><div class="feature-copy"><span class="eyebrow">A different kind of journey</span><h2>Less checklist.<br>More connection.</h2><p>TREKKING began with a simple idea: travel can bring you closer to the places you visit when the people who know them best help show the way.</p><p>Today, we work with local trip leaders and small community partners to create unhurried journeys through the Himalayas. We sweat the details so there's room for the moments that can't be planned.</p><div class="feature-list"><div><i class="bi bi-person-heart"></i> People before itineraries</div><div><i class="bi bi-signpost-split"></i> Curiosity over checklists</div><div><i class="bi bi-tree"></i> Respect for local places</div><div><i class="bi bi-chat-heart"></i> Thoughtful from hello to home</div></div><a class="btn btn-primary-navy" href="#/packages">Come find your journey</a></div></div></div></section><section class="section section-soft"><div class="container">${sectionHeading("What matters to us", "Good travel is a relationship", "A place is never a backdrop. We're guests in somebody else's home, and we want every journey to feel mindful of that.", true)}<div class="row g-4"><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-people fs-3 text-primary"></i><h3 class="h5 mt-3">Go local</h3><p class="small mb-0">Work with local guides and hosts who bring real knowledge and warmth to every journey.</p></div></div><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-hourglass-split fs-3 text-primary"></i><h3 class="h5 mt-3">Make room</h3><p class="small mb-0">Keep groups small and days unhurried, with the space to listen, wander and be present.</p></div></div><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-heart fs-3 text-primary"></i><h3 class="h5 mt-3">Travel thoughtfully</h3><p class="small mb-0">Ask better questions about impact and keep learning how to show up well in the places we visit.</p></div></div></div></div></section>`;
 }
+function customerReviewsSection(home = false) {
+  const visibleReviews = home ? customerReviews.slice(0, 3) : customerReviews;
+  const cards = visibleReviews.map(review => {
+    const avatar = image(review.image, "Illustrated sample profile avatar", "review-avatar-image");
+    return `<div class="col-md-6 col-lg-4"><article class="review-card">${ratingStars(review.rating, 5, "Sample rating") }<p class="review-summary">${review.summary}</p><div class="review-person">${avatar}<div><strong>${review.name}</strong><small>${review.journey}</small></div></div><a class="review-source" href="${review.source}" target="_blank" rel="noopener noreferrer">Read on Trustpilot <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a></article></div>`;
+  }).join("");
+  const demoNotice = `<p class="reviews-demo-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Demo content: paraphrased reviews from <a href="https://www.trustpilot.com/review/trekking-alps.com" target="_blank" rel="noopener noreferrer">Trekking Alps on Trustpilot</a>. These sample avatars and scores are illustrative, not the reviewers’ photos or ratings. They are not customers or reviews of this website.</p>`;
+  const heading = home
+    ? `<div class="section-heading-row">${sectionHeading("Example content", "Customer reviews", "A preview of how traveller feedback can appear on the site.")}<a class="btn btn-outline-navy" href="customer-reviews.html">View more reviews <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i></a></div>`
+    : sectionHeading("Example content", "Public trekking reviews", "These reviews belong to Trekking Alps in Italy, not to this India-travel website.", true);
+  return `<section class="${home ? "section section-soft" : "page-content"}"><div class="container">${heading}${demoNotice}<div class="row g-4">${cards}</div></div></section>`;
+}
 function homepageApproachSection() {
-  return `<section class="section section-soft"><div class="container">${sectionHeading("A considered way to travel", "What to look for in a good journey", "Use these questions to shape a trip that fits the place and the people travelling.", true)}<div class="row g-4"><div class="col-md-4"><article class="content-panel h-100"><i class="bi bi-signpost-split fs-3 text-primary" aria-hidden="true"></i><h3 class="h5 mt-3">Does the route suit you?</h3><p class="mb-0">Ask about walking surfaces, daily effort, transport, and how the plan can adapt to your needs.</p></article></div><div class="col-md-4"><article class="content-panel h-100"><i class="bi bi-chat-dots fs-3 text-primary" aria-hidden="true"></i><h3 class="h5 mt-3">Who will you meet?</h3><p class="mb-0">Learn how visits are arranged and what respectful participation looks like in local communities.</p></article></div><div class="col-md-4"><article class="content-panel h-100"><i class="bi bi-list-check fs-3 text-primary" aria-hidden="true"></i><h3 class="h5 mt-3">What is included?</h3><p class="mb-0">Confirm transport, stays, meals, permits, and the final price in writing before booking.</p></article></div></div></div></section>`;
+  return customerReviewsSection(true);
 }
 function aboutFieldNotesSection() {
   const notes = [
@@ -1135,31 +1246,27 @@ function journeyFeedbackPage() {
 }
 function distinctGalleryPage() {
   const images = [
-    ["photo-1464822759023-fed622ff2c3b", "Snow-covered Himalayan peaks"],
-    ["photo-1551632811-561732d1e306", "Walkers on a high mountain path"],
-    ["photo-1470770841072-f978cf4d019e", "A quiet mountain lake"],
-    ["photo-1500534623283-312aade485b7", "Open mountain country"],
-    ["photo-1472396961693-142e6e269027", "Pine forest and highland terrain"],
-    ["photo-1501785888041-af3ef285b470", "A lake among green hills"],
-    ["photo-1441974231531-c6227db76b6e", "Sunlight through a forest"],
-    ["photo-1519681393784-d120267933ba", "Mountain silhouettes at dusk"],
-    ["photo-1473448912268-2022ce9509d8", "A forest trail"],
-    ["photo-1448375240586-882707db888b", "Tall trees along a woodland path"],
-    ["photo-1433086966358-54859d0ed716", "Water falling through a forest valley"],
-    ["photo-1501785888041-af3ef285b470", "A mountain lake below green hills"],
-    ["photo-1470252649378-9c29740c9fa8", "Sunrise over a quiet valley"],
-    ["photo-1500530855697-b586d89ba3ee", "A winding path through the mountains"],
-    ["photo-1500534314209-a25ddb2bd429", "A trail across an open hillside"],
-    ["photo-1486870591958-9b9d0d1dda99", "High peaks above a mountain valley"],
-    ["photo-1494783367193-149034c05e8f", "Clouds drifting across the hills"],
-    ["photo-1454496522488-7a8e488e8606", "Snowy peaks in the morning light"],
-    ["photo-1482938289607-e9573fc25ebb", "A river winding through the mountains"],
-    ["photo-1516026672322-bc52d61a55d5", "A forested mountain landscape"],
-    ["photo-1464278533981-50106e6176b1", "A still lake beneath high peaks"]
+    ["images/sandakphu-ridge.jpg", "Mountain ridge at Sandakphu, West Bengal"],
+    ["images/sandakphu-snow.jpg", "Snow at Sandakphu in the Singalila range"],
+    ["images/sandakphu-tonglu-hut.jpg", "Trekker hut at Tonglu on the Sandakphu route"],
+    ["images/darjeeling-teascape.jpg", "Tea covered hills in Darjeeling"],
+    ["images/darjeeling-tea-garden.jpg", "Darjeeling tea plantation"],
+    ["images/darjeeling-kanchenjunga.jpg", "Kanchenjunga viewed from Darjeeling"],
+    ["images/sikkim-tsomgo-mist.jpg", "Tsomgo Lake in Sikkim"],
+    ["images/sikkim-tsomgo.jpg", "Tsomgo Lake in East Sikkim"],
+    ["images/sikkim-enchey-monastery.jpg", "Enchey Monastery in Gangtok, Sikkim"],
+    ["images/sikkim-rumtek-monastery.jpg", "Rumtek Monastery in Sikkim"],
+    ["images/kashmir-dal-lake.jpg", "Dal Lake in Srinagar, Kashmir"],
+    ["images/kashmir-baisaran.jpg", "Baisaran Valley near Pahalgam, Kashmir"],
+    ["images/kashmir-pahalgam-trail.jpg", "Walking trail in Pahalgam, Kashmir"],
+    ["images/himachal-barshaini.jpg", "Parvati Valley near Barshaini, Himachal Pradesh"],
+    ["images/himachal-baspa-valley.jpg", "Baspa Valley in Sangla, Himachal Pradesh"],
+    ["images/himachal-spiti-river.jpg", "Spiti River in Himachal Pradesh"],
+    ["images/himachal-key-monastery.jpg", "Key Monastery in Spiti Valley"],
+    ["images/himachal-manali-mountains.jpg", "Mountains near Manali, Himachal Pradesh"]
   ];
   return `${pageHero("Landscapes along the way", "A visual field guide to ridgelines, forest paths, water, and the changing light of the hills.", photo("photo-1494783367193-149034c05e8f"))}<section class="page-content"><div class="container"><div class="photo-grid">${images.map(([src, alt], index) => {
-    const size = index % 5 === 0 ? "tall" : index % 3 === 0 ? "medium" : "regular";
-    return `<button class="gallery-photo" type="button" data-gallery-index="${index}" data-gallery-size="${size}" aria-label="View image ${index + 1}: ${alt}" ${index >= 11 ? "hidden" : ""}>${image(photo(src, 800), alt)}</button>`;
+    return `<button class="gallery-photo" type="button" data-gallery-index="${index}" aria-label="View image ${index + 1}: ${alt}" ${index >= 11 ? "hidden" : ""}>${image(photo(src), alt)}</button>`;
   }).join("")}</div><div class="gallery-load-more-wrap"><button class="btn btn-outline-navy" type="button" data-gallery-load-more>Load more photos <i class="bi bi-arrow-down ms-2" aria-hidden="true"></i></button></div></div></section><div class="gallery-lightbox" id="galleryLightbox" hidden aria-hidden="true"><div class="gallery-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1"><button class="gallery-lightbox-close" type="button" data-gallery-close aria-label="Close image viewer"><i class="bi bi-x-lg" aria-hidden="true"></i></button><button class="gallery-lightbox-nav gallery-lightbox-prev" type="button" data-gallery-prev aria-label="Previous image"><i class="bi bi-chevron-left" aria-hidden="true"></i></button><figure class="gallery-lightbox-figure"><img data-gallery-image alt=""><figcaption><span data-gallery-caption></span><small data-gallery-count></small></figcaption></figure><button class="gallery-lightbox-nav gallery-lightbox-next" type="button" data-gallery-next aria-label="Next image"><i class="bi bi-chevron-right" aria-hidden="true"></i></button></div></div>`;
 }
 function setupGalleryLightbox(root) {
@@ -1167,30 +1274,10 @@ function setupGalleryLightbox(root) {
   const thumbs = [...root.querySelectorAll("[data-gallery-index]")];
   if (!modal || !thumbs.length) return;
   const loadMore = root.querySelector("[data-gallery-load-more]");
-  const grid = root.querySelector(".photo-grid");
-  let layoutFrame = 0;
-  const layoutMasonry = () => {
-    cancelAnimationFrame(layoutFrame);
-    layoutFrame = requestAnimationFrame(() => {
-      thumbs.forEach(thumb => {
-        if (thumb.hidden) return;
-        const rowSize = parseFloat(getComputedStyle(grid).gridAutoRows) || 8;
-        const rowGap = parseFloat(getComputedStyle(grid).rowGap) || 12;
-        const span = Math.ceil((thumb.getBoundingClientRect().height + rowGap) / (rowSize + rowGap));
-        thumb.style.gridRowEnd = `span ${span}`;
-      });
-    });
-  };
-  if (root._galleryMasonryResize) window.removeEventListener("resize", root._galleryMasonryResize);
-  root._galleryMasonryResize = layoutMasonry;
-  window.addEventListener("resize", layoutMasonry, { passive: true });
-  thumbs.forEach(thumb => thumb.querySelector("img")?.addEventListener("load", layoutMasonry, { once: true }));
-  layoutMasonry();
   loadMore?.addEventListener("click", () => {
     const hiddenThumbs = thumbs.filter(thumb => thumb.hidden);
     hiddenThumbs.slice(0, 6).forEach(thumb => { thumb.hidden = false; });
     if (!thumbs.some(thumb => thumb.hidden)) loadMore.hidden = true;
-    layoutMasonry();
   });
   const imageEl = modal.querySelector("[data-gallery-image]");
   const caption = modal.querySelector("[data-gallery-caption]");
@@ -1237,7 +1324,7 @@ function setupGalleryLightbox(root) {
   });
 }
 function route() {
-  const path = main.dataset.staticPage || location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, "");
+  const path = main.dataset.staticPage || (location.hash === "#tripSearch" ? "" : location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, ""));
   const parts = path.split("/");
   let html;
   let title = "TREKKING — Explore More. Experience Life.";
@@ -1257,7 +1344,7 @@ function route() {
   else if (path === "booking") html = bookingPage();
   else if (path === "confirmation" || path === "payment-success" || path === "payment-failed" || path === "payment") html = honestStatusPage(path === "payment" ? "confirmation" : path);
   else if (path === "departures") html = currentDeparturesPage();
-  else if (path === "reviews") html = journeyFeedbackPage();
+  else if (path === "reviews") html = reviewsPage();
   else if (path === "gallery") html = distinctGalleryPage();
   else if (path === "blog") html = blogPage();
   else if (path === "blog/article") html = articlePage();
@@ -1331,7 +1418,7 @@ function route() {
     const destination = destinations.find(item => item.slug === parts[1]);
     const featureImages = main.querySelectorAll(".feature-image > img");
     if (destination && featureImages[0]) featureImages[0].src = destination.aboutImage;
-    if (destination && featureImages[1]) featureImages[1].src = photo("photo-1510798831971-661eb04b3739", 500);
+    if (destination && featureImages[1]) featureImages[1].src = destination.image;
   }
   if (path === "blog") {
     const featuredTitle = main.querySelector(".featured-article h2")?.textContent.trim();
@@ -1439,6 +1526,15 @@ function route() {
   }
   document.querySelectorAll('[data-back-top]').forEach(link => link.addEventListener("click", event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }));
   window.scrollTo({ top: 0, behavior: "instant" });
+  if (!path && location.hash === "#tripSearch") {
+    const searchForm = main.querySelector("#tripSearch");
+    const searchParams = new URLSearchParams(location.search);
+    ["destination", "season", "style"].forEach(name => {
+      const field = searchForm?.elements.namedItem(name);
+      if (field && searchParams.has(name)) field.value = searchParams.get(name);
+    });
+    requestAnimationFrame(() => searchForm?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
 }
 function addArticleStructuredData() {
   const script = document.createElement("script");
@@ -1547,8 +1643,55 @@ function updateDestinationPreview(event) {
   }
   if (featureLink) featureLink.href = item.href;
 }
+function resetDestinationPreview(menu) {
+  if (!menu) return;
+  const currentFile = location.pathname.split("/").at(-1);
+  const currentDestination = [...menu.querySelectorAll("[data-feature-image]")].find(item =>
+    new URL(item.href, location.href).pathname.split("/").at(-1) === currentFile
+  ) || menu.querySelector("[data-feature-image].active");
+  if (currentDestination) {
+    const image = menu.querySelector("[data-destination-feature]");
+    const title = menu.querySelector("[data-destination-feature-title]");
+    const featureLink = menu.querySelector("[data-destination-feature-link]");
+    if (image) {
+      image.src = currentDestination.dataset.featureImage;
+      image.alt = `${currentDestination.dataset.featureTitle} landscape`;
+    }
+    if (title) {
+      title.replaceChildren(document.createTextNode(currentDestination.dataset.featureTitle));
+      const icon = document.createElement("i");
+      icon.className = "bi bi-arrow-up-right";
+      title.append(icon);
+    }
+    if (featureLink) featureLink.href = currentDestination.href;
+    return;
+  }
+  const image = menu.querySelector("[data-destination-feature]");
+  const title = menu.querySelector("[data-destination-feature-title]");
+  const featureLink = menu.querySelector("[data-destination-feature-link]");
+  if (image) {
+    image.src = image.dataset.defaultImage;
+    image.alt = `${title?.dataset.defaultTitle || "Mountain"} landscape`;
+  }
+  if (title) {
+    title.replaceChildren(document.createTextNode(title.dataset.defaultTitle));
+    const icon = document.createElement("i");
+    icon.className = "bi bi-arrow-up-right";
+    title.append(icon);
+  }
+  if (featureLink) featureLink.href = featureLink.dataset.defaultHref;
+}
 document.addEventListener("pointerover", updateDestinationPreview);
 document.addEventListener("focusin", updateDestinationPreview);
+document.addEventListener("pointerout", event => {
+  const menu = event.target.closest?.(".mega-menu");
+  if (!menu || !event.target.closest("[data-feature-image]")) return;
+  if (!event.relatedTarget?.closest?.("[data-feature-image]")) resetDestinationPreview(menu);
+});
+document.addEventListener("focusout", event => {
+  const menu = event.target.closest?.(".mega-menu");
+  if (menu && !menu.contains(event.relatedTarget)) resetDestinationPreview(menu);
+});
 document.addEventListener("click", event => {
   const pageLink = event.target.closest('a[href^="#/"]');
   if (pageLink) {
@@ -1589,3 +1732,91 @@ document.addEventListener("change", event => {
     [...grid.children].sort((a, b) => event.target.value === "name" ? a.dataset.title.localeCompare(b.dataset.title) : trips.findIndex(trip => a.textContent.includes(trip.title)) - trips.findIndex(trip => b.textContent.includes(trip.title))).forEach(card => grid.append(card));
   }
 });
+
+function initializeAiChat() {
+  if (document.querySelector("#aiChatWidget")) return;
+  document.body.classList.add("has-ai-chat");
+  document.body.insertAdjacentHTML("beforeend", `<div class="ai-chat-widget" id="aiChatWidget"><section class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Ask our AI assistant" aria-modal="false" hidden><header class="ai-chat-header"><span class="ai-chat-avatar"><i class="bi bi-stars" aria-hidden="true"></i></span><div><strong>Ask anything</strong><small>AI travel assistant</small></div><button class="ai-chat-close" type="button" data-ai-chat-close aria-label="Close assistant"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header><div class="ai-chat-messages" data-ai-chat-messages role="log" aria-live="polite" aria-relevant="additions text"><div class="ai-chat-message ai-chat-reply">Hi! Ask me anything. I can help with Himalayan trips, planning, packing, or general questions.</div></div><div class="ai-chat-suggestions" data-ai-chat-suggestions><button type="button" data-ai-prompt="Help me choose a trip">Help me choose a trip</button><button type="button" data-ai-prompt="What should I pack for a Himalayan trek?">Packing tips</button></div><form class="ai-chat-form" data-ai-chat-form><label class="visually-hidden" for="aiChatInput">Your question</label><textarea id="aiChatInput" name="message" rows="1" maxlength="2000" placeholder="Ask me anything…" required></textarea><button type="submit" aria-label="Send message"><i class="bi bi-arrow-up" aria-hidden="true"></i></button></form><p class="ai-chat-status" data-ai-chat-status aria-live="polite"></p></section><button class="ai-chat-toggle" type="button" aria-expanded="false" aria-controls="aiChatPanel" aria-label="Open AI assistant"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i><span>Ask AI</span></button></div>`);
+
+  const widget = document.querySelector("#aiChatWidget");
+  const panel = widget.querySelector("#aiChatPanel");
+  const toggle = widget.querySelector(".ai-chat-toggle");
+  const close = widget.querySelector("[data-ai-chat-close]");
+  const form = widget.querySelector("[data-ai-chat-form]");
+  const input = widget.querySelector("#aiChatInput");
+  const messagesEl = widget.querySelector("[data-ai-chat-messages]");
+  const status = widget.querySelector("[data-ai-chat-status]");
+  const history = [];
+
+  function setOpen(isOpen) {
+    panel.hidden = !isOpen;
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    toggle.setAttribute("aria-label", isOpen ? "Close AI assistant" : "Open AI assistant");
+    if (isOpen) input.focus();
+    else toggle.focus();
+  }
+  function addMessage(role, text, extraClass = "") {
+    const bubble = document.createElement("div");
+    bubble.className = `ai-chat-message ${role === "user" ? "ai-chat-question" : "ai-chat-reply"} ${extraClass}`.trim();
+    bubble.textContent = text;
+    messagesEl.append(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  async function ask(question) {
+    const text = question.trim();
+    if (!text || form.dataset.sending === "true") return;
+    history.push({ role: "user", content: text });
+    addMessage("user", text);
+    widget.querySelector("[data-ai-chat-suggestions]").hidden = true;
+    input.value = "";
+    input.style.height = "auto";
+    form.dataset.sending = "true";
+    form.querySelector("button[type=submit]").disabled = true;
+    status.textContent = "Thinking…";
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history })
+      });
+      let result;
+      try { result = await response.json(); } catch { throw new Error("Chat server not found. Run npm start and open http://localhost:3000 instead of a static preview."); }
+      if (!response.ok) throw new Error(result.error || "The assistant is unavailable right now.");
+      history.push({ role: "assistant", content: result.answer });
+      addMessage("assistant", result.answer);
+      status.textContent = "";
+    } catch (error) {
+      history.pop();
+      const errorMessage = error.message || "I couldn’t reach the assistant. Please try again.";
+      addMessage("assistant", errorMessage, "ai-chat-error");
+      status.textContent = errorMessage;
+    } finally {
+      form.dataset.sending = "false";
+      form.querySelector("button[type=submit]").disabled = false;
+      input.focus();
+    }
+  }
+
+  toggle.addEventListener("click", () => setOpen(panel.hidden));
+  close.addEventListener("click", () => setOpen(false));
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    ask(input.value);
+  });
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+  });
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
+    if (event.key === "Escape") setOpen(false);
+  });
+  widget.querySelectorAll("[data-ai-prompt]").forEach(button => button.addEventListener("click", () => ask(button.dataset.aiPrompt)));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !panel.hidden) setOpen(false);
+  });
+}
+initializeAiChat();
