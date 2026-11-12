@@ -98,12 +98,22 @@ p { color: var(--muted); }
 .auth-service-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 18px; padding: 10px 12px; border-radius: 8px; color: var(--muted); background: var(--surface-soft); font-size: 11px; line-height: 1.5; }
 .auth-service-note i { flex: 0 0 auto; margin-top: 2px; color: var(--navy); }
 .auth-form-status { min-height: 1.4em; margin: 14px 0 0; color: var(--navy); font-size: 12px; }
+.auth-account-requests { max-height: 190px; margin-top: 12px; overflow-y: auto; }
+.auth-account-requests h3 { margin: 0 0 8px; font-size: 13px; }
+.auth-account-requests p { margin: 0; color: var(--muted); font-size: 12px; }
+.auth-account-requests ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.auth-account-requests li { display: grid; gap: 2px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
+.auth-account-requests li strong { color: var(--ink); font-size: 12px; }
+.auth-account-requests li span { color: var(--muted); font-size: 10px; text-transform: capitalize; }
 .password-field { position: relative; display: block; width: 100%; }
 .password-field .form-control { padding-right: 48px; }
 .password-visibility-toggle { position: absolute; top: 50%; right: 8px; display: grid; width: 34px; height: 34px; place-items: center; padding: 0; border: 0; border-radius: 6px; color: var(--muted); background: transparent; transform: translateY(-50%); cursor: pointer; }
 .password-visibility-toggle:hover { color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, transparent); }
 .password-visibility-toggle i { font-size: 16px; line-height: 1; }
 .auth-guest-link { display: block; margin: 14px auto 0; padding: 5px 8px; border: 0; color: var(--navy); background: transparent; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.auth-forgot-link { display: block; margin: 10px auto 0; padding: 4px 8px; border: 0; color: var(--navy); background: transparent; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.password-reset-panel { max-width: 500px; }
+.password-reset-panel h1 { color: var(--ink); }
 .auth-dialog :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .auth-dialog [hidden] { display: none !important; }
 .site-header { background: color-mix(in srgb, var(--surface) 95%, transparent); border-bottom: 1px solid var(--line); backdrop-filter: blur(16px); }
@@ -147,6 +157,11 @@ body.cookie-consent-open { overflow: hidden; }
 .header-actions .btn { flex-shrink: 0; font-size: 12px; white-space: nowrap; }
 .auth-header-button { display: inline-flex; min-width: 36px; align-items: center; justify-content: center; gap: 7px; }
 .auth-header-button .auth-header-label { display: none; }
+.auth-profile-image { display: block; width: 34px; height: 34px; flex: 0 0 34px; border: 0; border-radius: 50%; object-fit: cover; }
+.auth-profile-image[hidden] { display: none; }
+.auth-header-button.is-authenticated { width: 36px; height: 36px; min-width: 36px; padding: 0 !important; border-color: transparent !important; background: transparent !important; }
+.auth-header-button.is-authenticated .auth-header-label { display: none !important; }
+.auth-header-button.is-authenticated:hover { border-color: transparent !important; background: transparent !important; }
 .theme-toggle { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); }
 .theme-toggle:hover { color: var(--navy); background: var(--surface-soft); }
 .btn-primary-navy, .btn-outline-navy { border-radius: 8px; padding: 11px 16px; font-weight: 700; line-height: 1.2; transition: .2s ease; }
@@ -553,6 +568,8 @@ body.cookie-consent-open { overflow: hidden; }
 .btn { display: inline-flex; align-items: center; justify-content: center; }
 .form-check-input:focus { box-shadow: none; }
 textarea { resize: none; }
+[for="authSignupConfirm"] { display: block; }
+.form-text { color: #fff; }
 
 @media (min-width: 1200px) {
   .mega-dropdown .mega-menu.dropdown-menu[data-bs-popper] { left: 50%; }

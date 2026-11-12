@@ -216,7 +216,7 @@ if (headerAuthActions && !headerAuthActions.querySelector("[data-open-auth]")) {
   authButton.dataset.openAuth = "";
   authButton.setAttribute("aria-label", "Sign in or create an account");
   authButton.title = "Sign in or create an account";
-  authButton.innerHTML = `<i class="bi bi-person-circle" aria-hidden="true"></i><span class="auth-header-label">Sign in</span>`;
+  authButton.innerHTML = `<i class="bi bi-person-circle" data-auth-guest-icon aria-hidden="true"></i><img class="auth-profile-image" data-auth-avatar alt="" hidden><span class="auth-header-label">Sign in</span>`;
   const menuButton = headerAuthActions.querySelector(".navbar-toggler");
   if (menuButton) menuButton.before(authButton);
   else headerAuthActions.append(authButton);
@@ -509,13 +509,79 @@ function setupAuthPopup() {
   logoutButton.textContent = "Sign out";
   logoutButton.hidden = true;
   status.insertAdjacentElement("afterend", logoutButton);
+  const loginPanel = overlay.querySelector('[data-auth-panel="login"]');
+  const forgotButton = document.createElement("button");
+  forgotButton.className = "auth-forgot-link";
+  forgotButton.type = "button";
+  forgotButton.dataset.authForgot = "";
+  forgotButton.textContent = "Forgot password?";
+  loginPanel.append(forgotButton);
+  const forgotPanel = document.createElement("form");
+  forgotPanel.id = "authForgotPanel";
+  forgotPanel.dataset.authPanel = "forgot";
+  forgotPanel.setAttribute("aria-label", "Request a password reset");
+  forgotPanel.hidden = true;
+  forgotPanel.innerHTML = `<label class="form-label" for="authForgotEmail">Email address</label><input class="form-control" id="authForgotEmail" type="email" autocomplete="email" required><button class="btn btn-primary-navy w-100 mt-4" type="submit">Send reset link</button><button class="auth-guest-link" type="button" data-auth-back-login>Back to sign in</button>`;
+  status.before(forgotPanel);
+  const accountRequests = document.createElement("section");
+  accountRequests.className = "auth-account-requests";
+  accountRequests.hidden = true;
+  accountRequests.setAttribute("aria-live", "polite");
+  accountRequests.innerHTML = `<h3>Your trip requests</h3><p class="auth-account-loading">Loading your requests…</p><ul></ul>`;
+  status.insertAdjacentElement("afterend", accountRequests);
+
+  async function loadAccountRequests() {
+    accountRequests.hidden = !signedInUser;
+    if (!signedInUser) return;
+    const requestedEmail = signedInUser.email;
+    const list = accountRequests.querySelector("ul");
+    list.replaceChildren();
+    accountRequests.querySelector(".auth-account-loading").textContent = "Loading your requests…";
+    try {
+      const response = await fetch("/api/account/requests", { cache: "no-store" });
+      const result = await response.json();
+      if (signedInUser?.email !== requestedEmail) return;
+      if (!response.ok) throw new Error(result.error || "Requests could not be loaded.");
+      accountRequests.querySelector(".auth-account-loading").textContent = result.requests.length ? "" : "No trip requests yet.";
+      result.requests.forEach(request => {
+        const item = document.createElement("li");
+        const title = document.createElement("strong");
+        title.textContent = request.trip;
+        const detail = document.createElement("span");
+        detail.textContent = `${request.type === "booking" ? "Booking request" : "Trip plan"} · ${request.status}${request.paymentStatus === "paid" ? " · Deposit paid" : ""}`;
+        item.append(title, detail);
+        list.append(item);
+      });
+    } catch (error) {
+      if (signedInUser?.email === requestedEmail) accountRequests.querySelector(".auth-account-loading").textContent = error.message;
+    }
+  }
 
   function renderAccountState() {
     document.querySelectorAll("[data-open-auth]").forEach(button => {
-      const label = signedInUser ? `Hi, ${signedInUser.name.split(/\s+/)[0]}` : "Sign in";
+      const label = signedInUser ? "" : "Sign in";
+      button.classList.toggle("is-authenticated", Boolean(signedInUser));
       button.querySelector(".auth-header-label")?.replaceChildren(document.createTextNode(label));
-      button.setAttribute("aria-label", signedInUser ? `Signed in as ${signedInUser.name}` : "Sign in or create an account");
-      button.title = signedInUser ? `Signed in as ${signedInUser.name}` : "Sign in or create an account";
+      const avatar = button.querySelector("[data-auth-avatar]");
+      const guestIcon = button.querySelector("[data-auth-guest-icon]");
+      if (avatar && guestIcon) {
+        if (signedInUser) {
+          const initials = signedInUser.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "T";
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#022468"/><text x="40" y="42" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-family="Arial,sans-serif" font-size="30" font-weight="700">${initials}</text></svg>`;
+          const fallbackAvatar = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+          avatar.onerror = signedInUser.avatarUrl ? () => { avatar.onerror = null; avatar.src = fallbackAvatar; } : null;
+          avatar.src = signedInUser.avatarUrl || fallbackAvatar;
+          avatar.alt = "Account profile";
+          avatar.hidden = false;
+          guestIcon.hidden = true;
+        } else {
+          avatar.hidden = true;
+          avatar.removeAttribute("src");
+          guestIcon.hidden = false;
+        }
+      }
+      button.setAttribute("aria-label", signedInUser ? "Account profile" : "Sign in or create an account");
+      button.title = signedInUser ? "Account profile" : "Sign in or create an account";
     });
     overlay.querySelectorAll("[data-auth-panel]").forEach(panel => { panel.hidden = Boolean(signedInUser) || panel.dataset.authPanel !== "login"; });
     overlay.querySelector(".auth-social-buttons").hidden = Boolean(signedInUser);
@@ -523,9 +589,14 @@ function setupAuthPopup() {
     overlay.querySelector(".auth-service-note").hidden = Boolean(signedInUser);
     overlay.querySelector("[data-auth-logout]").hidden = !signedInUser;
     if (signedInUser) status.textContent = `Signed in as ${signedInUser.email}.`;
+    loadAccountRequests();
   }
 
   function setMode(mode) {
+    overlay.querySelector(".auth-tabs").hidden = Boolean(signedInUser);
+    overlay.querySelector(".auth-social-buttons").hidden = Boolean(signedInUser);
+    overlay.querySelector(".auth-divider").hidden = Boolean(signedInUser);
+    overlay.querySelector(".auth-service-note").hidden = Boolean(signedInUser);
     overlay.querySelectorAll("[data-auth-mode]").forEach(tab => {
       const active = tab.dataset.authMode === mode;
       tab.classList.toggle("active", active);
@@ -539,6 +610,15 @@ function setupAuthPopup() {
     overlay.querySelector("[data-auth-logout]").hidden = !signedInUser;
     if (signedInUser) return;
     overlay.querySelector(mode === "login" ? "#authLoginEmail" : "#authSignupName").focus();
+  }
+  function showForgotPassword() {
+    overlay.querySelector(".auth-tabs").hidden = true;
+    overlay.querySelector(".auth-social-buttons").hidden = true;
+    overlay.querySelector(".auth-divider").hidden = true;
+    overlay.querySelector(".auth-service-note").hidden = true;
+    overlay.querySelectorAll("[data-auth-panel]").forEach(panel => { panel.hidden = panel.dataset.authPanel !== "forgot"; });
+    status.textContent = "Enter your account email and we’ll send a reset link if an account exists.";
+    overlay.querySelector("#authForgotEmail").focus();
   }
   function close() {
     overlay.classList.remove("is-open");
@@ -563,6 +643,8 @@ function setupAuthPopup() {
   overlay.addEventListener("click", async event => {
     const modeTab = event.target.closest("[data-auth-mode]");
     if (modeTab) setMode(modeTab.dataset.authMode);
+    else if (event.target.closest("[data-auth-forgot]")) showForgotPassword();
+    else if (event.target.closest("[data-auth-back-login]")) setMode("login");
     else if (event.target.closest("[data-auth-provider]")) {
       const provider = event.target.closest("[data-auth-provider]").dataset.authProvider.toLowerCase();
       try {
@@ -589,6 +671,27 @@ function setupAuthPopup() {
   overlay.addEventListener("submit", async event => {
     if (!event.target.matches("[data-auth-panel]")) return;
     event.preventDefault();
+    if (event.target.dataset.authPanel === "forgot") {
+      const button = event.target.querySelector('button[type="submit"]');
+      button.disabled = true;
+      status.textContent = "Sending reset link…";
+      try {
+        const response = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: event.target.querySelector("#authForgotEmail").value })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "The reset request could not be completed.");
+        status.textContent = result.message;
+        event.target.reset();
+      } catch (error) {
+        status.textContent = error.message || "The reset request could not be completed.";
+      } finally {
+        button.disabled = false;
+      }
+      return;
+    }
     const isSignup = event.target.dataset.authPanel === "signup";
     if (isSignup && event.target.querySelector("#authSignupPassword").value !== event.target.querySelector("#authSignupConfirm").value) {
       status.textContent = "Those passwords don’t match. Please check them and try again.";
@@ -1299,6 +1402,50 @@ function honestStatusPage(kind) {
       : "A contact message must be submitted from the contact form.";
   return `<section class="section section-soft"><div class="container text-center py-5"><div class="display-1 text-warning" id="paymentStatusIcon"><i class="bi ${isPayment ? "bi-hourglass-split" : "bi-info-circle"}" aria-hidden="true"></i></div><h1 class="h2 mt-4" id="paymentStatusHeading">${heading}</h1><p class="mx-auto my-3" style="max-width:640px" id="paymentStatusCopy">${copy}</p><p class="small" id="paymentStatusReference" hidden></p><a class="btn btn-primary-navy mt-3" href="index.html">Return home</a> <a class="btn btn-outline-navy mt-3" href="contact.html">View contact options</a></div></section>`;
 }
+function passwordResetPage() {
+  return `<section class="section section-soft"><div class="container py-5"><div class="content-panel mx-auto password-reset-panel"><span class="eyebrow">Account security</span><h1 class="h2 mt-2">Choose a new password</h1><p>Use at least 12 characters. This reset link can only be used once.</p><form id="passwordResetForm"><label class="form-label" for="passwordResetNew">New password</label><input class="form-control" id="passwordResetNew" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><label class="form-label mt-3" for="passwordResetConfirm">Confirm new password</label><input class="form-control" id="passwordResetConfirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><button class="btn btn-primary-navy w-100 mt-4" type="submit">Update password</button></form><p class="auth-form-status" id="passwordResetStatus" role="status" aria-live="polite"></p><a class="btn btn-outline-navy mt-2" href="index.html">Return to TREKKING</a></div></div></section>`;
+}
+function setupPasswordResetForm() {
+  const form = document.querySelector("#passwordResetForm");
+  if (!form) return;
+  enhancePasswordFields(form);
+  const status = document.querySelector("#passwordResetStatus");
+  const token = new URLSearchParams(location.hash.slice(1)).get("token") || "";
+  if (!token) {
+    form.hidden = true;
+    status.textContent = "This reset link is incomplete. Request a new password reset from the sign-in window.";
+    return;
+  }
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const password = form.querySelector("#passwordResetNew").value;
+    const confirm = form.querySelector("#passwordResetConfirm").value;
+    if (password !== confirm) {
+      status.textContent = "Those passwords don’t match. Please check them and try again.";
+      form.querySelector("#passwordResetConfirm").focus();
+      return;
+    }
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+    status.textContent = "Updating your password…";
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Your password could not be updated.");
+      form.hidden = true;
+      status.textContent = result.message;
+      history.replaceState(null, "", location.pathname);
+    } catch (error) {
+      status.textContent = error.message || "Your password could not be updated.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
 async function resolvePaymentStatus(kind) {
   const reference = new URLSearchParams(location.search).get("ref");
   const heading = document.querySelector("#paymentStatusHeading");
@@ -1446,6 +1593,7 @@ function route() {
   else if (path === "planner") html = plannerPage();
   else if (path === "booking") html = bookingPage();
   else if (path === "confirmation" || path === "payment-success" || path === "payment-failed" || path === "payment") html = honestStatusPage(path === "payment" ? "confirmation" : path);
+  else if (path === "reset-password") html = passwordResetPage();
   else if (path === "departures") html = currentDeparturesPage();
   else if (path === "reviews") html = reviewsPage();
   else if (path === "gallery") html = distinctGalleryPage();
@@ -1686,6 +1834,7 @@ if (main.dataset.staticPage) {
 }
 cookieConsentController = setupCookieConsent();
 authPopupController = setupAuthPopup();
+setupPasswordResetForm();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
 async function postLocalRequest(endpoint, payload) {

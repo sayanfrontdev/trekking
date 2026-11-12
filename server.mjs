@@ -25,7 +25,6 @@ const requestCounts = new Map();
 const scrypt = promisify(scryptCallback);
 const dataDirectory = path.join(root, "data");
 const dataFile = path.join(dataDirectory, "site-data.json");
-const sessions = new Map();
 const authRequestCounts = new Map();
 const oauthStates = new Map();
 let writeQueue = Promise.resolve();
@@ -47,13 +46,15 @@ async function readStore() {
   try {
     const store = JSON.parse(await readFile(dataFile, "utf8"));
     store.users ||= [];
+    store.sessions ||= [];
+    store.passwordResets ||= [];
     store.bookings ||= [];
     store.inquiries ||= [];
     store.payments ||= [];
     return store;
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
-    return { users: [], bookings: [], inquiries: [], payments: [] };
+    return { users: [], sessions: [], passwordResets: [], bookings: [], inquiries: [], payments: [] };
   }
 }
 
@@ -94,14 +95,20 @@ function clearSessionCookie(response) {
 
 async function currentUser(request) {
   const token = parseCookies(request).trekking_session;
-  const session = token && sessions.get(token);
-  if (!session || session.expiresAt <= Date.now()) {
-    if (token) sessions.delete(token);
-    return null;
-  }
+  if (!token) return null;
   const store = await readStore();
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const session = store.sessions.find(item => item.tokenHash === tokenHash);
+  if (!session || session.expiresAt <= Date.now()) return null;
   const user = store.users.find(item => item.id === session.userId);
-  return user ? { id: user.id, name: user.name, email: user.email } : null;
+  return user ? { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl || null } : null;
+}
+
+function googleAvatarUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && (url.hostname === "googleusercontent.com" || url.hostname.endsWith(".googleusercontent.com")) ? url.href : "";
+  } catch { return ""; }
 }
 
 function sameOrigin(request) {
@@ -122,11 +129,16 @@ function allowAuthRequest(request) {
   return entry.count <= 8;
 }
 
-function createSession(user, response) {
+async function createSession(user, response) {
   const token = randomBytes(32).toString("base64url");
-  sessions.set(token, { userId: user.id, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
+  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  await updateStore(store => {
+    store.sessions = store.sessions.filter(item => item.expiresAt > Date.now());
+    store.sessions.push({ tokenHash, userId: user.id, expiresAt });
+  });
   setSessionCookie(response, token);
-  return { id: user.id, name: user.name, email: user.email };
+  return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl || null };
 }
 
 function oauthProviderReady(provider) {
@@ -161,6 +173,7 @@ async function oauthLogin(provider, claims, name, response) {
         user = { id: randomBytes(12).toString("hex"), name: cleanText(name, 120) || email.split("@")[0], email, createdAt: new Date().toISOString() };
         store.users.push(user);
       }
+      if (provider === "google") user.avatarUrl = googleAvatarUrl(claims.picture) || user.avatarUrl || "";
       user.providers ||= {};
       user.providers[provider] = claims.sub;
     });
@@ -168,7 +181,7 @@ async function oauthLogin(provider, claims, name, response) {
     console.error("Social account storage failed:", error.code || error.name || "Error");
     return sendOAuthError(response, 500, "Your account could not be saved.");
   }
-  createSession(user, response);
+  await createSession(user, response);
   response.writeHead(303, { Location: "/", "Cache-Control": "no-store" }).end();
 }
 
@@ -415,9 +428,14 @@ async function handleAuth(request, response, action) {
     return sendJson(response, 200, { user: await currentUser(request) });
   }
   if (!allowAuthRequest(request)) return sendJson(response, 429, { error: "Too many sign-in attempts. Please wait one minute." });
+  if (action === "forgot-password" && request.method === "POST") return handleForgotPassword(request, response);
+  if (action === "reset-password" && request.method === "POST") return handleResetPassword(request, response);
   if (action === "logout" && request.method === "POST") {
     const token = parseCookies(request).trekking_session;
-    if (token) sessions.delete(token);
+    if (token) {
+      const tokenHash = createHash("sha256").update(token).digest("hex");
+      await updateStore(store => { store.sessions = store.sessions.filter(item => item.tokenHash !== tokenHash); });
+    }
     clearSessionCookie(response);
     return sendJson(response, 200, { user: null });
   }
@@ -458,8 +476,119 @@ async function handleAuth(request, response, action) {
     const expected = passwordAccount ? Buffer.from(user.passwordHash, "hex") : Buffer.alloc(64);
     if (!passwordAccount || !timingSafeEqual(candidate, expected)) return sendJson(response, 401, { error: "Email or password is incorrect." });
   }
-  const publicUser = createSession(user, response);
+  let publicUser;
+  try { publicUser = await createSession(user, response); }
+  catch (error) {
+    console.error("Session storage failed:", error.code || error.name || "Error");
+    return sendJson(response, 500, { error: "Your account is ready, but sign-in could not be completed. Please try again." });
+  }
   return sendJson(response, action === "register" ? 201 : 200, { user: publicUser });
+}
+
+async function sendPasswordResetEmail(email, resetUrl) {
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) throw new Error("email_provider_not_configured");
+  const upstream = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM,
+      to: [email],
+      subject: "Reset your TREKKING password",
+      text: `Use this link to choose a new password. It expires in 30 minutes: ${resetUrl}`,
+      html: `<p>We received a request to reset your TREKKING password.</p><p><a href="${resetUrl}">Choose a new password</a></p><p>This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>`
+    }),
+    signal: AbortSignal.timeout(15_000)
+  });
+  if (!upstream.ok) throw new Error("reset_email_send_failed");
+}
+
+async function handleForgotPassword(request, response) {
+  if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
+    return sendJson(response, 503, { error: "Password reset email is not configured yet. Please contact the site administrator." });
+  }
+  let body;
+  try { body = await readJson(request); } catch { return sendJson(response, 400, { error: "The email address could not be read." }); }
+  const email = cleanText(body.email, 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendJson(response, 400, { error: "Enter a valid email address." });
+  const store = await readStore();
+  const user = store.users.find(item => item.email === email);
+  if (user) {
+    const token = randomBytes(32).toString("base64url");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const expiresAt = Date.now() + 30 * 60 * 1000;
+    await updateStore(current => {
+      current.passwordResets = current.passwordResets.filter(item => item.userId !== user.id && item.expiresAt > Date.now());
+      current.passwordResets.push({ tokenHash, userId: user.id, expiresAt });
+    });
+    try {
+      const configuredBaseUrl = process.env.APP_BASE_URL || (process.env.NODE_ENV === "production" ? "" : `http://${request.headers.host || "localhost:3000"}`);
+      if (!configuredBaseUrl) throw new Error("app_base_url_not_configured");
+      const parsedBaseUrl = new URL(configuredBaseUrl);
+      if (!/^https?:$/.test(parsedBaseUrl.protocol)) throw new Error("invalid_app_base_url");
+      const baseUrl = parsedBaseUrl.origin;
+      const resetUrl = `${baseUrl}/reset-password.html#token=${encodeURIComponent(token)}`;
+      await sendPasswordResetEmail(email, resetUrl);
+    } catch (error) {
+      await updateStore(current => { current.passwordResets = current.passwordResets.filter(item => item.tokenHash !== tokenHash); });
+      console.error("Password reset email failed:", error.name || "Error");
+      return sendJson(response, 200, { message: "If an account exists for that email, a password reset link has been sent." });
+    }
+  }
+  return sendJson(response, 200, { message: "If an account exists for that email, a password reset link has been sent." });
+}
+
+async function handleResetPassword(request, response) {
+  if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
+  let body;
+  try { body = await readJson(request); } catch { return sendJson(response, 400, { error: "The reset details could not be read." }); }
+  const token = typeof body.token === "string" ? body.token : "";
+  const password = typeof body.password === "string" ? body.password : "";
+  if (!token || password.length < 12 || password.length > 128) {
+    return sendJson(response, 400, { error: "Use a reset link and a password between 12 and 128 characters." });
+  }
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const store = await readStore();
+  const reset = store.passwordResets.find(item => item.tokenHash === tokenHash && item.expiresAt > Date.now());
+  if (!reset) return sendJson(response, 400, { error: "This reset link is invalid or expired. Request a new one." });
+  const salt = randomBytes(16).toString("hex");
+  const passwordHash = (await scrypt(password, salt, 64)).toString("hex");
+  await updateStore(current => {
+    const activeReset = current.passwordResets.find(item => item.tokenHash === tokenHash && item.expiresAt > Date.now());
+    if (!activeReset) return;
+    const user = current.users.find(item => item.id === activeReset.userId);
+    if (!user) return;
+    user.salt = salt;
+    user.passwordHash = passwordHash;
+    current.passwordResets = current.passwordResets.filter(item => item.userId !== user.id);
+    current.sessions = current.sessions.filter(item => item.userId !== user.id);
+  });
+  const updated = await readStore();
+  if (updated.users.find(item => item.id === reset.userId)?.passwordHash !== passwordHash) {
+    return sendJson(response, 400, { error: "This reset link is invalid or expired. Request a new one." });
+  }
+  return sendJson(response, 200, { message: "Your password has been updated. Sign in with your new password." });
+}
+
+async function handleAccountRequests(request, response) {
+  if (request.method !== "GET") return sendJson(response, 405, { error: "Use GET to read your trip requests." });
+  if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
+  const user = await currentUser(request);
+  if (!user) return sendJson(response, 401, { error: "Sign in to view your trip requests." });
+  const store = await readStore();
+  const requests = store.inquiries
+    .filter(item => item.email === user.email && ["booking", "planner"].includes(item.type))
+    .slice(-20)
+    .reverse()
+    .map(item => ({
+      reference: item.id,
+      type: item.type,
+      status: item.status,
+      paymentStatus: item.paymentStatus || "unpaid",
+      trip: item.tripName || item.trip || item.place || "Trip planning request",
+      date: item.date || item.dates || ""
+    }));
+  return sendJson(response, 200, { requests });
 }
 
 function razorpaySettings() {
@@ -588,6 +717,7 @@ const server = createServer(async (request, response) => {
   if (url.pathname === "/api/auth/providers" && request.method === "GET") {
     return sendJson(response, 200, { providers: { google: oauthProviderReady("google"), apple: oauthProviderReady("apple") } });
   }
+  if (url.pathname === "/api/account/requests") return handleAccountRequests(request, response);
   if (url.pathname.startsWith("/api/auth/")) return handleAuth(request, response, url.pathname.slice("/api/auth/".length));
   if (!["GET", "HEAD"].includes(request.method || "")) return sendJson(response, 405, { error: "Method not allowed." });
 
