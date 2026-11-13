@@ -473,9 +473,19 @@ async function handleChat(request, response) {
     });
     const result = await upstream.json();
     if (!upstream.ok) {
-      console.error("Gemini chat request failed:", upstream.status);
+      const providerStatus = typeof result?.error?.status === "string" ? result.error.status : "unknown";
+      console.error("Gemini chat request failed:", upstream.status, providerStatus);
       if (upstream.status === 429) {
         return sendJson(response, 429, { error: "The free AI assistant has reached its current usage limit. Please try again later." });
+      }
+      if ([401, 403].includes(upstream.status)) {
+        return sendJson(response, 502, { error: "Gemini rejected the API key or project. Check that GEMINI_API_KEY is correct in Netlify and that its Google project has Gemini API access." });
+      }
+      if (upstream.status === 404) {
+        return sendJson(response, 502, { error: "The Gemini model configured for this site is unavailable. Remove GEMINI_MODEL in Netlify to use the default model, then redeploy." });
+      }
+      if (upstream.status === 400) {
+        return sendJson(response, 502, { error: "Gemini rejected the chat request. Check the Gemini API settings and try again." });
       }
       return sendJson(response, 502, { error: "I couldn’t get an answer just now. Please try again in a moment." });
     }
