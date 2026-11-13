@@ -430,8 +430,8 @@ function allowRequest(request) {
 async function handleChat(request, response) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "Use POST to send a chat message." });
   if (!allowRequest(request)) return sendJson(response, 429, { error: "Please wait a moment before sending another message." });
-  if (!process.env.OPENAI_API_KEY) {
-    return sendJson(response, 503, { error: "The AI assistant is not configured yet. Add OPENAI_API_KEY to the server environment." });
+  if (!process.env.GEMINI_API_KEY) {
+    return sendJson(response, 503, { error: "The AI assistant is not configured yet. Add GEMINI_API_KEY to the server environment." });
   }
 
   let body;
@@ -452,26 +452,36 @@ async function handleChat(request, response) {
   }
 
   try {
-    const upstream = await fetch("https://api.openai.com/v1/responses", {
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "x-goog-api-key": process.env.GEMINI_API_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-6-astra",
-        store: false,
-        instructions: "You are the TREKKING website assistant. Answer questions clearly and helpfully, including general questions, with a special focus on Himalayan travel and the journeys on this site. The site features Sandakphu, Darjeeling, Sikkim, Kashmir, and Himachal journeys. Visitors can submit booking and trip enquiries; these are requests, not confirmed bookings. Payments are available only where the site explicitly offers a configured deposit. Never invent live availability, route conditions, exact current prices, booking confirmations, or discount eligibility; tell the visitor to confirm those details with the trip team. Do not ask for passwords, payment card details, or other sensitive information.",
-        input
+        systemInstruction: {
+          parts: [{ text: "You are the TREKKING website assistant. Answer questions clearly and helpfully, including general questions, with a special focus on Himalayan travel and the journeys on this site. The site features Sandakphu, Darjeeling, Sikkim, Kashmir, and Himachal journeys. Visitors can submit booking and trip enquiries; these are requests, not confirmed bookings. Payments are available only where the site explicitly offers a configured deposit. Never invent live availability, route conditions, exact current prices, booking confirmations, or discount eligibility; tell the visitor to confirm those details with the trip team. Do not ask for passwords, payment card details, or other sensitive information." }]
+        },
+        contents: input.map(message => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }]
+        })),
+        generationConfig: { temperature: 0.7, maxOutputTokens: 700 }
       }),
       signal: AbortSignal.timeout(45_000)
     });
     const result = await upstream.json();
     if (!upstream.ok) {
-      console.error("OpenAI chat request failed:", upstream.status);
+      console.error("Gemini chat request failed:", upstream.status);
+      if (upstream.status === 429) {
+        return sendJson(response, 429, { error: "The free AI assistant has reached its current usage limit. Please try again later." });
+      }
       return sendJson(response, 502, { error: "I couldn’t get an answer just now. Please try again in a moment." });
     }
-    const answer = typeof result.output_text === "string" ? result.output_text.trim() : "";
+    const answer = Array.isArray(result?.candidates?.[0]?.content?.parts)
+      ? result.candidates[0].content.parts.map(part => typeof part.text === "string" ? part.text : "").join("").trim()
+      : "";
     if (!answer) return sendJson(response, 502, { error: "I didn’t get a response. Please try asking another way." });
     return sendJson(response, 200, { answer });
   } catch (error) {
