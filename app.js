@@ -623,6 +623,7 @@ function setupAuthPopup() {
     overlay.querySelector("[data-auth-logout]").hidden = !signedInUser;
     if (signedInUser) status.textContent = `Signed in as ${signedInUser.email}.`;
     loadAccountRequests();
+    window.dispatchEvent(new CustomEvent("trekking-auth-state", { detail: { user: signedInUser } }));
   }
 
   function setMode(mode) {
@@ -1516,6 +1517,9 @@ async function resolvePaymentStatus(kind) {
     icon.innerHTML = '<i class="bi bi-exclamation-circle" aria-hidden="true"></i>';
   }
 }
+function adminPage() {
+  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests and other enquiries. Accepting a request does not confirm a trip.</p></div><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div></div></div></section>`;
+}
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
 }
@@ -1606,6 +1610,160 @@ function setupGalleryLightbox(root) {
     }
   });
 }
+let bookingSessionUser = null;
+function setupBookingAccess() {
+  const form = main.querySelector("#bookingForm");
+  if (!form) return;
+  const fields = form.querySelector(".row.g-3");
+  const heading = form.querySelector("h2");
+  if (!fields || !heading) return;
+  let fieldset = form.querySelector("[data-booking-fields]");
+  if (!fieldset) {
+    fieldset = document.createElement("fieldset");
+    fieldset.className = "booking-fields";
+    fieldset.dataset.bookingFields = "";
+    fields.replaceWith(fieldset);
+    fieldset.append(fields);
+    const gate = document.createElement("div");
+    gate.className = "alert alert-info booking-signin-gate";
+    gate.dataset.bookingGate = "";
+    gate.innerHTML = `Sign in to fill in and submit a booking request. <button class="btn btn-sm btn-primary-navy ms-2" type="button" data-open-auth>Sign in</button>`;
+    heading.insertAdjacentElement("afterend", gate);
+  }
+  const gate = form.querySelector("[data-booking-gate]");
+  const name = form.querySelector("#bookingName");
+  const email = form.querySelector("#bookingEmail");
+  const submit = form.querySelector('button[type="submit"]');
+  const setUser = user => {
+    bookingSessionUser = user || null;
+    fieldset.disabled = !bookingSessionUser;
+    gate.hidden = Boolean(bookingSessionUser);
+    if (bookingSessionUser) {
+      name.value = bookingSessionUser.name || "";
+      email.value = bookingSessionUser.email || "";
+    } else {
+      name.value = "";
+      email.value = "";
+    }
+    name.readOnly = Boolean(bookingSessionUser);
+    email.readOnly = Boolean(bookingSessionUser);
+    if (submit) submit.disabled = !bookingSessionUser;
+  };
+  setUser(null);
+  fetch("/api/auth/me", { cache: "no-store" }).then(response => response.json()).then(result => setUser(result.user)).catch(() => setUser(null));
+  window.addEventListener("trekking-auth-state", event => setUser(event.detail?.user || null), { once: false });
+}
+
+function setupAdminDashboard() {
+  const status = main.querySelector("[data-admin-status]");
+  const submissions = main.querySelector("[data-admin-submissions]");
+  const refresh = main.querySelector("[data-admin-refresh]");
+  if (!status || !submissions || !refresh) return;
+
+  const addDetail = (list, label, value) => {
+    if (value === undefined || value === null || String(value).trim() === "") return;
+    const row = document.createElement("div");
+    row.className = "admin-detail";
+    const term = document.createElement("strong");
+    term.textContent = `${label}:`;
+    const detail = document.createElement("span");
+    detail.textContent = String(value);
+    row.append(term, detail);
+    list.append(row);
+  };
+
+  const render = inquiries => {
+    submissions.replaceChildren();
+    if (!inquiries.length) {
+      status.textContent = "No submitted forms yet.";
+      return;
+    }
+    status.textContent = `${inquiries.length} submitted form${inquiries.length === 1 ? "" : "s"}.`;
+    for (const inquiry of inquiries) {
+      const card = document.createElement("article");
+      card.className = "admin-submission-card";
+      const header = document.createElement("div");
+      header.className = "admin-submission-header";
+      const heading = document.createElement("h2");
+      heading.className = "h5 mb-1";
+      heading.textContent = inquiry.tripName || inquiry.place || inquiry.interest || (inquiry.type === "planner" ? "Trip planning request" : inquiry.type === "contact" ? "Contact enquiry" : "Booking request");
+      const badge = document.createElement("span");
+      badge.className = `admin-status-badge is-${inquiry.status || "received"}`;
+      badge.textContent = inquiry.status || "received";
+      header.append(heading, badge);
+      const meta = document.createElement("p");
+      meta.className = "admin-submission-meta";
+      const created = inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleString() : "Date unavailable";
+      meta.textContent = `${inquiry.type || "form"} · Ref ${inquiry.reference} · ${created}`;
+      const details = document.createElement("div");
+      details.className = "admin-submission-details";
+      addDetail(details, "Name", inquiry.name);
+      addDetail(details, "Email", inquiry.email);
+      addDetail(details, "Phone", inquiry.phone);
+      addDetail(details, "Preferred month", inquiry.date || inquiry.dates);
+      addDetail(details, "Travellers", inquiry.guests || inquiry.people);
+      addDetail(details, "Travel style", inquiry.style);
+      addDetail(details, "Interest", inquiry.interest);
+      addDetail(details, "Message", inquiry.message);
+      const actions = document.createElement("div");
+      actions.className = "admin-submission-actions";
+      for (const [nextStatus, label, className] of [["accepted", "Accept", "btn-primary-navy"], ["rejected", "Reject", "btn-outline-navy"]]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `btn btn-sm ${className}`;
+        button.textContent = inquiry.status === nextStatus ? `${label}ed` : label;
+        button.disabled = inquiry.status === nextStatus;
+        button.addEventListener("click", async () => {
+          actions.querySelectorAll("button").forEach(item => { item.disabled = true; });
+          status.textContent = `Saving ${nextStatus} decision…`;
+          try {
+            const result = await postLocalRequest(`/api/admin/inquiries/${encodeURIComponent(inquiry.reference)}`, { status: nextStatus }, "PATCH");
+            inquiry.status = result.status;
+            inquiry.reviewedAt = result.reviewedAt;
+            render(inquiries);
+          } catch (error) {
+            status.textContent = error.message || "The review decision could not be saved.";
+            actions.querySelectorAll("button").forEach(item => { item.disabled = item.dataset.status === inquiry.status; });
+          }
+        });
+        button.dataset.status = nextStatus;
+        actions.append(button);
+      }
+      card.append(header, meta, details, actions);
+      submissions.append(card);
+    }
+  };
+
+  const load = async () => {
+    status.textContent = "Loading submitted forms…";
+    refresh.disabled = true;
+    try {
+      const response = await fetch("/api/admin/inquiries", { cache: "no-store" });
+      const result = await response.json();
+      if (response.status === 401) {
+        submissions.replaceChildren();
+        status.textContent = result.error || "Sign in with your admin account to view submissions.";
+        const signIn = document.createElement("button");
+        signIn.className = "btn btn-primary-navy mt-2";
+        signIn.type = "button";
+        signIn.dataset.openAuth = "";
+        signIn.textContent = "Sign in";
+        submissions.append(signIn);
+        return;
+      }
+      if (!response.ok) throw new Error(result.error || "Submitted forms could not be loaded.");
+      render(Array.isArray(result.inquiries) ? result.inquiries : []);
+    } catch (error) {
+      status.textContent = error.message || "Submitted forms could not be loaded.";
+    } finally {
+      refresh.disabled = false;
+    }
+  };
+  refresh.addEventListener("click", load);
+  window.addEventListener("trekking-auth-state", load);
+  load();
+}
+
 function route() {
   const path = main.dataset.staticPage || (location.hash === "#tripSearch" ? "" : location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, ""));
   const parts = path.split("/");
@@ -1625,6 +1783,7 @@ function route() {
   else if (path === "contact") html = contactPage();
   else if (path === "planner") html = plannerPage();
   else if (path === "booking") html = bookingPage();
+  else if (path === "admin") html = adminPage();
   else if (path === "confirmation" || path === "payment-success" || path === "payment-failed" || path === "payment") html = honestStatusPage(path === "payment" ? "confirmation" : path);
   else if (path === "reset-password") html = passwordResetPage();
   else if (path === "departures") html = currentDeparturesPage();
@@ -1751,7 +1910,9 @@ function route() {
     if (note) note.textContent = "Your booking request will be stored with a reference number. No trip is confirmed until availability and price are agreed.";
     const submit = main.querySelector('#bookingForm button[type="submit"]');
     if (submit) submit.innerHTML = `Review enquiry <i class="bi bi-arrow-right ms-2"></i>`;
+    setupBookingAccess();
   }
+  if (path === "admin") setupAdminDashboard();
   if (path === "planner") {
     const previewNote = main.querySelector("#plannerForm .alert");
     if (previewNote) previewNote.textContent = "Your trip preferences will be saved securely as an enquiry. Submitting does not confirm a booking.";
@@ -1870,9 +2031,9 @@ authPopupController = setupAuthPopup();
 setupPasswordResetForm();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
-async function postLocalRequest(endpoint, payload) {
+async function postLocalRequest(endpoint, payload, method = "POST") {
   const response = await fetch(endpoint, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
@@ -1960,6 +2121,11 @@ document.addEventListener("submit", async event => {
   }
   if (form.id === "bookingForm") {
     event.preventDefault();
+    if (!bookingSessionUser) {
+      showToast("Sign in before submitting a booking request.");
+      authPopupController?.open(true);
+      return;
+    }
     if (!form.reportValidity()) return;
     const submitButton = form.querySelector('button[type="submit"]');
     const note = form.querySelector(".small");

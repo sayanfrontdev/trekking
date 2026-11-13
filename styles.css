@@ -729,3 +729,21 @@ textarea { resize: none; }
 html[data-theme="light"] .site-header .navbar .navbar-nav > li > .nav-link.active { color: #b94100 !important; }
 html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.active { color: #fd6003 !important; }
 html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdown-toggle.show { color: #fd6003 !important; }
+.booking-fields { min-width: 0; padding: 0; border: 0; }
+.booking-signin-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
+.booking-signin-gate[hidden] { display: none; }
+.admin-dashboard { max-width: 980px; margin-inline: auto; }
+.admin-status { min-height: 1.5em; color: var(--muted); font-size: 13px; }
+.admin-submissions { display: grid; gap: 14px; }
+.admin-submission-card { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.admin-submission-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-submission-meta { margin: 6px 0 14px; color: var(--muted); font-size: 12px; text-transform: capitalize; }
+.admin-status-badge { padding: 5px 9px; border-radius: 999px; color: var(--ink); background: var(--surface-soft); font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.admin-status-badge.is-accepted { color: #176b43; background: #e3f5ec; }
+.admin-status-badge.is-rejected { color: #a33030; background: #ffebeb; }
+.admin-submission-details { display: grid; gap: 8px; }
+.admin-detail { display: grid; grid-template-columns: minmax(115px, 160px) minmax(0, 1fr); gap: 10px; font-size: 13px; }
+.admin-detail strong { color: var(--muted); }
+.admin-detail span { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.admin-submission-actions { display: flex; gap: 8px; margin-top: 16px; }
+@media (max-width: 575px) { .admin-submission-card { padding: 14px; } .admin-detail { grid-template-columns: 1fr; gap: 1px; } }

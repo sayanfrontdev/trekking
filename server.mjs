@@ -504,17 +504,25 @@ async function handleInquiry(request, response, type) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "Use POST to submit this form." });
   if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
   if (!allowRequest(request)) return sendJson(response, 429, { error: "Please wait a moment before submitting again." });
+  const user = type === "booking" ? await currentUser(request) : null;
+  if (type === "booking" && !user) return sendJson(response, 401, { error: "Sign in before submitting a booking request." });
   let body;
   try { body = await readJson(request); } catch { return sendJson(response, 400, { error: "The form could not be read." }); }
-  const name = cleanText(body.name, 120);
-  const email = cleanText(body.email, 254).toLowerCase();
+  const name = type === "booking" ? cleanText(user.name, 120) : cleanText(body.name, 120);
+  const email = type === "booking" ? cleanText(user.email, 254).toLowerCase() : cleanText(body.email, 254).toLowerCase();
   if (name.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return sendJson(response, 400, { error: "Enter a valid name and email address." });
   }
   const allowedTypes = new Set(["booking", "planner", "contact"]);
   if (!allowedTypes.has(type)) return sendJson(response, 404, { error: "Form not found." });
-  const payload = { name, email, phone: cleanText(body.phone, 40), message: cleanText(body.message, 2_000) };
+  const payload = {
+    name: type === "booking" ? user.name : name,
+    email: type === "booking" ? user.email : email,
+    phone: cleanText(body.phone, 40),
+    message: cleanText(body.message, 2_000)
+  };
   if (type === "booking") {
+    payload.userId = user.id;
     payload.trip = cleanText(body.trip, 160);
     payload.tripName = tripCatalog[payload.trip] || "";
     payload.date = cleanText(body.date, 40);
@@ -708,6 +716,67 @@ async function handleAccountRequests(request, response) {
   return sendJson(response, 200, { requests });
 }
 
+function isAdmin(user) {
+  if (!user) return false;
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean);
+  return adminEmails.includes(user.email.toLowerCase());
+}
+
+async function requireAdmin(request, response) {
+  if (!sameOrigin(request)) {
+    sendJson(response, 403, { error: "This request could not be verified." });
+    return null;
+  }
+  const user = await currentUser(request);
+  if (!user) {
+    sendJson(response, 401, { error: "Sign in with your admin account to continue." });
+    return null;
+  }
+  if (!isAdmin(user)) {
+    sendJson(response, 403, { error: "This account is not authorized to manage submitted forms." });
+    return null;
+  }
+  return user;
+}
+
+async function handleAdminInquiries(request, response) {
+  const admin = await requireAdmin(request, response);
+  if (!admin) return;
+  if (request.method !== "GET") return sendJson(response, 405, { error: "Use GET to view submitted forms." });
+  const store = await readStore();
+  const inquiries = store.inquiries
+    .slice()
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+    .map(({ id, userId, ...inquiry }) => ({ reference: id, ...inquiry }));
+  return sendJson(response, 200, { inquiries });
+}
+
+async function handleAdminInquiryAction(request, response, reference) {
+  const admin = await requireAdmin(request, response);
+  if (!admin) return;
+  if (request.method !== "PATCH") return sendJson(response, 405, { error: "Use PATCH to update a submitted form." });
+  let body;
+  try { body = await readJson(request, 2_000); } catch { return sendJson(response, 400, { error: "The review action could not be read." }); }
+  const status = body?.status;
+  if (!new Set(["accepted", "rejected"]).has(status)) {
+    return sendJson(response, 400, { error: "Choose accept or reject for this submission." });
+  }
+  let updated = null;
+  await updateStore(store => {
+    const inquiry = store.inquiries.find(item => item.id === reference);
+    if (!inquiry) return;
+    inquiry.status = status;
+    inquiry.reviewedAt = new Date().toISOString();
+    inquiry.reviewedBy = admin.email;
+    updated = { reference: inquiry.id, status: inquiry.status, reviewedAt: inquiry.reviewedAt };
+  });
+  if (!updated) return sendJson(response, 404, { error: "Submitted form not found." });
+  return sendJson(response, 200, updated);
+}
+
 function razorpaySettings() {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) return null;
   const expectedPrefix = process.env.RAZORPAY_MODE === "live" ? "rzp_live_" : "rzp_test_";
@@ -827,6 +896,10 @@ const server = createServer(async (request, response) => {
   if (url.pathname === "/api/bookings") return handleInquiry(request, response, "booking");
   if (url.pathname === "/api/inquiries/planner") return handleInquiry(request, response, "planner");
   if (url.pathname === "/api/inquiries/contact") return handleInquiry(request, response, "contact");
+  if (url.pathname === "/api/admin/inquiries") return handleAdminInquiries(request, response);
+  if (url.pathname.startsWith("/api/admin/inquiries/")) {
+    return handleAdminInquiryAction(request, response, decodeURIComponent(url.pathname.slice("/api/admin/inquiries/".length)));
+  }
   if (url.pathname === "/api/payments/create-order") return handleCreatePaymentOrder(request, response);
   if (url.pathname === "/api/payments/config") return handlePaymentConfig(request, response, url);
   if (url.pathname === "/api/payments/verify") return handleVerifyPayment(request, response);
