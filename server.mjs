@@ -7,7 +7,9 @@ import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHmac, cre
 import { applicationDefault, cert, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
-const root = path.dirname(fileURLToPath(import.meta.url));
+const root = typeof import.meta.url === "string"
+  ? path.dirname(fileURLToPath(import.meta.url))
+  : process.cwd();
 try { process.loadEnvFile?.(path.join(root, ".env")); } catch { /* Optional local env file. */ }
 
 const mimeTypes = {
