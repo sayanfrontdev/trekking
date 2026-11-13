@@ -1734,7 +1734,10 @@ function setupAdminDashboard() {
     }
   };
 
+  let loading = false;
   const load = async () => {
+    if (loading) return;
+    loading = true;
     status.textContent = "Loading submitted forms…";
     refresh.disabled = true;
     try {
@@ -1756,11 +1759,14 @@ function setupAdminDashboard() {
     } catch (error) {
       status.textContent = error.message || "Submitted forms could not be loaded.";
     } finally {
+      loading = false;
       refresh.disabled = false;
     }
   };
   refresh.addEventListener("click", load);
   window.addEventListener("trekking-auth-state", load);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+  window.setInterval(() => { if (!document.hidden) load(); }, 30_000);
   load();
 }
 

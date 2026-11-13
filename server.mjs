@@ -716,15 +716,6 @@ async function handleAccountRequests(request, response) {
   return sendJson(response, 200, { requests });
 }
 
-function isAdmin(user) {
-  if (!user) return false;
-  const adminEmails = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map(email => email.trim().toLowerCase())
-    .filter(Boolean);
-  return adminEmails.includes(user.email.toLowerCase());
-}
-
 async function requireAdmin(request, response) {
   if (!sameOrigin(request)) {
     sendJson(response, 403, { error: "This request could not be verified." });
@@ -735,8 +726,16 @@ async function requireAdmin(request, response) {
     sendJson(response, 401, { error: "Sign in with your admin account to continue." });
     return null;
   }
-  if (!isAdmin(user)) {
-    sendJson(response, 403, { error: "This account is not authorized to manage submitted forms." });
+  const configuredAdminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean);
+  if (!configuredAdminEmails.length) {
+    sendJson(response, 503, { error: "Admin access is not configured. Add your sign-in email to ADMIN_EMAILS in Netlify, then redeploy." });
+    return null;
+  }
+  if (!configuredAdminEmails.includes(user.email.toLowerCase())) {
+    sendJson(response, 403, { error: "This account is not an admin. Add this sign-in email to Netlify’s ADMIN_EMAILS variable, or sign in with an authorized admin account." });
     return null;
   }
   return user;
