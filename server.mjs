@@ -58,6 +58,7 @@ const storeKeyFields = {
 const authRequestCounts = new Map();
 const oauthStates = new Map();
 let writeQueue = Promise.resolve();
+let dataStoreInitialization;
 const tripCatalog = {
   sandakphu: "Sandakphu: the trail above the clouds",
   "sandakphu-village-trail": "Singalila ridge and quiet villages",
@@ -223,11 +224,29 @@ function oauthProviderReady(provider) {
     : Boolean(process.env.APPLE_CLIENT_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY_PATH && process.env.APPLE_REDIRECT_URI);
 }
 
-function oauthState(provider) {
+async function createOAuthState(provider) {
   const state = randomBytes(24).toString("base64url");
   const nonce = randomBytes(24).toString("base64url");
-  oauthStates.set(state, { provider, nonce, expiresAt: Date.now() + 10 * 60_000 });
+  const flow = { provider, nonce, expiresAt: Date.now() + 10 * 60_000 };
+  if (firestore) await firestore.collection("oauthStates").doc(state).set(flow);
+  else oauthStates.set(state, flow);
   return { state, nonce };
+}
+
+async function consumeOAuthState(state) {
+  if (!state) return null;
+  if (!firestore) {
+    const flow = oauthStates.get(state);
+    oauthStates.delete(state);
+    return flow || null;
+  }
+  const reference = firestore.collection("oauthStates").doc(state);
+  return firestore.runTransaction(async transaction => {
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists) return null;
+    transaction.delete(reference);
+    return snapshot.data();
+  });
 }
 
 function sendOAuthError(response, status, message) {
@@ -263,7 +282,7 @@ async function oauthLogin(provider, claims, name, response) {
 
 async function beginOAuth(provider, response) {
   if (!oauthProviderReady(provider)) return sendOAuthError(response, 503, `${provider === "google" ? "Google" : "Apple"} sign-in credentials are not configured on the server.`);
-  const { state, nonce } = oauthState(provider);
+  const { state, nonce } = await createOAuthState(provider);
   const google = provider === "google";
   const endpoint = google ? "https://accounts.google.com/o/oauth2/v2/auth" : "https://appleid.apple.com/auth/authorize";
   const params = new URLSearchParams({
@@ -330,8 +349,7 @@ async function readVerifiedIdentityToken(provider, token) {
 
 async function finishOAuth(provider, request, response, params) {
   const state = params.get("state") || "";
-  const flow = oauthStates.get(state);
-  oauthStates.delete(state);
+  const flow = await consumeOAuthState(state);
   if (!flow || flow.provider !== provider || flow.expiresAt < Date.now() || params.has("error")) return sendOAuthError(response, 400, "The sign-in session expired or was cancelled. Please try again.");
   const code = params.get("code");
   if (!code || !oauthProviderReady(provider)) return sendOAuthError(response, 400, "The provider response was incomplete.");
@@ -829,8 +847,12 @@ const server = createServer(async (request, response) => {
 
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || "0.0.0.0";
-async function startServer() {
-  if (firestore) {
+async function initializeDataStore() {
+  if (!firestore) {
+    if (process.env.NODE_ENV === "production") throw new Error("FIREBASE_PROJECT_ID must identify the Firebase project in production.");
+    return;
+  }
+  if (!dataStoreInitialization) dataStoreInitialization = (async () => {
     const markerRef = firestore.collection("appMetadata").doc("storeInitialized");
     const marker = await markerRef.get();
     if (!marker.exists) {
@@ -856,13 +878,21 @@ async function startServer() {
       });
       console.log("Initialized Firestore app data, importing any local data/site-data.json records.");
     }
-  } else if (process.env.NODE_ENV === "production") {
-    throw new Error("FIREBASE_PROJECT_ID must identify the Firebase project in production.");
-  }
+  })();
+  return dataStoreInitialization;
+}
+
+async function startServer() {
+  await initializeDataStore();
   server.listen(port, host, () => console.log(`TREKKING site listening on ${host}:${port}`));
 }
 
-startServer().catch(error => {
-  console.error("Server startup failed:", error.message);
-  process.exitCode = 1;
-});
+export { server, initializeDataStore };
+
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectRun) {
+  startServer().catch(error => {
+    console.error("Server startup failed:", error.message);
+    process.exitCode = 1;
+  });
+}
