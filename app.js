@@ -550,7 +550,7 @@ function setupAuthPopup() {
   accountRequests.className = "auth-account-requests";
   accountRequests.hidden = true;
   accountRequests.setAttribute("aria-live", "polite");
-  accountRequests.innerHTML = `<h3>Notifications and trip requests</h3><p class="auth-account-loading">Loading your requests…</p><ul></ul>`;
+  accountRequests.innerHTML = `<div class="auth-account-requests-heading"><h3>Notifications and trip requests</h3><button class="auth-account-refresh" type="button" aria-label="Refresh notifications and trip requests">Refresh</button></div><p class="auth-account-loading" role="status">Loading your requests…</p><ul></ul>`;
   status.insertAdjacentElement("afterend", accountRequests);
 
   let accountRequestsLoading = false;
@@ -572,14 +572,20 @@ function setupAuthPopup() {
     accountRequestsLoading = true;
     const requestedEmail = signedInUser.email;
     const list = accountRequests.querySelector("ul");
-    list.replaceChildren();
-    accountRequests.querySelector(".auth-account-loading").textContent = "Loading your requests…";
+    const loadingMessage = accountRequests.querySelector(".auth-account-loading");
+    const refreshButton = accountRequests.querySelector(".auth-account-refresh");
+    refreshButton.disabled = true;
+    if (!list.childElementCount) loadingMessage.textContent = "Loading your requests…";
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
     try {
-      const response = await fetch("/api/account/requests", { cache: "no-store" });
+      const response = await fetch(`/api/account/requests?_=${Date.now()}`, { cache: "no-store", signal: controller.signal });
       const result = await response.json();
       if (signedInUser?.email !== requestedEmail) return;
       if (!response.ok) throw new Error(result.error || "Requests could not be loaded.");
-      accountRequests.querySelector(".auth-account-loading").textContent = result.requests.length ? "" : "No trip requests yet.";
+      if (!Array.isArray(result.requests)) throw new Error("The server returned an invalid requests list.");
+      list.replaceChildren();
+      loadingMessage.textContent = result.requests.length ? "" : "No trip requests yet.";
       const notificationKey = `trekking-seen-decisions-v2:${signedInUser.id}`;
       let seenDecisions = {};
       try { seenDecisions = JSON.parse(localStorage.getItem(notificationKey) || "{}"); } catch { seenDecisions = {}; }
@@ -609,11 +615,17 @@ function setupAuthPopup() {
         authPopupController?.open(true);
       });
     } catch (error) {
-      if (signedInUser?.email === requestedEmail) accountRequests.querySelector(".auth-account-loading").textContent = error.message;
+      if (signedInUser?.email === requestedEmail) loadingMessage.textContent = error.name === "AbortError"
+        ? "Requests are taking too long to load. Tap Refresh to try again."
+        : (error.message || "Requests could not be loaded. Tap Refresh to try again.");
     } finally {
+      window.clearTimeout(timeout);
+      refreshButton.disabled = false;
       accountRequestsLoading = false;
     }
   }
+
+  accountRequests.querySelector(".auth-account-refresh").addEventListener("click", () => loadAccountRequests());
 
   function renderAccountState() {
     if (!signedInUser) {
@@ -713,6 +725,7 @@ function setupAuthPopup() {
     document.body.classList.add("auth-popup-open");
     overlay.classList.add("is-open");
     setMode("login");
+    if (signedInUser) loadAccountRequests();
   }
 
   overlay.addEventListener("click", async event => {
@@ -819,7 +832,7 @@ function setupAuthPopup() {
     renderAccountState();
   }).catch(() => {});
   window.setInterval(() => {
-    if (signedInUser && !document.hidden) loadAccountRequests();
+    if (signedInUser && !overlay.hidden && !document.hidden) loadAccountRequests();
   }, 5_000);
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-open-auth]")) return;

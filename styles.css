@@ -102,7 +102,10 @@ p { color: var(--muted); }
 .auth-service-note i { flex: 0 0 auto; margin-top: 2px; color: var(--navy); }
 .auth-form-status { min-height: 1.4em; margin: 14px 0 0; color: var(--navy); font-size: 12px; }
 .auth-account-requests { max-height: 190px; margin-top: 12px; overflow-y: auto; }
-.auth-account-requests h3 { margin: 0 0 8px; font-size: 13px; }
+.auth-account-requests-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.auth-account-requests h3 { margin: 0; font-size: 13px; }
+.auth-account-refresh { padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--brand); font-size: 11px; }
+.auth-account-refresh:disabled { opacity: .55; cursor: wait; }
 .auth-account-requests p { margin: 0; color: var(--muted); font-size: 12px; }
 .auth-account-requests ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
 .auth-account-requests li { display: grid; gap: 2px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
