@@ -747,4 +747,8 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-detail strong { color: var(--muted); }
 .admin-detail span { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 .admin-submission-actions { display: flex; gap: 8px; margin-top: 16px; }
+.site-decision-notification { position: fixed; z-index: 2400; top: 18px; right: 18px; width: min(390px, calc(100vw - 36px)); padding: 16px; border: 1px solid var(--brand); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: 0 16px 48px rgba(0,0,0,.28); }
+.site-decision-notification-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--brand); }
+.site-decision-notification p { margin: 9px 0 12px; font-size: 14px; line-height: 1.5; }
+.site-decision-notification-close { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: transparent; font-size: 20px; line-height: 1; }
 @media (max-width: 575px) { .admin-submission-card { padding: 14px; } .admin-detail { grid-template-columns: 1fr; gap: 1px; } }

@@ -552,6 +552,18 @@ function setupAuthPopup() {
   status.insertAdjacentElement("afterend", accountRequests);
 
   let accountRequestsLoading = false;
+  let pendingDecisionUserId = "";
+  const pendingDecisionStatuses = new Map();
+  function acknowledgeDecisionNotifications() {
+    if (!signedInUser || pendingDecisionUserId !== signedInUser.id) return;
+    const notificationKey = `trekking-seen-decisions-v2:${signedInUser.id}`;
+    let seenDecisions = {};
+    try { seenDecisions = JSON.parse(localStorage.getItem(notificationKey) || "{}"); } catch { seenDecisions = {}; }
+    for (const [reference, decisionStatus] of pendingDecisionStatuses) seenDecisions[reference] = decisionStatus;
+    try { localStorage.setItem(notificationKey, JSON.stringify(seenDecisions)); } catch { /* Account requests remain available as the notification history. */ }
+    pendingDecisionStatuses.clear();
+    document.querySelector("#siteDecisionNotification")?.remove();
+  }
   async function loadAccountRequests() {
     accountRequests.hidden = !signedInUser;
     if (!signedInUser || accountRequestsLoading) return;
@@ -566,10 +578,13 @@ function setupAuthPopup() {
       if (signedInUser?.email !== requestedEmail) return;
       if (!response.ok) throw new Error(result.error || "Requests could not be loaded.");
       accountRequests.querySelector(".auth-account-loading").textContent = result.requests.length ? "" : "No trip requests yet.";
-      const notificationKey = `trekking-seen-decisions:${signedInUser.id}`;
+      const notificationKey = `trekking-seen-decisions-v2:${signedInUser.id}`;
       let seenDecisions = {};
       try { seenDecisions = JSON.parse(localStorage.getItem(notificationKey) || "{}"); } catch { seenDecisions = {}; }
-      const newDecisions = [];
+      if (pendingDecisionUserId !== signedInUser.id) {
+        pendingDecisionUserId = signedInUser.id;
+        pendingDecisionStatuses.clear();
+      }
       result.requests.forEach(request => {
         const item = document.createElement("li");
         const title = document.createElement("strong");
@@ -582,18 +597,15 @@ function setupAuthPopup() {
           notification.className = `auth-request-notification is-${request.status}`;
           notification.textContent = `Notification: ${request.notification}`;
           item.append(notification);
-          if (seenDecisions[request.reference] !== request.status) newDecisions.push(request);
-          seenDecisions[request.reference] = request.status;
+          if (seenDecisions[request.reference] !== request.status) pendingDecisionStatuses.set(request.reference, request.status);
         }
         list.append(item);
       });
-      try { localStorage.setItem(notificationKey, JSON.stringify(seenDecisions)); } catch { /* Notifications still appear in the account panel. */ }
-      if (newDecisions.length === 1) {
-        const decision = newDecisions[0];
-        showToast(`${decision.trip}: the trip team ${decision.status} your request.`);
-      } else if (newDecisions.length > 1) {
-        showToast(`You have ${newDecisions.length} new trip request decisions. Open your account to view them.`);
-      }
+      const pendingDecisions = result.requests.filter(request => pendingDecisionStatuses.get(request.reference) === request.status);
+      if (pendingDecisions.length) showDecisionNotification(pendingDecisions, () => {
+        acknowledgeDecisionNotifications();
+        authPopupController?.open(true);
+      });
     } catch (error) {
       if (signedInUser?.email === requestedEmail) accountRequests.querySelector(".auth-account-loading").textContent = error.message;
     } finally {
@@ -602,6 +614,10 @@ function setupAuthPopup() {
   }
 
   function renderAccountState() {
+    if (!signedInUser) {
+      pendingDecisionStatuses.clear();
+      document.querySelector("#siteDecisionNotification")?.remove();
+    }
     overlay.querySelector("#authPopupTitle").textContent = signedInUser ? "Your account" : "Sign in or create an account";
     overlay.querySelector(".auth-intro").textContent = signedInUser
       ? "View your trip requests and manage your account."
@@ -2035,6 +2051,51 @@ function addArticleStructuredData() {
   crumb.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: new URL("index.html", location.href).href }, { "@type": "ListItem", position: 2, name: "Journal", item: new URL("blog.html", location.href).href }, { "@type": "ListItem", position: 3, name: articles[0].title, item: location.href.split("#")[0] }] });
   document.head.append(crumb);
 }
+function showDecisionNotification(decisions, onAcknowledge) {
+  if (!decisions.length) return;
+  let notice = document.querySelector("#siteDecisionNotification");
+  if (!notice) {
+    notice = document.createElement("section");
+    notice.id = "siteDecisionNotification";
+    notice.className = "site-decision-notification";
+    notice.setAttribute("role", "status");
+    notice.setAttribute("aria-live", "polite");
+    document.body.append(notice);
+  }
+  const signature = decisions.map(item => `${item.reference}:${item.status}`).join("|");
+  if (notice.dataset.signature === signature) return;
+  notice.dataset.signature = signature;
+  notice.replaceChildren();
+  const header = document.createElement("div");
+  header.className = "site-decision-notification-header";
+  const title = document.createElement("strong");
+  title.textContent = decisions.length === 1 ? "Booking update" : "Trip request updates";
+  const dismiss = document.createElement("button");
+  dismiss.className = "site-decision-notification-close";
+  dismiss.type = "button";
+  dismiss.setAttribute("aria-label", "Dismiss notification");
+  dismiss.textContent = "×";
+  dismiss.addEventListener("click", () => {
+    onAcknowledge();
+    notice.remove();
+  });
+  header.append(title, dismiss);
+  const message = document.createElement("p");
+  message.textContent = decisions.length === 1
+    ? `The trip team ${decisions[0].status} your request for ${decisions[0].trip}.`
+    : `The trip team updated ${decisions.length} of your requests. Open your account to review them.`;
+  const view = document.createElement("button");
+  view.className = "btn btn-primary-navy btn-sm";
+  view.type = "button";
+  view.textContent = "View my requests";
+  view.addEventListener("click", () => {
+    onAcknowledge();
+    notice.remove();
+    authPopupController?.open(true);
+  });
+  notice.append(header, message, view);
+}
+
 function showToast(message) {
   const toast = document.querySelector("#siteToast");
   toast.querySelector(".toast-body span").textContent = message;
