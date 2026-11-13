@@ -7,9 +7,8 @@ import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHmac, cre
 import { applicationDefault, cert, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
-const root = typeof import.meta.url === "string"
-  ? path.dirname(fileURLToPath(import.meta.url))
-  : process.cwd();
+const moduleUrl = typeof import.meta.url === "string" ? import.meta.url : "";
+const root = moduleUrl ? path.dirname(fileURLToPath(moduleUrl)) : process.cwd();
 try { process.loadEnvFile?.(path.join(root, ".env")); } catch { /* Optional local env file. */ }
 
 const mimeTypes = {
@@ -891,7 +890,7 @@ async function startServer() {
 
 export { server, initializeDataStore };
 
-const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isDirectRun = Boolean(moduleUrl && process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(moduleUrl));
 if (isDirectRun) {
   startServer().catch(error => {
     console.error("Server startup failed:", error.message);
