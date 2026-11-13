@@ -5,7 +5,9 @@
   "scripts": {
     "build": "node scripts/build-netlify.mjs",
     "dev": "node --watch server.mjs",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "migrate:content": "node scripts/migrate-site-content.mjs",
+    "migrate:content:firestore": "node scripts/migrate-site-content.mjs --content-only"
   },
   "dependencies": {
     "firebase-admin": "^13.4.0",

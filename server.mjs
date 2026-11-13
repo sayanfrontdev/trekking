@@ -36,6 +36,7 @@ if (firebaseProjectId) {
     : null;
   const firebaseApp = initializeApp({
     projectId: firebaseProjectId,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || undefined,
     credential: serviceAccount ? cert(serviceAccount) : applicationDefault()
   });
   firestore = getFirestore(firebaseApp);
@@ -508,6 +509,19 @@ async function handleChat(request, response) {
   }
 }
 
+async function handleSiteContent(request, response) {
+  if (request.method !== "GET") return sendJson(response, 405, { error: "Use GET to read site content." });
+  if (!firestore) return sendJson(response, 404, { error: "Firebase site content is not available." });
+  try {
+    const snapshot = await firestore.collection("siteContent").doc("public").get();
+    if (!snapshot.exists) return sendJson(response, 404, { error: "Firebase site content has not been migrated yet." });
+    return sendJson(response, 200, { content: snapshot.data() });
+  } catch (error) {
+    console.error("Site content read failed:", error.code || error.name || "Error");
+    return sendJson(response, 503, { error: "Firebase site content could not be loaded." });
+  }
+}
+
 async function handleInquiry(request, response, type) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "Use POST to submit this form." });
   if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
@@ -903,6 +917,7 @@ const server = createServer(async (request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
   if (url.pathname.startsWith("/auth/")) return handleOAuthRequest(request, response, url);
   if (url.pathname === "/api/chat") return handleChat(request, response);
+  if (url.pathname === "/api/site-content") return handleSiteContent(request, response);
   if (url.pathname === "/api/bookings") return handleInquiry(request, response, "booking");
   if (url.pathname === "/api/inquiries/planner") return handleInquiry(request, response, "planner");
   if (url.pathname === "/api/inquiries/contact") return handleInquiry(request, response, "contact");

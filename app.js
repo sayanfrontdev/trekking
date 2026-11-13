@@ -1,9 +1,9 @@
-const profilePortraits = {
+let profilePortraits = {
   "photo-1534528741775-53994a69daeb": "images/profile-aditi.svg",
   "photo-1500648767791-00dcc994a43e": "images/profile-rohan.svg",
   "photo-1531123897727-8f129e1688ce": "images/profile-nima.svg"
 };
-const localPhotos = {
+let localPhotos = {
   "photo-1464822759023-fed622ff2c3b": "images/sandakphu-ridge.jpg",
   "photo-1454496522488-7a8e488e8606": "images/sandakphu-snow.jpg",
   "photo-1551632811-561732d1e306": "images/sandakphu-tonglu-hut.jpg",
@@ -30,8 +30,10 @@ const localPhotos = {
   "photo-1494783367193-149034c05e8f": "images/sandakphu-snow.jpg",
   "photo-1510798831971-661eb04b3739": "images/himachal-key-monastery.jpg"
 };
-const photo = id => profilePortraits[id] || (id.startsWith("images/") ? id : localPhotos[id] || "images/sandakphu-ridge.jpg");
-const trips = [
+let siteAssetUrls = {};
+const resolveSiteAsset = source => siteAssetUrls[source] || source;
+const photo = id => resolveSiteAsset(profilePortraits[id] || (id.startsWith("images/") ? id : localPhotos[id] || "images/sandakphu-ridge.jpg"));
+let trips = [
   { slug: "sandakphu", title: "Sandakphu: the trail above the clouds", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Moderate", image: "images/sandakphu-ridge.jpg", description: "Trace the high ridge above Singalila, with long views toward the Himalayan range and quiet stops in mountain settlements.", badge: "High ridge" },
   { slug: "sandakphu-village-trail", title: "Singalila ridge and quiet villages", category: "Trekking", region: "West Bengal", destinations: ["sandakphu"], seasons: ["oct-dec", "jan-mar"], styles: ["Trekking"], level: "Easy", image: "images/sandakphu-tonglu-hut.jpg", description: "Take a gentler route through forest paths and ridge-top settlements near Sandakphu, with time to pause between walks.", badge: "Gentle pace" },
   { slug: "sikkim", title: "Sikkim, slowly", category: "Culture & nature", region: "Sikkim", destinations: ["sikkim"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Culture & nature"], level: "Easy", image: "images/sikkim-enchey-monastery.jpg", description: "Explore monastery courtyards, mountain villages, and the quieter roads of the eastern Himalayas.", badge: "Monastery routes" },
@@ -44,7 +46,7 @@ const trips = [
   { slug: "himachal-forest-paths", title: "Pine forest paths of Himachal", category: "Mountain journey", region: "Himachal Pradesh", destinations: ["himachal"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Trekking"], level: "Easy", image: "images/himachal-barshaini.jpg", description: "Start with a relaxed mountain walk through pine woods and riverside villages, with room to find your own rhythm.", badge: "Forest walk" },
   { slug: "weekend", title: "A little further into the hills", category: "Weekend escape", region: "North Bengal", destinations: ["darjeeling"], seasons: ["oct-dec", "jan-mar", "apr-jun"], styles: ["Weekend escape"], level: "Easy", image: "images/darjeeling-kanchenjunga.jpg", description: "Step away from the usual routine for a short hill-country escape built around fresh air, local food, and unhurried time.", badge: "Short escape" }
 ];
-const articles = [
+let articles = [
   { title: "How to prepare for your first Himalayan trek", category: "Trail notes", read: "7 min read", author: "TREKKING Journal", image: photo("photo-1519681393784-d120267933ba"), excerpt: "A practical guide to choosing a route, building confidence on local walks, and preparing for changing mountain conditions." },
   { title: "The quiet magic of a Darjeeling dawn", category: "Slow travel", read: "5 min read", author: "TREKKING Journal", image: photo("photo-1511497584788-876760111969"), excerpt: "Explore tea country in the softer hours of the day, when hillside paths and old lanes invite a slower pace." },
   { title: "A local's guide to Sikkim's monastery trails", category: "Culture", read: "6 min read", author: "TREKKING Journal", image: photo("photo-1448375240586-882707db888b"), excerpt: "A thoughtful visitor's guide to approaching monastery paths with curiosity, care, and respect for local customs." },
@@ -52,7 +54,7 @@ const articles = [
   { title: "Why we travel in smaller groups", category: "Our approach", read: "5 min read", author: "TREKKING Journal", image: photo("photo-1523712999610-f77fbcfc3843"), excerpt: "Smaller groups can make it easier to adapt a day's pace, listen to local guides, and leave room for conversation." },
   { title: "Five beautiful weekends in the hills", category: "Inspiration", read: "6 min read", author: "TREKKING Journal", image: photo("photo-1433086966358-54859d0ed716"), excerpt: "Ideas for a short change of scene, from tea-country walks to quiet forest paths and lakeside pauses." }
 ];
-const destinations = [
+let destinations = [
   { title: "Sandakphu", sub: "West Bengal · India", image: "images/sandakphu-ridge.jpg", aboutImage: "images/sandakphu-snow.jpg", slug: "sandakphu" },
   { title: "Darjeeling", sub: "West Bengal · India", image: "images/darjeeling-teascape.jpg", aboutImage: "images/darjeeling-kanchenjunga.jpg", slug: "darjeeling" },
   { title: "Sikkim", sub: "Eastern Himalayas", image: "images/sikkim-tsomgo.jpg", aboutImage: "images/sikkim-enchey-monastery.jpg", slug: "sikkim" },
@@ -61,7 +63,7 @@ const destinations = [
 ];
 // Demo examples sourced from Trekking Alps on Trustpilot, not reviews for this India-travel site.
 // Keep the demo disclosure visible anywhere these examples are rendered.
-const customerReviews = [
+let customerReviews = [
   { name: "S. Spence", initials: "SS", image: "images/profile-rohan.svg", rating: 5, summary: "Said the self-guided route and arrangements matched their group’s needs and went smoothly.", journey: "8-day Val Maira self-guided hike", source: "https://www.trustpilot.com/reviews/6ab933c47048e6a70f35957f" },
   { name: "Benedetta", initials: "B", image: "images/profile-aditi.svg", rating: 4.5, summary: "Enjoyed a challenging Gran Paradiso hike, scenic views, welcoming hospitality, and good food in the mountain huts.", journey: "Gran Paradiso four-day hike", source: "https://www.trustpilot.com/reviews/6aa91756a2bd03766f9054d6" },
   { name: "D. Karimi", initials: "DK", image: "images/profile-nima.svg", rating: 4, summary: "Praised the guide, beautiful hike, food, and warm group atmosphere.", journey: "Italian Alps hike", source: "https://www.trustpilot.com/reviews/6aa6d01babd334626046af8c" },
@@ -69,7 +71,7 @@ const customerReviews = [
   { name: "Cindy Carpenter", initials: "CC", image: "images/profile-rohan.svg", rating: 4.2, summary: "Said a custom Val Maira route fit the group’s requested dates, distance, and elevation, with arrangements running smoothly.", journey: "Five-day Val Maira hike", source: "https://www.trustpilot.com/reviews/6a6f54d3e25b98b2466aef43" },
   { name: "Egle Tiskeviciute", initials: "ET", image: "images/profile-nima.svg", rating: 3.5, summary: "Enjoyed a Susa Valley hut-to-hut trek and highlighted the guide’s care, communication, local stories, and wildlife.", journey: "Four-day Susa Valley Ring Trek", source: "https://www.trustpilot.com/reviews/6a67797f698c7a0ca57ad9bd" }
 ];
-const legalData = {
+let legalData = {
   privacy: { title: "Privacy policy", intro: "Your trust matters to us. Here's how we handle the information you share when exploring or booking a TREKKING journey.", sections: [
     ["Information we collect", "We may collect contact details and trip preferences that you choose to share through our forms or booking enquiries. Payment information is handled by the payment provider you select; please review that provider's privacy notice."],
     ["How we use information", "We use information to respond to enquiries, coordinate requested travel arrangements, provide customer support, and improve this website. We do not sell personal information."],
@@ -1653,6 +1655,47 @@ function setupGalleryLightbox(root) {
   });
 }
 let bookingSessionUser = null;
+function applyStoredSiteAssets(root = document) {
+  root.querySelectorAll("img[src], video[src], audio[src], source[src], link[rel~='icon'][href]").forEach(element => {
+    const attribute = element.tagName === "LINK" ? "href" : "src";
+    const source = element.getAttribute(attribute);
+    if (source && siteAssetUrls[source]) element.setAttribute(attribute, siteAssetUrls[source]);
+    for (const dataAttribute of ["data-feature-image", "data-default-image"]) {
+      const dataSource = element.getAttribute(dataAttribute);
+      if (dataSource && siteAssetUrls[dataSource]) element.setAttribute(dataAttribute, siteAssetUrls[dataSource]);
+    }
+  });
+  root.querySelectorAll("[style]").forEach(element => {
+    const style = element.getAttribute("style") || "";
+    const updated = style.replace(/url\((['"]?)(images\/[^)'\"]+)\1\)/g, (match, quote, source) =>
+      siteAssetUrls[source] ? `url(${quote}${siteAssetUrls[source]}${quote})` : match
+    );
+    if (updated !== style) element.setAttribute("style", updated);
+  });
+}
+
+async function loadFirebaseSiteContent() {
+  try {
+    const response = await fetch("/api/site-content", { cache: "no-store" });
+    if (!response.ok) return;
+    const { content } = await response.json();
+    if (!content || typeof content !== "object") return;
+    if (Array.isArray(content.trips)) trips = content.trips;
+    if (Array.isArray(content.articles)) articles = content.articles;
+    if (Array.isArray(content.destinations)) destinations = content.destinations;
+    if (Array.isArray(content.customerReviews)) customerReviews = content.customerReviews;
+    if (content.legalData && typeof content.legalData === "object") legalData = content.legalData;
+    if (content.profilePortraits && typeof content.profilePortraits === "object") profilePortraits = content.profilePortraits;
+    if (content.localPhotos && typeof content.localPhotos === "object") localPhotos = content.localPhotos;
+    siteAssetUrls = content.assets && typeof content.assets === "object" ? content.assets : {};
+    if (main.dataset.staticPage !== "admin") {
+      const hasFormInput = [...main.querySelectorAll("input, textarea, select")].some(field => field.value);
+      if (!hasFormInput) route();
+    }
+    applyStoredSiteAssets(document);
+  } catch { /* Keep the bundled page content available if Firestore content is unreachable. */ }
+}
+
 function setupBookingAccess() {
   const form = main.querySelector("#bookingForm");
   if (!form) return;
@@ -2005,6 +2048,7 @@ function route() {
   const footerHelp = [...footer.querySelectorAll(".footer-column")].at(-1);
   if (footerHelp) footerHelp.innerHTML = `<h3>Plan with confidence</h3><p>Use the contact form to prepare a question about routes, travel style, or trip planning.</p><a href="#/contact">Open the contact form</a><a href="#/faq">Read the trip planning guide</a><button class="auth-open-button" type="button" data-open-auth>Sign in or create an account</button>`;
   rewritePageLinks(footer);
+  applyStoredSiteAssets(document);
   updateActiveNavigation(path);
   const footerLegal = footer.querySelector(".footer-legal");
   if (footerLegal) footerLegal.insertAdjacentHTML("beforeend", `<a href="#cookie-settings" data-open-cookie-settings>Cookie settings</a>`);
@@ -2171,6 +2215,7 @@ if (main.dataset.staticPage) {
 cookieConsentController = setupCookieConsent();
 authPopupController = setupAuthPopup();
 setupPasswordResetForm();
+loadFirebaseSiteContent();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
 async function postLocalRequest(endpoint, payload, method = "POST") {
