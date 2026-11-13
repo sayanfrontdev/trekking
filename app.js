@@ -2051,6 +2051,54 @@ function addArticleStructuredData() {
   crumb.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: new URL("index.html", location.href).href }, { "@type": "ListItem", position: 2, name: "Journal", item: new URL("blog.html", location.href).href }, { "@type": "ListItem", position: 3, name: articles[0].title, item: location.href.split("#")[0] }] });
   document.head.append(crumb);
 }
+let decisionAudioContext;
+let decisionSoundPending = false;
+let decisionSoundUnlockInstalled = false;
+function installDecisionSoundUnlock() {
+  if (decisionSoundUnlockInstalled) return;
+  decisionSoundUnlockInstalled = true;
+  const unlock = async () => {
+    if (!decisionSoundPending || !decisionAudioContext) return;
+    try {
+      await decisionAudioContext.resume();
+      if (decisionAudioContext.state === "running" && decisionSoundPending) {
+        decisionSoundPending = false;
+        playDecisionNotificationSound();
+      }
+    } catch { /* Try again on the next user interaction. */ }
+  };
+  document.addEventListener("pointerdown", unlock);
+  document.addEventListener("keydown", unlock);
+}
+async function playDecisionNotificationSound() {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextConstructor) return;
+  try {
+    decisionAudioContext ||= new AudioContextConstructor();
+    if (decisionAudioContext.state === "suspended") {
+      try { await decisionAudioContext.resume(); } catch { /* Wait for a user gesture to unlock audio. */ }
+    }
+    if (decisionAudioContext.state !== "running") {
+      decisionSoundPending = true;
+      installDecisionSoundUnlock();
+      return;
+    }
+    const oscillator = decisionAudioContext.createOscillator();
+    const volume = decisionAudioContext.createGain();
+    const now = decisionAudioContext.currentTime;
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(660, now);
+    oscillator.frequency.setValueAtTime(880, now + 0.12);
+    volume.gain.setValueAtTime(0.0001, now);
+    volume.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+    volume.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+    oscillator.connect(volume);
+    volume.connect(decisionAudioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.35);
+  } catch { /* Keep the in-site notification available when audio is blocked. */ }
+}
+
 function showDecisionNotification(decisions, onAcknowledge) {
   if (!decisions.length) return;
   let notice = document.querySelector("#siteDecisionNotification");
@@ -2094,6 +2142,7 @@ function showDecisionNotification(decisions, onAcknowledge) {
     authPopupController?.open(true);
   });
   notice.append(header, message, view);
+  playDecisionNotificationSound();
 }
 
 function showToast(message) {
