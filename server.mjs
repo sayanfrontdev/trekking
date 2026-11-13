@@ -105,6 +105,14 @@ async function readStore() {
   }
 }
 
+async function readInquiries() {
+  if (firestore) {
+    const snapshot = await firestore.collection("inquiries").get();
+    return snapshot.docs.map(document => document.data());
+  }
+  return (await readStore()).inquiries;
+}
+
 function updateStore(update) {
   const operation = writeQueue.then(async () => {
     if (firestore) {
@@ -700,9 +708,9 @@ async function handleAccountRequests(request, response) {
   if (!sameOrigin(request)) return sendJson(response, 403, { error: "This request could not be verified." });
   const user = await currentUser(request);
   if (!user) return sendJson(response, 401, { error: "Sign in to view your trip requests." });
-  const store = await readStore();
-  const requests = store.inquiries
-    .filter(item => item.email === user.email && ["booking", "planner"].includes(item.type))
+  const inquiries = await readInquiries();
+  const requests = inquiries
+    .filter(item => (item.userId ? item.userId === user.id : item.email === user.email) && ["booking", "planner"].includes(item.type))
     .slice(-20)
     .reverse()
     .map(item => ({
@@ -711,7 +719,11 @@ async function handleAccountRequests(request, response) {
       status: item.status,
       paymentStatus: item.paymentStatus || "unpaid",
       trip: item.tripName || item.trip || item.place || "Trip planning request",
-      date: item.date || item.dates || ""
+      date: item.date || item.dates || "",
+      notification: ["accepted", "rejected"].includes(item.status)
+        ? `The trip team ${item.status} your ${item.type === "booking" ? "booking request" : "trip plan"}.`
+        : "",
+      reviewedAt: item.reviewedAt || ""
     }));
   return sendJson(response, 200, { requests });
 }
@@ -745,8 +757,7 @@ async function handleAdminInquiries(request, response) {
   const admin = await requireAdmin(request, response);
   if (!admin) return;
   if (request.method !== "GET") return sendJson(response, 405, { error: "Use GET to view submitted forms." });
-  const store = await readStore();
-  const inquiries = store.inquiries
+  const inquiries = (await readInquiries())
     .slice()
     .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
     .map(({ id, userId, ...inquiry }) => ({ reference: id, ...inquiry }));

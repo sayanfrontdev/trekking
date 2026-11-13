@@ -548,12 +548,14 @@ function setupAuthPopup() {
   accountRequests.className = "auth-account-requests";
   accountRequests.hidden = true;
   accountRequests.setAttribute("aria-live", "polite");
-  accountRequests.innerHTML = `<h3>Your trip requests</h3><p class="auth-account-loading">Loading your requests…</p><ul></ul>`;
+  accountRequests.innerHTML = `<h3>Notifications and trip requests</h3><p class="auth-account-loading">Loading your requests…</p><ul></ul>`;
   status.insertAdjacentElement("afterend", accountRequests);
 
+  let accountRequestsLoading = false;
   async function loadAccountRequests() {
     accountRequests.hidden = !signedInUser;
-    if (!signedInUser) return;
+    if (!signedInUser || accountRequestsLoading) return;
+    accountRequestsLoading = true;
     const requestedEmail = signedInUser.email;
     const list = accountRequests.querySelector("ul");
     list.replaceChildren();
@@ -571,10 +573,18 @@ function setupAuthPopup() {
         const detail = document.createElement("span");
         detail.textContent = `${request.type === "booking" ? "Booking request" : "Trip plan"} · ${request.status}${request.paymentStatus === "paid" ? " · Deposit paid" : ""}`;
         item.append(title, detail);
+        if (request.notification) {
+          const notification = document.createElement("span");
+          notification.className = `auth-request-notification is-${request.status}`;
+          notification.textContent = `Notification: ${request.notification}`;
+          item.append(notification);
+        }
         list.append(item);
       });
     } catch (error) {
       if (signedInUser?.email === requestedEmail) accountRequests.querySelector(".auth-account-loading").textContent = error.message;
+    } finally {
+      accountRequestsLoading = false;
     }
   }
 
@@ -777,6 +787,9 @@ function setupAuthPopup() {
     signedInUser = result.user;
     renderAccountState();
   }).catch(() => {});
+  window.setInterval(() => {
+    if (signedInUser && overlay.classList.contains("is-open") && !document.hidden) loadAccountRequests();
+  }, 5_000);
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-open-auth]")) return;
     event.preventDefault();
@@ -1766,7 +1779,7 @@ function setupAdminDashboard() {
   refresh.addEventListener("click", load);
   window.addEventListener("trekking-auth-state", load);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
-  window.setInterval(() => { if (!document.hidden) load(); }, 30_000);
+  window.setInterval(() => { if (!document.hidden) load(); }, 5_000);
   load();
 }
 
