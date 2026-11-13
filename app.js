@@ -566,6 +566,10 @@ function setupAuthPopup() {
       if (signedInUser?.email !== requestedEmail) return;
       if (!response.ok) throw new Error(result.error || "Requests could not be loaded.");
       accountRequests.querySelector(".auth-account-loading").textContent = result.requests.length ? "" : "No trip requests yet.";
+      const notificationKey = `trekking-seen-decisions:${signedInUser.id}`;
+      let seenDecisions = {};
+      try { seenDecisions = JSON.parse(localStorage.getItem(notificationKey) || "{}"); } catch { seenDecisions = {}; }
+      const newDecisions = [];
       result.requests.forEach(request => {
         const item = document.createElement("li");
         const title = document.createElement("strong");
@@ -578,9 +582,18 @@ function setupAuthPopup() {
           notification.className = `auth-request-notification is-${request.status}`;
           notification.textContent = `Notification: ${request.notification}`;
           item.append(notification);
+          if (seenDecisions[request.reference] !== request.status) newDecisions.push(request);
+          seenDecisions[request.reference] = request.status;
         }
         list.append(item);
       });
+      try { localStorage.setItem(notificationKey, JSON.stringify(seenDecisions)); } catch { /* Notifications still appear in the account panel. */ }
+      if (newDecisions.length === 1) {
+        const decision = newDecisions[0];
+        showToast(`${decision.trip}: the trip team ${decision.status} your request.`);
+      } else if (newDecisions.length > 1) {
+        showToast(`You have ${newDecisions.length} new trip request decisions. Open your account to view them.`);
+      }
     } catch (error) {
       if (signedInUser?.email === requestedEmail) accountRequests.querySelector(".auth-account-loading").textContent = error.message;
     } finally {
@@ -788,7 +801,7 @@ function setupAuthPopup() {
     renderAccountState();
   }).catch(() => {});
   window.setInterval(() => {
-    if (signedInUser && overlay.classList.contains("is-open") && !document.hidden) loadAccountRequests();
+    if (signedInUser && !document.hidden) loadAccountRequests();
   }, 5_000);
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-open-auth]")) return;
