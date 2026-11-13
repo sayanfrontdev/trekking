@@ -737,6 +737,8 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .booking-signin-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
 .booking-signin-gate[hidden] { display: none; }
 .admin-dashboard { max-width: 980px; margin-inline: auto; }
+.admin-refresh-controls { display: flex; align-items: center; gap: 12px; }
+.admin-refresh-countdown { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .admin-status { min-height: 1.5em; color: var(--muted); font-size: 13px; }
 .admin-submissions { display: grid; gap: 14px; }
 .admin-submission-card { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }

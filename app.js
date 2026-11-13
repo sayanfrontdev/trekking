@@ -1575,7 +1575,7 @@ async function resolvePaymentStatus(kind) {
   }
 }
 function adminPage() {
-  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests and other enquiries. Accepting a request does not confirm a trip.</p></div><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div></div></div></section>`;
+  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests and other enquiries. Accepting a request does not confirm a trip.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div></div></div></section>`;
 }
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
@@ -1756,7 +1756,8 @@ function setupAdminDashboard() {
   const status = main.querySelector("[data-admin-status]");
   const submissions = main.querySelector("[data-admin-submissions]");
   const refresh = main.querySelector("[data-admin-refresh]");
-  if (!status || !submissions || !refresh) return;
+  const countdown = main.querySelector("[data-admin-countdown] span");
+  if (!status || !submissions || !refresh || !countdown) return;
 
   const addDetail = (list, label, value) => {
     if (value === undefined || value === null || String(value).trim() === "") return;
@@ -1861,10 +1862,23 @@ function setupAdminDashboard() {
       refresh.disabled = false;
     }
   };
-  refresh.addEventListener("click", load);
+  let secondsUntilRefresh = 5;
+  const resetCountdown = () => {
+    secondsUntilRefresh = 5;
+    countdown.textContent = String(secondsUntilRefresh);
+  };
+  refresh.addEventListener("click", () => { resetCountdown(); load(); });
   window.addEventListener("trekking-auth-state", load);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
-  window.setInterval(() => { if (!document.hidden) load(); }, 5_000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { resetCountdown(); load(); } });
+  window.setInterval(() => {
+    if (document.hidden) return;
+    secondsUntilRefresh -= 1;
+    countdown.textContent = String(Math.max(0, secondsUntilRefresh));
+    if (secondsUntilRefresh <= 0) {
+      load();
+      resetCountdown();
+    }
+  }, 1_000);
   load();
 }
 
