@@ -85,6 +85,9 @@ p { color: var(--muted); }
 .auth-close { position: absolute; top: 14px; right: 14px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: var(--surface); }
 .auth-dialog h2 { margin: 12px 0 8px; font-size: clamp(1.7rem, 5vw, 2.15rem); }
 .auth-intro { margin-bottom: 18px; font-size: 14px; }
+.auth-personal-greeting { margin: 0 0 16px; padding: 11px 13px; border-left: 3px solid var(--brand); border-radius: 8px; background: var(--surface-soft); }
+.auth-welcome { margin: 0 0 4px; color: var(--ink); font-size: 14px; font-weight: 700; }
+.auth-trek-quote { margin: 0; color: var(--muted); font-size: 12px; font-style: italic; line-height: 1.55; }
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 20px 0 14px; padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-soft); }
 .auth-tab { padding: 9px; border: 0; border-radius: 7px; color: var(--muted); background: transparent; font-size: 13px; font-weight: 700; }
 .auth-tab.active { color: #fff; background: var(--brand); }
