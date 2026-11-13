@@ -452,7 +452,7 @@ async function handleChat(request, response) {
   }
 
   try {
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
     const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: {
@@ -482,7 +482,7 @@ async function handleChat(request, response) {
         return sendJson(response, 502, { error: "Gemini rejected the API key or project. Check that GEMINI_API_KEY is correct in Netlify and that its Google project has Gemini API access." });
       }
       if (upstream.status === 404) {
-        return sendJson(response, 502, { error: "The Gemini model configured for this site is unavailable. Remove GEMINI_MODEL in Netlify to use the default model, then redeploy." });
+        return sendJson(response, 502, { error: "The Gemini model is unavailable. In Netlify, remove GEMINI_MODEL or set it to gemini-3.5-flash-lite, then redeploy." });
       }
       if (upstream.status === 400) {
         return sendJson(response, 502, { error: "Gemini rejected the chat request. Check the Gemini API settings and try again." });
