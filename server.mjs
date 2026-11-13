@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHmac, createHash, createSign, createPublicKey, verify as verifySignature } from "node:crypto";
+import { applicationDefault, cert, initializeApp } from "firebase-admin/app";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 try { process.loadEnvFile?.(path.join(root, ".env")); } catch { /* Optional local env file. */ }
@@ -25,6 +27,34 @@ const requestCounts = new Map();
 const scrypt = promisify(scryptCallback);
 const dataDirectory = path.join(root, "data");
 const dataFile = path.join(dataDirectory, "site-data.json");
+const firebaseProjectId = process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "";
+let firestore = null;
+if (firebaseProjectId) {
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    : null;
+  const firebaseApp = initializeApp({
+    projectId: firebaseProjectId,
+    credential: serviceAccount ? cert(serviceAccount) : applicationDefault()
+  });
+  firestore = getFirestore(firebaseApp);
+}
+const storeCollections = {
+  users: "users",
+  sessions: "sessions",
+  passwordResets: "passwordResets",
+  bookings: "bookings",
+  inquiries: "inquiries",
+  payments: "payments"
+};
+const storeKeyFields = {
+  users: "id",
+  sessions: "tokenHash",
+  passwordResets: "tokenHash",
+  bookings: "id",
+  inquiries: "id",
+  payments: "orderId"
+};
 const authRequestCounts = new Map();
 const oauthStates = new Map();
 let writeQueue = Promise.resolve();
@@ -43,6 +73,21 @@ const tripCatalog = {
 };
 
 async function readStore() {
+  if (firestore) {
+    const entries = await Promise.all(Object.entries(storeCollections).map(async ([key, collection]) => {
+      const snapshot = await firestore.collection(collection).get();
+      return [key, snapshot.docs.map(document => document.data())];
+    }));
+    const store = Object.fromEntries(entries);
+    store.users ||= [];
+    store.sessions ||= [];
+    store.passwordResets ||= [];
+    store.bookings ||= [];
+    store.inquiries ||= [];
+    store.payments ||= [];
+    return store;
+  }
+  if (process.env.NODE_ENV === "production") throw new Error("FIREBASE_PROJECT_ID is required in production.");
   try {
     const store = JSON.parse(await readFile(dataFile, "utf8"));
     store.users ||= [];
@@ -60,6 +105,37 @@ async function readStore() {
 
 function updateStore(update) {
   const operation = writeQueue.then(async () => {
+    if (firestore) {
+      const lockRef = firestore.collection("appMetadata").doc("storeWriteLock");
+      return firestore.runTransaction(async transaction => {
+        const lock = await transaction.get(lockRef);
+        const snapshots = await Promise.all(Object.entries(storeCollections).map(([key, collection]) =>
+          transaction.get(firestore.collection(collection)).then(snapshot => [key, snapshot])
+        ));
+        const prior = Object.fromEntries(snapshots.map(([key, snapshot]) => [key,
+          snapshot.docs.map(document => document.data())
+        ]));
+        for (const key of Object.keys(storeCollections)) prior[key] ||= [];
+        const next = structuredClone(prior);
+        const value = update(next);
+
+        for (const [key, collection] of Object.entries(storeCollections)) {
+          const keyField = storeKeyFields[key];
+          const before = new Map(prior[key].map(item => [String(item[keyField]), item]));
+          const after = new Map(next[key].map(item => [String(item[keyField]), item]));
+          const collectionRef = firestore.collection(collection);
+          for (const [id] of before) if (!after.has(id)) transaction.delete(collectionRef.doc(id));
+          for (const [id, item] of after) {
+            if (!before.has(id) || JSON.stringify(before.get(id)) !== JSON.stringify(item)) {
+              transaction.set(collectionRef.doc(id), item);
+            }
+          }
+        }
+        transaction.set(lockRef, { updatedAt: FieldValue.serverTimestamp(), revision: (lock.data()?.revision || 0) + 1 });
+        return value;
+      });
+    }
+    if (process.env.NODE_ENV === "production") throw new Error("FIREBASE_PROJECT_ID is required in production.");
     const store = await readStore();
     const result = update(store);
     await mkdir(dataDirectory, { recursive: true, mode: 0o700 });
@@ -89,7 +165,7 @@ function setSessionCookie(response, token) {
 }
 
 function clearSessionCookie(response) {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";c
   response.setHeader("Set-Cookie", `trekking_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`);
 }
 
@@ -753,4 +829,40 @@ const server = createServer(async (request, response) => {
 
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || "0.0.0.0";
-server.listen(port, host, () => console.log(`TREKKING site listening on ${host}:${port}`));
+async function startServer() {
+  if (firestore) {
+    const markerRef = firestore.collection("appMetadata").doc("storeInitialized");
+    const marker = await markerRef.get();
+    if (!marker.exists) {
+      let initialStore = { users: [], sessions: [], passwordResets: [], bookings: [], inquiries: [], payments: [] };
+      try {
+        initialStore = JSON.parse(await readFile(dataFile, "utf8"));
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      for (const [key, collection] of Object.entries(storeCollections)) {
+        const keyField = storeKeyFields[key];
+        const items = initialStore[key] || [];
+        for (let offset = 0; offset < items.length; offset += 400) {
+          const batch = firestore.batch();
+          for (const item of items.slice(offset, offset + 400)) {
+            batch.set(firestore.collection(collection).doc(String(item[keyField])), item);
+          }
+          if (items.length) await batch.commit();
+        }
+      }
+      await markerRef.create({ createdAt: FieldValue.serverTimestamp() }).catch(async error => {
+        if (error.code !== 6 && error.code !== "already-exists") throw error;
+      });
+      console.log("Initialized Firestore app data, importing any local data/site-data.json records.");
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    throw new Error("FIREBASE_PROJECT_ID must identify the Firebase project in production.");
+  }
+  server.listen(port, host, () => console.log(`TREKKING site listening on ${host}:${port}`));
+}
+
+startServer().catch(error => {
+  console.error("Server startup failed:", error.message);
+  process.exitCode = 1;
+});
