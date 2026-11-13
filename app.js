@@ -558,6 +558,10 @@ function setupAuthPopup() {
   }
 
   function renderAccountState() {
+    overlay.querySelector("#authPopupTitle").textContent = signedInUser ? "Your account" : "Sign in or create an account";
+    overlay.querySelector(".auth-intro").textContent = signedInUser
+      ? "View your trip requests and manage your account."
+      : "Save the journeys you’re considering and keep your trip enquiries together.";
     document.querySelectorAll("[data-open-auth]").forEach(button => {
       const label = signedInUser ? "" : "Sign in";
       button.classList.toggle("is-authenticated", Boolean(signedInUser));
