@@ -278,7 +278,8 @@ async function oauthLogin(provider, claims, name, response) {
     return sendOAuthError(response, 500, "Your account could not be saved.");
   }
   await createSession(user, response);
-  response.writeHead(303, { Location: "/", "Cache-Control": "no-store" }).end();
+  response.writeHead(303, { Location: "/", "Cache-Control": "no-store" });
+  response.end();
 }
 
 async function beginOAuth(provider, response) {
@@ -296,7 +297,8 @@ async function beginOAuth(provider, response) {
     nonce
   });
   if (google) params.set("access_type", "online");
-  response.writeHead(302, { Location: `${endpoint}?${params}`, "Cache-Control": "no-store" }).end();
+  response.writeHead(302, { Location: `${endpoint}?${params}`, "Cache-Control": "no-store" });
+  response.end();
 }
 
 async function exchangeCode(provider, code, redirectUri) {
@@ -818,17 +820,20 @@ const server = createServer(async (request, response) => {
 
   let pathname;
   try { pathname = decodeURIComponent(url.pathname); } catch {
-    response.writeHead(400).end("Bad request");
+    response.writeHead(400);
+    response.end("Bad request");
     return;
   }
   const segments = pathname.split("/").filter(Boolean);
   if (segments.some(segment => segment.startsWith(".")) || ["data", "node_modules", "secrets"].includes(segments[0]) || /\.(?:p8|pem|key)$/i.test(pathname)) {
-    response.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" }).end("Forbidden");
+    response.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Forbidden");
     return;
   }
   const target = path.resolve(root, `.${pathname === "/" ? "/index.html" : pathname}`);
   if (target !== root && !target.startsWith(`${root}${path.sep}`)) {
-    response.writeHead(403).end("Forbidden");
+    response.writeHead(403);
+    response.end("Forbidden");
     return;
   }
 
@@ -842,7 +847,8 @@ const server = createServer(async (request, response) => {
     });
     response.end(request.method === "HEAD" ? undefined : content);
   } catch {
-    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Not found");
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Not found");
   }
 });
 
