@@ -2668,6 +2668,7 @@ function initializeAiChat() {
     panel.hidden = !isOpen;
     toggle.setAttribute("aria-expanded", String(isOpen));
     toggle.setAttribute("aria-label", isOpen ? "Close AI assistant" : "Open AI assistant");
+    document.body.classList.toggle("ai-chat-open", isOpen);
     if (isOpen) input.focus();
     else toggle.focus();
   }
