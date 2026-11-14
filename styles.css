@@ -759,6 +759,7 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-form-type { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 6px; color: #173c68; background: #e8f0fb; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .admin-form-type.is-planner { color: #5a3979; background: #f0eafa; }
 .admin-form-type.is-contact { color: #28624b; background: #e5f5ed; }
+.admin-form-type.is-newsletter { color: #28624b; background: #e5f5ed; }
 .admin-submission-meta { margin: 6px 0 14px; color: var(--muted); font-size: 12px; text-transform: capitalize; }
 .admin-status-badge { padding: 5px 9px; border-radius: 999px; color: var(--ink); background: var(--surface-soft); font-size: 11px; font-weight: 700; text-transform: capitalize; }
 .admin-status-badge.is-accepted { color: #176b43; background: #e3f5ec; }

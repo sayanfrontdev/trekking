@@ -1765,7 +1765,7 @@ function setupAdminDashboard() {
   liveIndicator.innerHTML = `<i class="bi bi-broadcast" aria-hidden="true"></i><span data-admin-live-state>Connecting live updates…</span>`;
   const liveState = liveIndicator.querySelector("[data-admin-live-state]");
 
-  const typeLabels = { booking: "Booking request", planner: "Trip plan", contact: "Contact message" };
+  const typeLabels = { booking: "Booking request", planner: "Trip plan", contact: "Contact message", newsletter: "Newsletter signup" };
   const filters = document.createElement("div");
   filters.className = "admin-submission-filters";
   filters.setAttribute("role", "group");
@@ -1792,7 +1792,8 @@ function setupAdminDashboard() {
       { id: "all", label: "All forms" },
       { id: "booking", label: "Bookings" },
       { id: "planner", label: "Trip plans" },
-      { id: "contact", label: "Contact messages" }
+      { id: "contact", label: "Contact messages" },
+      { id: "newsletter", label: "Newsletter signups" }
     ];
     filters.replaceChildren();
     definitions.forEach(definition => {
@@ -1815,7 +1816,7 @@ function setupAdminDashboard() {
     const visibleInquiries = activeFilter === "all"
       ? inquiries.slice()
       : inquiries.filter(item => item.type === activeFilter);
-    const typeOrder = { booking: 0, planner: 1, contact: 2 };
+    const typeOrder = { booking: 0, planner: 1, contact: 2, newsletter: 3 };
     visibleInquiries.sort((left, right) => (typeOrder[left.type] ?? 99) - (typeOrder[right.type] ?? 99)
       || String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
     if (!visibleInquiries.length) {
@@ -1844,7 +1845,7 @@ function setupAdminDashboard() {
       header.className = "admin-submission-header";
       const heading = document.createElement("h2");
       heading.className = "h5 mb-1";
-      heading.textContent = inquiry.tripName || inquiry.place || inquiry.interest || (inquiry.type === "planner" ? "Trip planning request" : inquiry.type === "contact" ? "Contact enquiry" : "Booking request");
+      heading.textContent = inquiry.type === "newsletter" ? "Newsletter signup" : inquiry.tripName || inquiry.place || inquiry.interest || (inquiry.type === "planner" ? "Trip planning request" : inquiry.type === "contact" ? "Contact enquiry" : "Booking request");
       const typeBadge = document.createElement("span");
       typeBadge.className = `admin-form-type is-${inquiry.type || "other"}`;
       typeBadge.textContent = typeLabels[inquiry.type] || "Other form";
@@ -1868,7 +1869,7 @@ function setupAdminDashboard() {
       addDetail(details, "Message", inquiry.message);
       const actions = document.createElement("div");
       actions.className = "admin-submission-actions";
-      for (const [nextStatus, label, className] of [["accepted", "Accept", "btn-primary-navy"], ["rejected", "Reject", "btn-outline-navy"]]) {
+      for (const [nextStatus, label, className] of inquiry.type === "newsletter" ? [] : [["accepted", "Accept", "btn-primary-navy"], ["rejected", "Reject", "btn-outline-navy"]]) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = `btn btn-sm ${className}`;
@@ -1891,7 +1892,8 @@ function setupAdminDashboard() {
         button.dataset.status = nextStatus;
         actions.append(button);
       }
-      card.append(header, meta, details, actions);
+      card.append(header, meta, details);
+      if (inquiry.type !== "newsletter") card.append(actions);
       submissions.append(card);
     }
   };
@@ -2520,8 +2522,21 @@ document.addEventListener("submit", async event => {
         showToast(error.message || "Your message could not be submitted.", "error");
         submitButton.disabled = false;
       }
+    } else if (form.classList.contains("newsletter-form")) {
+      const submitButton = form.querySelector('button[type="submit"]');
+      const emailInput = form.querySelector('input[type="email"]');
+      submitButton.disabled = true;
+      try {
+        const result = await postLocalRequest("/api/newsletter", { email: emailInput.value });
+        showToast(result.alreadySubscribed ? "This email is already signed up for TREKKING notes." : "Thanks for signing up. Your email has been saved.");
+        submitButton.textContent = "You're signed up";
+        emailInput.value = "";
+      } catch (error) {
+        showToast(error.message || "Your signup could not be saved.", "error");
+        submitButton.disabled = false;
+      }
     } else {
-      showToast("Email signup delivery is not configured yet; your address was not added.");
+      showToast("This form is not available right now.", "error");
     }
   }
 });

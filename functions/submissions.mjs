@@ -110,6 +110,22 @@ async function submitInquiry(request, env, type) {
   return json({ reference: record.reference, status: "received", message: "Your request was saved. It is not a confirmed booking." }, 201);
 }
 
+async function subscribeNewsletter(request, env) {
+  if (request.method !== "POST") return json({ error: "Use POST to sign up for the newsletter." }, 405);
+  if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
+  let body;
+  try { body = await readBody(request); } catch { return json({ error: "The signup could not be read." }, 400); }
+  const email = clean(body.email, 254).toLowerCase();
+  if (!EMAIL_RE.test(email)) return json({ error: "Enter a valid email address." }, 400);
+  const reference = `NEWS-${crypto.randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase()}`;
+  const createdAt = new Date().toISOString();
+  const insert = await env.DB.prepare(`INSERT INTO newsletter_subscribers (reference, email, created_at)
+    VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING`).bind(reference, email, createdAt).run();
+  if (!insert.meta?.changes) return json({ status: "subscribed", alreadySubscribed: true });
+  await broadcastSubmissionUpdate(env);
+  return json({ status: "subscribed", alreadySubscribed: false }, 201);
+}
+
 function publicInquiry(row) {
   return {
     reference: row.reference,
@@ -175,6 +191,13 @@ export async function handleSubmissionRequest(request, env) {
   if (pathname === "/api/payments/config" && request.method === "GET") {
     return json({ enabled: false, amountInr: null, currency: "INR" });
   }
+  if (pathname === "/api/newsletter") {
+    try { return await subscribeNewsletter(request, env); }
+    catch (error) {
+      console.error("D1 newsletter signup failed", error);
+      return json({ error: "We couldn't save your signup. Please try again." }, 500);
+    }
+  }
   const bookingStatusMatch = /^\/api\/bookings\/([^/]+)$/.exec(pathname);
   if (bookingStatusMatch && request.method === "GET") {
     const reference = decodeURIComponent(bookingStatusMatch[1]);
@@ -215,8 +238,20 @@ export async function handleSubmissionRequest(request, env) {
     if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
     const admin = await currentAdmin(request, env);
     if (admin.response) return admin.response;
-    const result = await env.DB.prepare("SELECT * FROM inquiries ORDER BY created_at DESC LIMIT 500").all();
-    return json({ inquiries: (result.results || []).map(publicInquiry) });
+    const [result, subscriberResult] = await Promise.all([
+      env.DB.prepare("SELECT * FROM inquiries ORDER BY created_at DESC LIMIT 500").all(),
+      env.DB.prepare("SELECT reference, email, created_at FROM newsletter_subscribers ORDER BY created_at DESC LIMIT 500").all()
+    ]);
+    const inquiries = (result.results || []).map(publicInquiry);
+    const subscribers = (subscriberResult.results || []).map(row => ({
+      reference: row.reference,
+      type: "newsletter",
+      status: "subscribed",
+      name: "",
+      email: row.email,
+      createdAt: row.created_at
+    }));
+    return json({ inquiries: [...inquiries, ...subscribers] });
   }
   const actionMatch = /^\/api\/admin\/inquiries\/([^/]+)$/.exec(pathname);
   if (actionMatch) {
