@@ -835,7 +835,7 @@ function setupAuthPopup() {
     renderAccountState();
   }).catch(() => {});
   window.setInterval(() => {
-    if (signedInUser && !overlay.hidden && !document.hidden) loadAccountRequests();
+    if (signedInUser && !document.hidden) loadAccountRequests();
   }, 5_000);
   document.addEventListener("click", event => {
     if (!event.target.closest("[data-open-auth]")) return;
@@ -1813,8 +1813,8 @@ function setupAdminDashboard() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = `btn btn-sm ${className}`;
-        button.textContent = inquiry.status === nextStatus ? `${label}ed` : label;
-        button.disabled = inquiry.status === nextStatus;
+        button.textContent = inquiry.status === nextStatus ? "Resend message" : label;
+        button.disabled = false;
         button.addEventListener("click", async () => {
           actions.querySelectorAll("button").forEach(item => { item.disabled = true; });
           status.textContent = `Saving ${nextStatus} decision…`;
@@ -1823,6 +1823,7 @@ function setupAdminDashboard() {
             inquiry.status = result.status;
             inquiry.reviewedAt = result.reviewedAt;
             render(inquiries);
+            status.textContent = result.notificationMessage || `Saved decision: ${result.status}.`;
           } catch (error) {
             status.textContent = error.message || "The review decision could not be saved.";
             actions.querySelectorAll("button").forEach(item => { item.disabled = item.dataset.status === inquiry.status; });

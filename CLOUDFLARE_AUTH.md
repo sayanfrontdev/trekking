@@ -27,7 +27,7 @@ Add `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, and the complete `.p8` p
 
 ## Password reset email
 
-Forgot-password email uses Resend. Configure `RESEND_API_KEY` and `EMAIL_FROM` as Worker secrets. Until these are present, account creation and password sign-in work, but password reset email and the social providers are reported as unavailable.
+Resend sends password-reset email and acceptance/rejection messages for every submitted form. Configure `RESEND_API_KEY` and `EMAIL_FROM` as Worker secrets. Without these, booking and trip-planner users still receive the in-site notification while signed in, but email delivery is unavailable; contact form users require email delivery to receive the decision.
 
 ## Existing Firebase accounts
 

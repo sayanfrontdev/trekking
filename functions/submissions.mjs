@@ -125,6 +125,40 @@ function publicInquiry(row) {
   };
 }
 
+async function sendDecisionEmail(env, inquiry, status) {
+  if (!env.RESEND_API_KEY || !env.EMAIL_FROM) return { sent: false, reason: "email_not_configured" };
+  const subject = `Update to your TREKKING ${inquiry.type} request`;
+  const requestLabel = inquiry.trip_name || inquiry.place || inquiry.interest || `${inquiry.type} request`;
+  const decisionText = status === "accepted" ? "accepted" : "declined";
+  const confirmation = inquiry.type === "booking" && status === "accepted"
+    ? "This is an update to your request, not final trip confirmation. The team will contact you to confirm availability and itinerary details."
+    : "If you have questions, please reply to this email or contact the TREKKING team.";
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: env.EMAIL_FROM,
+        to: [inquiry.email],
+        subject,
+        text: `Hello ${inquiry.name},\n\nThe TREKKING team has ${decisionText} your ${requestLabel}.\nReference: ${inquiry.reference}\n\n${confirmation}\n\nTREKKING`
+      }),
+      signal: AbortSignal.timeout(12_000)
+    });
+    if (!response.ok) {
+      console.error("Decision email delivery failed", response.status);
+      return { sent: false, reason: "email_delivery_failed" };
+    }
+    return { sent: true, reason: "sent" };
+  } catch (error) {
+    console.error("Decision email request failed", error.name || "Error");
+    return { sent: false, reason: "email_delivery_failed" };
+  }
+}
+
 export async function handleSubmissionRequest(request, env) {
   const url = new URL(request.url);
   const { pathname } = url;
@@ -186,10 +220,18 @@ export async function handleSubmissionRequest(request, env) {
     if (!["accepted", "rejected"].includes(status)) return json({ error: "Choose accept or reject for this submission." }, 400);
     const reference = decodeURIComponent(actionMatch[1]);
     const reviewedAt = new Date().toISOString();
-    const result = await env.DB.prepare("UPDATE inquiries SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE reference = ?")
+    await env.DB.prepare("UPDATE inquiries SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE reference = ?")
       .bind(status, reviewedAt, admin.user.email, reference).run();
-    if (!result.meta?.changes) return json({ error: "Submitted form not found." }, 404);
-    return json({ reference, status, reviewedAt });
+    const inquiry = await env.DB.prepare("SELECT reference, type, status, name, email, trip_name, place, interest FROM inquiries WHERE reference = ?")
+      .bind(reference).first();
+    if (!inquiry) return json({ error: "Submitted form not found." }, 404);
+    const delivery = await sendDecisionEmail(env, inquiry, status);
+    const notificationMessage = delivery.sent
+      ? `Decision saved. Email notification sent to ${inquiry.email}.`
+      : delivery.reason === "email_not_configured"
+        ? "Decision saved. In-site notification is available; configure Resend to email the submitter."
+        : "Decision saved, but the email could not be delivered. The in-site notification is available; check the Resend configuration.";
+    return json({ reference, status, reviewedAt, emailSent: delivery.sent, notificationMessage });
   }
   return null;
 }
