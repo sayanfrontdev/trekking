@@ -47,7 +47,10 @@ function equalBytes(left, right) {
 }
 
 function userPayload(row) {
-  return { id: row.id, name: row.name, email: row.email, avatarUrl: row.avatar_url || null, emailVerified: Boolean(row.email_verified) };
+  const avatarUrl = row.profile_image_updated_at
+    ? `/api/auth/profile-image?v=${encodeURIComponent(row.profile_image_updated_at)}`
+    : row.avatar_url || null;
+  return { id: row.id, name: row.name, email: row.email, avatarUrl, emailVerified: Boolean(row.email_verified) };
 }
 
 function cookieToken(request) {
@@ -95,11 +98,61 @@ export async function readCurrentUser(request, env) {
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await env.DB.prepare(`
-    SELECT u.id, u.name, u.email, u.avatar_url, u.email_verified
+    SELECT u.id, u.name, u.email, u.avatar_url, u.email_verified, i.updated_at AS profile_image_updated_at
     FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
+    LEFT JOIN auth_profile_images i ON i.user_id = u.id
     WHERE s.token_hash = ? AND s.expires_at > ?
   `).bind(tokenHash, Date.now()).first();
   return row ? userPayload(row) : null;
+}
+
+function matchesImageSignature(bytes, mimeType) {
+  if (mimeType === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mimeType === "image/png") return bytes.length >= 8 && [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value);
+  if (mimeType === "image/webp") return bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+  return false;
+}
+
+async function profileImage(request, env) {
+  const user = await readCurrentUser(request, env);
+  if (!user) return json({ error: "Sign in to manage your profile photo." }, 401);
+  if (request.method === "GET") {
+    const row = await env.DB.prepare("SELECT mime_type, data, updated_at FROM auth_profile_images WHERE user_id = ?")
+      .bind(user.id).first();
+    if (!row) return new Response("Profile photo not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+    const bytes = row.data instanceof ArrayBuffer
+      ? new Uint8Array(row.data)
+      : ArrayBuffer.isView(row.data)
+        ? new Uint8Array(row.data.buffer, row.data.byteOffset, row.data.byteLength)
+        : Uint8Array.from(row.data || []);
+    return new Response(bytes, {
+      headers: {
+        "Content-Type": row.mime_type,
+        "Cache-Control": "private, max-age=3600",
+        "X-Content-Type-Options": "nosniff"
+      }
+    });
+  }
+  if (request.method === "DELETE") {
+    await env.DB.prepare("DELETE FROM auth_profile_images WHERE user_id = ?").bind(user.id).run();
+    return json({ user: await readCurrentUser(request, env) });
+  }
+  if (request.method !== "POST") return json({ error: "Use POST to upload a profile photo." }, 405);
+  const contentLength = Number(request.headers.get("Content-Length") || 0);
+  if (contentLength > 1_100_000) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  let form;
+  try { form = await request.formData(); } catch { return json({ error: "The image upload could not be read." }, 400); }
+  const file = form.get("file");
+  if (!(file instanceof File)) return json({ error: "Choose a photo to upload." }, 400);
+  if (file.size < 1 || file.size > 1_048_576) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!matchesImageSignature(bytes, file.type)) return json({ error: "Upload a valid JPG, PNG, or WebP image." }, 415);
+  const updatedAt = new Date().toISOString();
+  await env.DB.prepare(`INSERT INTO auth_profile_images (user_id, mime_type, data, updated_at)
+    VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET
+      mime_type = excluded.mime_type, data = excluded.data, updated_at = excluded.updated_at`)
+    .bind(user.id, file.type, bytes, updatedAt).run();
+  return json({ user: await readCurrentUser(request, env) });
 }
 
 async function createSession(request, env, user) {
@@ -363,6 +416,7 @@ export async function handleAuthRequest(request, env) {
   if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
   const action = path.slice("/api/auth/".length);
   try {
+    if (action === "profile-image") return await profileImage(request, env);
     if (action === "me" && request.method === "GET") return json({ user: await readCurrentUser(request, env) });
     if (action === "logout" && request.method === "POST") {
       const token = cookieToken(request);

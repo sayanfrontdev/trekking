@@ -528,6 +528,11 @@ function setupAuthPopup() {
     const firstName = user.name?.trim().split(/\s+/)[0] || "traveller";
     return trekkingQuotes[hash % trekkingQuotes.length].replace("{name}", firstName);
   }
+  function initialsAvatar(user) {
+    const initials = user.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "T";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#022468"/><text x="40" y="42" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-family="Arial,sans-serif" font-size="30" font-weight="700">${initials}</text></svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  }
   const logoutButton = document.createElement("button");
   logoutButton.className = "auth-guest-link";
   logoutButton.type = "button";
@@ -555,6 +560,60 @@ function setupAuthPopup() {
   accountRequests.setAttribute("aria-live", "polite");
   accountRequests.innerHTML = `<div class="auth-account-requests-heading"><h3>Notifications and trip requests</h3><button class="auth-account-refresh" type="button" aria-label="Refresh notifications and trip requests">Refresh</button></div><p class="auth-account-loading" role="status">Loading your requests…</p><ul></ul>`;
   status.insertAdjacentElement("afterend", accountRequests);
+
+  const profilePhoto = document.createElement("section");
+  profilePhoto.className = "auth-profile-photo";
+  profilePhoto.hidden = true;
+  profilePhoto.innerHTML = `<img class="auth-profile-photo-preview" data-profile-photo-preview alt="Your profile photo"><div class="auth-profile-photo-controls"><strong>Profile photo</strong><small>JPG, PNG, or WebP · up to 1 MB</small><div><label class="btn btn-outline-navy btn-sm" for="authProfilePhotoFile">Choose photo</label><button class="auth-profile-photo-remove" type="button" data-remove-profile-photo hidden>Remove</button></div><input class="visually-hidden" id="authProfilePhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><span class="auth-profile-photo-status" data-profile-photo-status role="status" aria-live="polite"></span></div>`;
+  overlay.querySelector(".auth-personal-greeting").insertAdjacentElement("afterend", profilePhoto);
+  const profilePhotoInput = profilePhoto.querySelector("#authProfilePhotoFile");
+  const profilePhotoStatus = profilePhoto.querySelector("[data-profile-photo-status]");
+  const profilePhotoRemove = profilePhoto.querySelector("[data-remove-profile-photo]");
+
+  async function removeProfilePhoto() {
+    profilePhotoRemove.disabled = true;
+    profilePhotoStatus.textContent = "Removing photo…";
+    try {
+      const response = await fetch("/api/auth/profile-image", { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The photo could not be removed.");
+      signedInUser = result.user;
+      profilePhotoStatus.textContent = "Photo removed.";
+      renderAccountState();
+    } catch (error) {
+      profilePhotoStatus.textContent = error.message || "The photo could not be removed.";
+    } finally {
+      profilePhotoRemove.disabled = false;
+    }
+  }
+
+  profilePhotoInput.addEventListener("change", async () => {
+    const file = profilePhotoInput.files?.[0];
+    if (!file) return;
+    if (! ["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 1_048_576) {
+      profilePhotoStatus.textContent = "Choose a JPG, PNG, or WebP image smaller than 1 MB.";
+      profilePhotoInput.value = "";
+      return;
+    }
+    const upload = new FormData();
+    upload.append("file", file);
+    profilePhotoInput.disabled = true;
+    profilePhotoStatus.textContent = "Uploading photo…";
+    try {
+      const response = await fetch("/api/auth/profile-image", { method: "POST", body: upload });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The photo could not be uploaded.");
+      signedInUser = result.user;
+      profilePhotoStatus.textContent = "Profile photo updated.";
+      renderAccountState();
+    } catch (error) {
+      profilePhotoStatus.textContent = error.message || "The photo could not be uploaded.";
+    } finally {
+      profilePhotoInput.disabled = false;
+      profilePhotoInput.value = "";
+    }
+  });
+  profilePhotoRemove.addEventListener("click", removeProfilePhoto);
 
   let accountRequestsLoading = false;
   let pendingDecisionUserId = "";
@@ -641,6 +700,12 @@ function setupAuthPopup() {
       : "Save the journeys you’re considering and keep your trip enquiries together.";
     const personalGreeting = overlay.querySelector(".auth-personal-greeting");
     personalGreeting.hidden = !signedInUser;
+    profilePhoto.hidden = !signedInUser;
+    if (signedInUser) {
+      const preview = profilePhoto.querySelector("[data-profile-photo-preview]");
+      preview.src = signedInUser.avatarUrl || initialsAvatar(signedInUser);
+      profilePhotoRemove.hidden = !signedInUser.avatarUrl?.startsWith("/api/auth/profile-image");
+    }
     overlay.querySelector(".auth-tabs").hidden = Boolean(signedInUser);
     if (signedInUser) {
       const firstName = signedInUser.name?.trim().split(/\s+/)[0] || "traveller";
@@ -655,9 +720,7 @@ function setupAuthPopup() {
       const guestIcon = button.querySelector("[data-auth-guest-icon]");
       if (avatar && guestIcon) {
         if (signedInUser) {
-          const initials = signedInUser.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "T";
-          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#022468"/><text x="40" y="42" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-family="Arial,sans-serif" font-size="30" font-weight="700">${initials}</text></svg>`;
-          const fallbackAvatar = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+          const fallbackAvatar = initialsAvatar(signedInUser);
           avatar.onerror = signedInUser.avatarUrl ? () => { avatar.onerror = null; avatar.src = fallbackAvatar; } : null;
           avatar.src = signedInUser.avatarUrl || fallbackAvatar;
           avatar.alt = "Account profile";

@@ -94,6 +94,16 @@ p { color: var(--muted); }
 .auth-personal-greeting { margin: 0 0 16px; padding: 11px 13px; border-left: 3px solid var(--brand); border-radius: 8px; background: var(--surface-soft); }
 .auth-welcome { margin: 0 0 4px; color: var(--ink); font-size: 14px; font-weight: 700; }
 .auth-trek-quote { margin: 0; color: var(--muted); font-size: 12px; font-style: italic; line-height: 1.55; }
+.auth-profile-photo { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-soft); }
+.auth-profile-photo-preview { width: 54px; height: 54px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); object-fit: cover; }
+.auth-profile-photo-controls { display: grid; min-width: 0; gap: 3px; }
+.auth-profile-photo-controls > strong { color: var(--ink); font-size: 12px; }
+.auth-profile-photo-controls > small, .auth-profile-photo-status { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.auth-profile-photo-controls > div { display: flex; align-items: center; gap: 9px; margin-top: 4px; }
+.auth-profile-photo-controls .btn { margin: 0; padding: 6px 9px; font-size: 11px; }
+.auth-profile-photo-remove { padding: 0; border: 0; color: var(--muted); background: transparent; font-size: 11px; }
+.auth-profile-photo-remove:hover { color: #b42318; text-decoration: underline; }
+.auth-profile-photo-status:empty { display: none; }
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 20px 0 14px; padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-soft); }
 .auth-tab { padding: 9px; border: 0; border-radius: 7px; color: var(--muted); background: transparent; font-size: 13px; font-weight: 700; }
 .auth-tab.active { color: #fff; background: var(--brand); }
@@ -762,7 +772,7 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-submission-group-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
 .admin-submission-group-heading > span { display: inline-grid; min-width: 28px; height: 28px; place-items: center; border-radius: 999px; color: var(--brand); background: var(--surface-soft); font-size: 12px; font-weight: 800; }
 .admin-submission-card { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.admin-submission-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-submission-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; }
 .admin-form-type { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 6px; color: #173c68; background: #e8f0fb; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .admin-form-type.is-planner { color: #5a3979; background: #f0eafa; }
 .admin-form-type.is-contact { color: #28624b; background: #e5f5ed; }
