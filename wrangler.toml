@@ -1,7 +1,12 @@
 name = "trekking"
-pages_build_output_dir = "./dist"
+main = "cloudflare-content-worker.mjs"
 compatibility_date = "2026-11-14"
 account_id = "c43bec7c84b3419d77c0adb80b2cec1c"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"

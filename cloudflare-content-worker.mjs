@@ -1,3 +1,5 @@
+import { handleAuthRequest } from "./functions/auth.mjs";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -15,7 +17,9 @@ function json(body, status = 200, cacheControl = "no-store") {
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-    if (request.method !== "GET") return json({ error: "Use GET." }, 405);
+    const authResponse = await handleAuthRequest(request, env);
+    if (authResponse) return authResponse;
+    if (request.method !== "GET") return env.ASSETS.fetch(request);
 
     const url = new URL(request.url);
     if (url.pathname === "/api/site-content") {
@@ -48,8 +52,13 @@ export default {
         ).bind(assetKey).all();
         const rows = result.results || [];
         if (!rows.length) return new Response("Asset not found", { status: 404, headers: corsHeaders });
-        const chunks = rows.map(({ data }) => data instanceof ArrayBuffer ? new Uint8Array(data) : data);
-        const body = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.byteLength, 0));
+        const chunks = rows.map(({ data }) => {
+          if (data instanceof ArrayBuffer) return new Uint8Array(data);
+          if (ArrayBuffer.isView(data)) return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+          if (Array.isArray(data)) return Uint8Array.from(data);
+          throw new TypeError(`Unsupported D1 BLOB result: ${Object.prototype.toString.call(data)}`);
+        });
+        const body = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.length, 0));
         let offset = 0;
         for (const chunk of chunks) {
           body.set(chunk, offset);
@@ -63,11 +72,12 @@ export default {
             "X-Content-Type-Options": "nosniff"
           }
         });
-      } catch {
+      } catch (error) {
+        console.error("D1 media response failed", error);
         return new Response("Asset could not be loaded", { status: 503, headers: corsHeaders });
       }
     }
 
-    return json({ error: "Not found." }, 404);
+    return env.ASSETS.fetch(request);
   }
 };

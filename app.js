@@ -31,7 +31,7 @@ let localPhotos = {
   "photo-1510798831971-661eb04b3739": "images/himachal-key-monastery.jpg"
 };
 let siteAssetUrls = {};
-const siteContentApiBase = "https://trekking-content-api.trekking-site.workers.dev";
+const siteContentApiBase = "";
 const resolveSiteAsset = source => siteAssetUrls[source] || source;
 const photo = id => resolveSiteAsset(profilePortraits[id] || (id.startsWith("images/") ? id : localPhotos[id] || "images/sandakphu-ridge.jpg"));
 let trips = [
@@ -502,6 +502,8 @@ function setupAuthPopup() {
   enhancePasswordFields(overlay);
   const dialog = overlay.querySelector(".auth-dialog");
   const status = overlay.querySelector("#authFormStatus");
+  const authServiceNote = overlay.querySelector(".auth-service-note");
+  if (authServiceNote) authServiceNote.textContent = "Email and password accounts are stored in Cloudflare D1. Google and Apple sign-in need their OAuth credentials configured in Cloudflare.";
   const sessionKey = "trekking-auth-prompt-seen";
   let returnFocus = null;
   let signedInUser = null;
@@ -740,7 +742,7 @@ function setupAuthPopup() {
         const response = await fetch("/api/auth/providers");
         const result = await response.json();
         if (result.providers?.[provider]) location.assign(`/auth/${provider}`);
-        else status.textContent = `${provider === "google" ? "Google" : "Apple"} sign-in needs its OAuth credentials configured on the server.`;
+        else status.textContent = `${provider === "google" ? "Google" : "Apple"} sign-in needs its OAuth credentials configured in Cloudflare.`;
       } catch {
         status.textContent = "Social sign-in is unavailable right now. Please try email and password.";
       }
