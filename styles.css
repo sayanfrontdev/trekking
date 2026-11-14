@@ -744,6 +744,8 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-dashboard { max-width: 980px; margin-inline: auto; }
 .admin-refresh-controls { display: flex; align-items: center; gap: 12px; }
 .admin-refresh-countdown { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-refresh-countdown.is-connected { color: #36a979; }
+.admin-refresh-countdown:not(.is-connected) { color: var(--muted); }
 .admin-status { min-height: 1.5em; color: var(--muted); font-size: 13px; }
 .admin-submission-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
 .admin-submission-filter { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--surface); font-size: 13px; font-weight: 700; }

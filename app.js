@@ -1759,8 +1759,11 @@ function setupAdminDashboard() {
   const status = main.querySelector("[data-admin-status]");
   const submissions = main.querySelector("[data-admin-submissions]");
   const refresh = main.querySelector("[data-admin-refresh]");
-  const countdown = main.querySelector("[data-admin-countdown] span");
-  if (!status || !submissions || !refresh || !countdown) return;
+  const liveIndicator = main.querySelector("[data-admin-countdown]");
+  if (!status || !submissions || !refresh || !liveIndicator) return;
+  liveIndicator.setAttribute("aria-label", "Submission live-update connection status");
+  liveIndicator.innerHTML = `<i class="bi bi-broadcast" aria-hidden="true"></i><span data-admin-live-state>Connecting live updates…</span>`;
+  const liveState = liveIndicator.querySelector("[data-admin-live-state]");
 
   const typeLabels = { booking: "Booking request", planner: "Trip plan", contact: "Contact message" };
   const filters = document.createElement("div");
@@ -1922,23 +1925,53 @@ function setupAdminDashboard() {
       refresh.disabled = false;
     }
   };
-  let secondsUntilRefresh = 5;
-  const resetCountdown = () => {
-    secondsUntilRefresh = 5;
-    countdown.textContent = String(secondsUntilRefresh);
-  };
-  refresh.addEventListener("click", () => { resetCountdown(); load(); });
+  refresh.addEventListener("click", load);
   window.addEventListener("trekking-auth-state", load);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) { resetCountdown(); load(); } });
-  window.setInterval(() => {
-    if (document.hidden) return;
-    secondsUntilRefresh -= 1;
-    countdown.textContent = String(Math.max(0, secondsUntilRefresh));
-    if (secondsUntilRefresh <= 0) {
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+
+  let liveSocket = null;
+  let reconnectDelay = 1_000;
+  let reconnectTimer = 0;
+  let fallbackTimer = 0;
+  let leavingPage = false;
+  const setLiveState = (message, connected = false) => {
+    liveState.textContent = message;
+    liveIndicator.classList.toggle("is-connected", connected);
+  };
+  const connectLiveUpdates = () => {
+    if (leavingPage) return;
+    setLiveState("Connecting live updates…");
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    liveSocket = new WebSocket(`${protocol}//${location.host}/api/admin/events`);
+    liveSocket.addEventListener("open", () => {
+      reconnectDelay = 1_000;
+      setLiveState("Live updates", true);
       load();
-      resetCountdown();
-    }
-  }, 1_000);
+    });
+    liveSocket.addEventListener("message", event => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === "submissions_changed") load();
+      } catch { /* Ignore malformed events; the fallback refresh will reconcile state. */ }
+    });
+    liveSocket.addEventListener("close", () => {
+      if (leavingPage) return;
+      setLiveState("Reconnecting…");
+      reconnectTimer = window.setTimeout(connectLiveUpdates, reconnectDelay);
+      reconnectDelay = Math.min(reconnectDelay * 2, 30_000);
+    });
+    liveSocket.addEventListener("error", () => liveSocket?.close());
+  };
+  fallbackTimer = window.setInterval(() => {
+    if (!document.hidden && liveSocket?.readyState !== WebSocket.OPEN) load();
+  }, 30_000);
+  window.addEventListener("pagehide", () => {
+    leavingPage = true;
+    window.clearTimeout(reconnectTimer);
+    window.clearInterval(fallbackTimer);
+    liveSocket?.close(1000, "Page closed");
+  }, { once: true });
+  connectLiveUpdates();
   load();
 }
 

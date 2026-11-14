@@ -30,6 +30,15 @@ function sameOrigin(request) {
   try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
 }
 
+async function broadcastSubmissionUpdate(env) {
+  try {
+    const id = env.SUBMISSION_HUB.idFromName("admin-submissions");
+    await env.SUBMISSION_HUB.get(id).fetch("https://submission-hub/broadcast", { method: "POST" });
+  } catch (error) {
+    console.error("Admin live update broadcast failed", error.name || "Error");
+  }
+}
+
 async function readBody(request) {
   const raw = await request.text();
   if (new TextEncoder().encode(raw).byteLength > 16_000) throw new Error("request_too_large");
@@ -97,6 +106,7 @@ async function submitInquiry(request, env, type) {
     .bind(record.reference, type, record.userId, record.name, record.email, record.phone, record.message,
       record.trip, record.tripName, record.date, record.guests, record.place, record.style, record.dates,
       record.people, record.interest, record.createdAt).run();
+  await broadcastSubmissionUpdate(env);
   return json({ reference: record.reference, status: "received", message: "Your request was saved. It is not a confirmed booking." }, 201);
 }
 
@@ -222,6 +232,7 @@ export async function handleSubmissionRequest(request, env) {
     const reviewedAt = new Date().toISOString();
     await env.DB.prepare("UPDATE inquiries SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE reference = ?")
       .bind(status, reviewedAt, admin.user.email, reference).run();
+    await broadcastSubmissionUpdate(env);
     const inquiry = await env.DB.prepare("SELECT reference, type, status, name, email, trip_name, place, interest FROM inquiries WHERE reference = ?")
       .bind(reference).first();
     if (!inquiry) return json({ error: "Submitted form not found." }, 404);

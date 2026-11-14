@@ -1,3 +1,4 @@
+import { DurableObject } from "cloudflare:workers";
 import { handleAuthRequest } from "./functions/auth.mjs";
 import { readCurrentUser } from "./functions/auth.mjs";
 import { ADMIN_EMAIL, handleSubmissionRequest } from "./functions/submissions.mjs";
@@ -26,6 +27,15 @@ export default {
     if (request.method !== "GET") return env.ASSETS.fetch(request);
 
     const url = new URL(request.url);
+    if (url.pathname === "/api/admin/events" && request.headers.get("Upgrade")?.toLowerCase() === "websocket") {
+      if (!sameOriginForWebSocket(request)) return json({ error: "This request could not be verified." }, 403);
+      const admin = await readCurrentUser(request, env);
+      if (!admin || admin.email.toLowerCase() !== ADMIN_EMAIL || !admin.emailVerified) {
+        return json({ error: "Admin access is required." }, admin ? 403 : 401);
+      }
+      const id = env.SUBMISSION_HUB.idFromName("admin-submissions");
+      return env.SUBMISSION_HUB.get(id).fetch(request);
+    }
     if (url.pathname === "/admin.html") {
       const user = await readCurrentUser(request, env);
       const status = !user ? 401 : user.email.toLowerCase() !== ADMIN_EMAIL || !user.emailVerified ? 403 : 200;
@@ -97,3 +107,31 @@ export default {
     return env.ASSETS.fetch(request);
   }
 };
+
+function sameOriginForWebSocket(request) {
+  const origin = request.headers.get("Origin");
+  if (!origin) return true;
+  try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
+}
+
+export class AdminSubmissionHub extends DurableObject {
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === "/broadcast" && request.method === "POST") {
+      const message = JSON.stringify({ type: "submissions_changed", at: Date.now() });
+      let delivered = 0;
+      for (const socket of this.ctx.getWebSockets()) {
+        try { socket.send(message); delivered += 1; } catch { socket.close(1011, "Notification failed"); }
+      }
+      return Response.json({ delivered });
+    }
+    if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
+      return new Response("WebSocket upgrade required", { status: 426 });
+    }
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+    this.ctx.acceptWebSocket(server);
+    server.send(JSON.stringify({ type: "connected" }));
+    return new Response(null, { status: 101, webSocket: client });
+  }
+}
