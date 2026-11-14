@@ -7,7 +7,11 @@
     "dev": "node --watch server.mjs",
     "start": "node server.mjs",
     "migrate:content": "node scripts/migrate-site-content.mjs",
-    "migrate:content:firestore": "node scripts/migrate-site-content.mjs --content-only"
+    "migrate:content:firestore": "node scripts/migrate-site-content.mjs --content-only",
+    "migrate:d1:seed": "npx wrangler d1 migrations apply trekking --remote",
+    "migrate:d1:assets": "node scripts/seed-d1-assets.mjs && npx wrangler d1 migrations apply trekking --remote",
+    "deploy:d1:api": "npx wrangler deploy --config wrangler.content-worker.toml",
+    "deploy:cloudflare": "npm run build && npx wrangler pages deploy dist --project-name trekking"
   },
   "dependencies": {
     "firebase-admin": "^13.4.0",

@@ -31,6 +31,7 @@ let localPhotos = {
   "photo-1510798831971-661eb04b3739": "images/himachal-key-monastery.jpg"
 };
 let siteAssetUrls = {};
+const siteContentApiBase = "https://trekking-content-api.trekking-site.workers.dev";
 const resolveSiteAsset = source => siteAssetUrls[source] || source;
 const photo = id => resolveSiteAsset(profilePortraits[id] || (id.startsWith("images/") ? id : localPhotos[id] || "images/sandakphu-ridge.jpg"));
 let trips = [
@@ -1687,9 +1688,9 @@ function applyStoredSiteAssets(root = document) {
   });
 }
 
-async function loadFirebaseSiteContent() {
+async function loadSiteContent() {
   try {
-    const response = await fetch("/api/site-content", { cache: "no-store" });
+    const response = await fetch(`${siteContentApiBase}/api/site-content`, { cache: "no-store" });
     if (!response.ok) return;
     const { content } = await response.json();
     if (!content || typeof content !== "object") return;
@@ -1706,7 +1707,7 @@ async function loadFirebaseSiteContent() {
       if (!hasFormInput) route();
     }
     applyStoredSiteAssets(document);
-  } catch { /* Keep the bundled page content available if Firestore content is unreachable. */ }
+  } catch { /* Keep the bundled page content available if the content API is unreachable. */ }
 }
 
 function setupBookingAccess() {
@@ -2242,7 +2243,7 @@ if (main.dataset.staticPage) {
 cookieConsentController = setupCookieConsent();
 authPopupController = setupAuthPopup();
 setupPasswordResetForm();
-loadFirebaseSiteContent();
+loadSiteContent();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
 async function postLocalRequest(endpoint, payload, method = "POST") {

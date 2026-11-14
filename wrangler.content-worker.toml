@@ -1,0 +1,10 @@
+name = "trekking-content-api"
+main = "cloudflare-content-worker.mjs"
+compatibility_date = "2026-11-14"
+account_id = "c43bec7c84b3419d77c0adb80b2cec1c"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "trekking"
+database_id = "fc8aeafe-2154-49ce-a06f-bf1b9562dfa3"

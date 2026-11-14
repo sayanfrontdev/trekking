@@ -1,0 +1,10 @@
+name = "trekking"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-11-14"
+account_id = "c43bec7c84b3419d77c0adb80b2cec1c"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "trekking"
+database_id = "fc8aeafe-2154-49ce-a06f-bf1b9562dfa3"
+migrations_dir = "migrations"
