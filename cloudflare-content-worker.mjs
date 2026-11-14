@@ -106,6 +106,9 @@ export default {
     if (submissionResponse) return submissionResponse;
 
     const url = new URL(request.url);
+    if (request.method === "GET" && ["/community-photos", "/community-photos/"].includes(url.pathname)) {
+      return Response.redirect(new URL("/#/community-photos", request.url), 302);
+    }
     if (url.pathname === "/api/chat") return handleChatRequest(request, env);
     if (request.method !== "GET") return env.ASSETS.fetch(request);
 
