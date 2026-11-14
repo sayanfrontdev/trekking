@@ -2306,12 +2306,25 @@ function showDecisionNotification(decisions, onAcknowledge) {
     authPopupController?.open(true);
   });
   notice.append(header, message, view);
+  showToast(decisions.length === 1
+    ? `The trip team ${decisions[0].status} your request for ${decisions[0].trip}.`
+    : `The trip team updated ${decisions.length} of your requests.`,
+    decisions.length === 1 && decisions[0].status === "rejected" ? "error" : "success");
   playDecisionNotificationSound();
 }
 
-function showToast(message) {
+function showToast(message, variant = "success") {
   const toast = document.querySelector("#siteToast");
-  toast.querySelector(".toast-body span").textContent = message;
+  const text = toast?.querySelector(".toast-body span");
+  if (!toast || !text || !window.bootstrap?.Toast) return;
+  text.textContent = message;
+  const icon = toast.querySelector(".toast-body i");
+  if (icon) {
+    icon.className = variant === "error"
+      ? "bi bi-exclamation-circle-fill text-danger me-2"
+      : "bi bi-check-circle-fill text-success me-2";
+  }
+  toast.setAttribute("aria-live", variant === "error" ? "assertive" : "polite");
   bootstrap.Toast.getOrCreateInstance(toast, { delay: 5000 }).show();
 }
 function persistTheme(theme) {
@@ -2420,8 +2433,10 @@ document.addEventListener("submit", async event => {
       });
       if (message) { message.className = "alert alert-success border small mb-3"; message.textContent = `Your trip enquiry is saved. Reference: ${result.reference}. This is not a booking confirmation.`; }
       submitButton.textContent = "Enquiry saved";
+      showToast(`Trip enquiry submitted. Reference: ${result.reference}.`);
     } catch (error) {
       if (message) message.textContent = error.message;
+      showToast(error.message || "Your trip enquiry could not be submitted.", "error");
       submitButton.disabled = false;
     }
     return;
@@ -2448,6 +2463,7 @@ document.addEventListener("submit", async event => {
       });
       if (note) note.textContent = `Request saved · Reference ${result.reference}. This is not a confirmed booking.`;
       submitButton.textContent = "Request saved";
+      showToast(`Booking request submitted. Reference: ${result.reference}.`);
       const paymentConfig = await fetch(`/api/payments/config?trip=${encodeURIComponent(form.querySelector("#bookingTrip").value)}`).then(response => response.json());
       if (paymentConfig.enabled && note) {
         const payButton = document.createElement("button");
@@ -2464,7 +2480,12 @@ document.addEventListener("submit", async event => {
       }
     } catch (error) {
       if (note) note.textContent = error.message;
-      submitButton.disabled = false;
+      if (submitButton.textContent === "Request saved") {
+        showToast("Your booking request is saved, but payment options could not be loaded.", "error");
+      } else {
+        showToast(error.message || "Your booking request could not be submitted.", "error");
+        submitButton.disabled = false;
+      }
     }
     return;
   }
@@ -2493,8 +2514,10 @@ document.addEventListener("submit", async event => {
         });
         if (note) note.textContent = `Your message is saved. Reference: ${result.reference}. It is available in the admin page for team review; no email notification is sent.`;
         submitButton.textContent = "Message saved";
+        showToast(`Message submitted. Reference: ${result.reference}.`);
       } catch (error) {
         if (note) note.textContent = error.message;
+        showToast(error.message || "Your message could not be submitted.", "error");
         submitButton.disabled = false;
       }
     } else {
