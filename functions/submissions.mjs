@@ -1,6 +1,6 @@
 import { readCurrentUser } from "./auth.mjs";
 
-const ADMIN_EMAIL = "sayanmandal72011902@gmail.com";
+export const ADMIN_EMAIL = "sayanmandal72011902@gmail.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const tripNames = {
   sandakphu: "Sandakphu: the trail above the clouds",
