@@ -1,4 +1,5 @@
 import { handleAuthRequest } from "./functions/auth.mjs";
+import { handleSubmissionRequest } from "./functions/submissions.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +20,8 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
     const authResponse = await handleAuthRequest(request, env);
     if (authResponse) return authResponse;
+    const submissionResponse = await handleSubmissionRequest(request, env);
+    if (submissionResponse) return submissionResponse;
     if (request.method !== "GET") return env.ASSETS.fetch(request);
 
     const url = new URL(request.url);

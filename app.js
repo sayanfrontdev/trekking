@@ -2401,7 +2401,7 @@ document.addEventListener("submit", async event => {
           interest: form.querySelector("#contactInterest").value,
           message: form.querySelector("#contactMessage").value
         });
-        if (note) note.textContent = `Your message is saved. Reference: ${result.reference}. Your message is saved in the local enquiries file for team review; no email notification is sent.`;
+        if (note) note.textContent = `Your message is saved. Reference: ${result.reference}. It is available in the admin page for team review; no email notification is sent.`;
         submitButton.textContent = "Message saved";
       } catch (error) {
         if (note) note.textContent = error.message;

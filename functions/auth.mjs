@@ -46,7 +46,7 @@ function equalBytes(left, right) {
 }
 
 function userPayload(row) {
-  return { id: row.id, name: row.name, email: row.email, avatarUrl: row.avatar_url || null };
+  return { id: row.id, name: row.name, email: row.email, avatarUrl: row.avatar_url || null, emailVerified: Boolean(row.email_verified) };
 }
 
 function cookieToken(request) {
@@ -89,12 +89,12 @@ async function rateLimited(request, env, action) {
   return (row?.attempts || 1) > 8;
 }
 
-async function readCurrentUser(request, env) {
+export async function readCurrentUser(request, env) {
   const token = cookieToken(request);
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await env.DB.prepare(`
-    SELECT u.id, u.name, u.email, u.avatar_url
+    SELECT u.id, u.name, u.email, u.avatar_url, u.email_verified
     FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at > ?
   `).bind(tokenHash, Date.now()).first();
@@ -273,13 +273,13 @@ async function oauthCallback(provider, request, env) {
     if (!user) {
       const id = crypto.randomUUID();
       const name = cleanText(claims.name, 120) || email.split("@")[0];
-      await env.DB.prepare("INSERT INTO auth_users (id, email, name, created_at) VALUES (?, ?, ?, ?)")
+      await env.DB.prepare("INSERT INTO auth_users (id, email, name, email_verified, created_at) VALUES (?, ?, ?, 1, ?)")
         .bind(id, email, name, new Date().toISOString()).run();
       user = await env.DB.prepare("SELECT * FROM auth_users WHERE id = ?").bind(id).first();
     }
     if (user[subColumn] && user[subColumn] !== claims.sub) return oauthError("That email is already linked to a different social account.", 409);
     const avatar = provider === "google" && /^https:\/\/(?:[^/]+\.)?googleusercontent\.com\//.test(claims.picture || "") ? claims.picture : user.avatar_url;
-    await env.DB.prepare(`UPDATE auth_users SET ${subColumn} = ?, avatar_url = ? WHERE id = ?`)
+    await env.DB.prepare(`UPDATE auth_users SET ${subColumn} = ?, avatar_url = ?, email_verified = 1 WHERE id = ?`)
       .bind(claims.sub, avatar || null, user.id).run();
     user = await env.DB.prepare("SELECT * FROM auth_users WHERE id = ?").bind(user.id).first();
     const session = await createSession(request, env, user);
