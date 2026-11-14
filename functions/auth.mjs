@@ -1,6 +1,7 @@
 const encoder = new TextEncoder();
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
-const PASSWORD_ITERATIONS = 210_000;
+// Cloudflare Workers Web Crypto caps PBKDF2 at 100,000 iterations.
+const PASSWORD_ITERATIONS = 100_000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function json(body, status = 200, headers = {}) {
