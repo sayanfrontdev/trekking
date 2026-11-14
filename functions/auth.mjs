@@ -430,7 +430,7 @@ export async function handleAuthRequest(request, env) {
     }
     let captchaBody;
     try { captchaBody = await request.clone().json(); } catch { return json({ error: "The account request could not be read." }, 400); }
-    const captcha = await verifyRecaptcha(captchaBody.recaptchaToken, env.RECAPTCHA_SECRET_KEY, request);
+    const captcha = await verifyRecaptcha(captchaBody.recaptchaToken, env.RECAPTCHA_API_KEY, request);
     if (!captcha.ok) return json({ error: captcha.error }, 400);
     if (await rateLimited(request, env, action)) return json({ error: "Too many sign-in attempts. Please wait one minute." }, 429);
     if (action === "register") return await register(request, env);

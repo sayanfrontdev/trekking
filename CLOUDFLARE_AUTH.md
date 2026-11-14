@@ -6,15 +6,15 @@ Booking, trip-planner, and contact submissions are stored in the D1 `inquiries` 
 
 ## reCAPTCHA checkbox
 
-The public forms use Google's reCAPTCHA v2 checkbox. The site key is in `app.js`; keep the matching secret key only in Cloudflare Worker secrets. Add every production hostname used by the site to the key's allowed domains (for example `trekking.trekking-india.workers.dev`). Then configure the secret and deploy:
+The public forms use the Google Cloud reCAPTCHA checkbox integration. The site loads `enterprise.js`; the Worker creates an assessment for each token. Add every production hostname used by the site to the key's allowed domains (for example `trekking.trekking-india.workers.dev`). In Google Cloud project `trekking-fc5d3`, enable the reCAPTCHA Enterprise API and create an API key restricted to that API. Add that API key to the `trekking` Worker as secret `RECAPTCHA_API_KEY` (do not use the legacy reCAPTCHA secret for this integration), then deploy:
 
 ```powershell
-npx wrangler secret put RECAPTCHA_SECRET_KEY --config wrangler.toml
+npx wrangler secret put RECAPTCHA_API_KEY --config wrangler.toml
 npm run build
 npx wrangler deploy --config wrangler.toml
 ```
 
-The checkbox is required for account login, signup, password reset, trip planning, booking, contact, newsletter, and AI chat submissions. The Cloudflare Worker verifies each single-use token with Google's verification endpoint before processing it. Utility forms such as search and cookie preferences do not submit to the server and are not challenged.
+The checkbox is required for account login, signup, password reset, trip planning, booking, contact, newsletter, and AI chat submissions. The Cloudflare Worker sends each single-use token to Google's CreateAssessment endpoint and accepts it only when Google reports it valid and its hostname matches the request hostname. Utility forms such as search and cookie preferences do not submit to the server and are not challenged.
 
 ## Google sign-in
 

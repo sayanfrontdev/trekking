@@ -5,8 +5,8 @@ const recaptchaRenderPromises = new WeakMap();
 function loadRecaptchaApi() {
   if (!recaptchaApiPromise) recaptchaApiPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; script.async = true; script.defer = true;
-    script.onload = () => window.grecaptcha.ready(() => resolve(window.grecaptcha));
+    script.src = "https://www.google.com/recaptcha/enterprise.js?render=explicit"; script.async = true; script.defer = true;
+    script.onload = () => window.grecaptcha.enterprise.ready(() => resolve(window.grecaptcha.enterprise));
     script.onerror = () => reject(new Error("reCAPTCHA could not load. Check your connection and try again."));
     document.head.append(script);
   });

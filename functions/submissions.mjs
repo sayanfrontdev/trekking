@@ -60,7 +60,7 @@ async function submitInquiry(request, env, type) {
   if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
   let body;
   try { body = await readBody(request); } catch { return json({ error: "The form could not be read." }, 400); }
-  const captcha = await verifyRecaptcha(body.recaptchaToken, env.RECAPTCHA_SECRET_KEY, request);
+  const captcha = await verifyRecaptcha(body.recaptchaToken, env.RECAPTCHA_API_KEY, request);
   if (!captcha.ok) return json({ error: captcha.error }, 400);
   const user = type === "booking" ? await readCurrentUser(request, env) : null;
   if (type === "booking" && !user) return json({ error: "Sign in before submitting a booking request." }, 401);
@@ -118,7 +118,7 @@ async function subscribeNewsletter(request, env) {
   if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
   let body;
   try { body = await readBody(request); } catch { return json({ error: "The signup could not be read." }, 400); }
-  const captcha = await verifyRecaptcha(body.recaptchaToken, env.RECAPTCHA_SECRET_KEY, request);
+  const captcha = await verifyRecaptcha(body.recaptchaToken, env.RECAPTCHA_API_KEY, request);
   if (!captcha.ok) return json({ error: captcha.error }, 400);
   const email = clean(body.email, 254).toLowerCase();
   if (!EMAIL_RE.test(email)) return json({ error: "Enter a valid email address." }, 400);
