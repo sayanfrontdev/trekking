@@ -4,6 +4,22 @@ const RECAPTCHA_ENABLED = false;
 let communityPhotosAuthListener = null;
 let recaptchaApiPromise;
 let activeRecaptchaToken = "";
+const cmsPages = [
+  ["home", "Home page", "index.html"], ["about", "About", "about.html"], ["blog", "Journal", "blog.html"], ["blog/article", "Journal article", "blog-how-to-prepare.html"],
+  ["booking", "Booking", "booking-details.html"], ["community-photos", "Traveller photos", "community-photos.html"],
+  ["contact", "Contact", "contact.html"], ["destination/darjeeling", "Darjeeling destination", "destination-darjeeling.html"], ["destination/himachal", "Himachal destination", "destination-himachal.html"],
+  ["destination/kashmir", "Kashmir destination", "destination-kashmir.html"], ["destination/sandakphu", "Sandakphu destination", "destination-sandakphu.html"], ["destination/sikkim", "Sikkim destination", "destination-sikkim.html"],
+  ["destinations", "Destinations", "destinations.html"], ["departures", "Upcoming departures", "upcoming-departures.html"], ["faq", "FAQ", "faq.html"], ["gallery", "Gallery", "gallery.html"],
+  ["legal/cancellation", "Cancellation policy", "cancellation-refund-policy.html"], ["legal/cookies", "Cookie policy", "cookie-policy.html"], ["legal/privacy", "Privacy policy", "privacy-policy.html"],
+  ["legal/terms", "Terms and conditions", "terms-conditions.html"], ["legal/disclaimer", "Travel disclaimer", "travel-disclaimer.html"], ["payment-failed", "Payment failed", "payment-failed.html"],
+  ["payment-success", "Payment success", "payment-success.html"], ["packages", "Tour packages", "tour-packages.html"], ["planner", "Trip planner", "trip-planner.html"], ["reset-password", "Password reset", "reset-password.html"],
+  ["reviews", "Customer reviews", "customer-reviews.html"], ["trip/darjeeling", "Darjeeling tour", "tour-darjeeling.html"],
+  ["trip/himachal", "Himachal tour", "tour-himachal.html"], ["trip/kashmir", "Kashmir tour", "tour-kashmir.html"], ["trip/sandakphu", "Sandakphu tour", "tour-sandakphu.html"],
+  ["trip/sikkim", "Sikkim tour", "tour-sikkim.html"], ["trip/weekend", "Weekend tour", "tour-weekend.html"], ["trekking", "Trekking", "trekking.html"], ["site-footer", "Shared site footer", "index.html"],
+  ["weekend-trips", "Weekend trips", "weekend-trips.html"]
+].filter((page, index, pages) => pages.findIndex(candidate => candidate[0] === page[0]) === index);
+const sitePageOverrides = new Map();
+const sitePageRequests = new Set();
 const recaptchaRenderPromises = new WeakMap();
 function loadRecaptchaApi() {
   if (!recaptchaApiPromise) recaptchaApiPromise = new Promise((resolve, reject) => {
@@ -1907,7 +1923,7 @@ async function resolvePaymentStatus(kind) {
   }
 }
 function adminPage() {
-  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests, enquiries, and traveller photo submissions.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div><section class="admin-photo-review"><div class="admin-photo-review-heading"><div><span class="eyebrow">Community gallery</span><h2 class="h4 mt-2">Traveller photos awaiting approval</h2></div><span class="admin-photo-pending-count" data-admin-photo-count>0</span></div><p class="admin-status" role="status" aria-live="polite" data-admin-photo-status>Loading photo submissions…</p><div class="admin-photo-submissions" data-admin-photo-submissions></div></section></div></div></section>`;
+  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests, enquiries, and traveller photo submissions.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div><section class="admin-photo-review"><div class="admin-photo-review-heading"><div><span class="eyebrow">Community gallery</span><h2 class="h4 mt-2">Traveller photos awaiting approval</h2></div><span class="admin-photo-pending-count" data-admin-photo-count>0</span></div><p class="admin-status" role="status" aria-live="polite" data-admin-photo-status>Loading photo submissions…</p><div class="admin-photo-submissions" data-admin-photo-submissions></div></section><section class="admin-photo-review mt-5" aria-labelledby="site-content-heading"><div class="admin-photo-review-heading"><div><span class="eyebrow">Website content</span><h2 class="h4 mt-2" id="site-content-heading">Manage page content</h2></div></div><p>Page content is stored in Cloudflare D1. Import the current layouts once, then edit and save each page here. Existing local image URLs are served from the site's Cloudflare asset store.</p><div class="d-flex flex-wrap gap-2 mb-3"><label class="visually-hidden" for="cms-page-select">Select a page</label><select class="form-select" id="cms-page-select" data-cms-page style="max-width:360px">${cmsPages.map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}</select><button class="btn btn-outline-navy" type="button" data-cms-load>Load page</button><button class="btn btn-primary-navy" type="button" data-cms-save>Save page</button><button class="btn btn-outline-navy" type="button" data-cms-import>Import all current pages</button></div><p class="admin-status" role="status" aria-live="polite" data-cms-status>Select a page to edit its content.</p><label class="form-label" for="cms-page-html">Page content (HTML)</label><textarea class="form-control font-monospace" id="cms-page-html" data-cms-html rows="18" spellcheck="false" aria-describedby="cms-page-help"></textarea><small id="cms-page-help">Keep the existing data attributes and form field IDs so interactive features continue to work. Page edits are visible to all visitors after saving.</small><iframe title="Page template loader" data-cms-frame hidden></iframe></section></div></div></section>`;
 }
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
@@ -2347,6 +2363,110 @@ function setupAdminDashboard() {
   load();
 }
 
+function setupSitePageEditor() {
+  const select = main.querySelector("[data-cms-page]");
+  const editor = main.querySelector("[data-cms-html]");
+  const status = main.querySelector("[data-cms-status]");
+  const frame = main.querySelector("[data-cms-frame]");
+  const loadButton = main.querySelector("[data-cms-load]");
+  const saveButton = main.querySelector("[data-cms-save]");
+  const importButton = main.querySelector("[data-cms-import]");
+  if (!select || !editor || !status || !frame) return;
+  const setStatus = (message, isError = false) => {
+    status.textContent = message;
+    status.classList.toggle("text-danger", isError);
+    status.classList.toggle("text-success", !isError);
+  };
+  const getPage = key => cmsPages.find(page => page[0] === key);
+  const loadTemplate = async key => {
+    const page = getPage(key);
+    if (!page) throw new Error("Choose a page first.");
+    setStatus(`Loading ${page[1]} template…`);
+    await new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => reject(new Error("The page template took too long to load.")), 25_000);
+      frame.addEventListener("load", () => { window.clearTimeout(timeout); resolve(); }, { once: true });
+      frame.src = `/${page[2]}?cms-import=${Date.now()}`;
+    });
+    await frame.contentWindow.__trekkingContentReady;
+    const html = key === "site-footer"
+      ? frame.contentWindow.__trekkingFooterTemplateHtml
+      : frame.contentWindow.__trekkingPageTemplateHtml;
+    if (typeof html !== "string" || !html.trim()) throw new Error("The page template was not generated.");
+    return html;
+  };
+  const loadPage = async () => {
+    const key = select.value;
+    const response = await fetch(`/api/site-pages?key=${encodeURIComponent(key)}`, { cache: "no-store" });
+    if (response.ok) {
+      const result = await response.json();
+      editor.value = result.page.html;
+      setStatus(`Loaded saved content. Last updated ${new Date(result.page.updatedAt).toLocaleString()}.`);
+      return;
+    }
+    if (response.status !== 404 && response.status !== 503) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || "Could not load saved content.");
+    }
+    editor.value = await loadTemplate(key);
+    setStatus("This page has not been imported yet. Review the template, then save it.");
+  };
+  loadButton?.addEventListener("click", () => loadPage().catch(error => setStatus(error.message, true)));
+  select.addEventListener("change", () => loadPage().catch(error => setStatus(error.message, true)));
+  saveButton?.addEventListener("click", async () => {
+    saveButton.disabled = true;
+    try {
+      const response = await fetch("/api/admin/site-pages", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pages: [{ key: select.value, html: editor.value }] })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save this page.");
+      sitePageOverrides.set(select.value, editor.value);
+      setStatus("Page saved. Visitors will see this content on their next page load.");
+    } catch (error) { setStatus(error.message, true); }
+    finally { saveButton.disabled = false; }
+  });
+  importButton?.addEventListener("click", async () => {
+    importButton.disabled = true;
+    const pages = [];
+    try {
+      for (let index = 0; index < cmsPages.length; index += 1) {
+        const [key, label] = cmsPages[index];
+        setStatus(`Importing ${index + 1} of ${cmsPages.length}: ${label}…`);
+        pages.push({ key, html: await loadTemplate(key) });
+      }
+      for (let offset = 0; offset < pages.length; offset += 4) {
+        const response = await fetch("/api/admin/site-pages", {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pages: pages.slice(offset, offset + 4) })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not save imported pages.");
+      }
+      pages.forEach(page => sitePageOverrides.set(page.key, page.html));
+      setStatus(`Imported ${pages.length} pages to Cloudflare D1. You can edit each page from the selector.`);
+      await loadPage();
+    } catch (error) { setStatus(error.message, true); }
+    finally { importButton.disabled = false; }
+  });
+  loadPage().catch(error => setStatus(error.message, true));
+}
+
+function loadSitePageOverride(path) {
+  const key = path || "home";
+  if (path === "admin" || !cmsPages.some(page => page[0] === key) || sitePageOverrides.has(key) || sitePageRequests.has(key)) return;
+  sitePageRequests.add(key);
+  fetch(`/api/site-pages?key=${encodeURIComponent(key)}`, { cache: "no-store" }).then(async response => {
+    if (response.status === 404) { sitePageOverrides.set(key, null); return; }
+    if (!response.ok) return;
+    const result = await response.json();
+    if (typeof result.page?.html === "string") sitePageOverrides.set(key, result.page.html);
+    const currentPath = main.dataset.staticPage || (location.hash === "#tripSearch" ? "" : location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, ""));
+    const hasFormInput = [...main.querySelectorAll("input, textarea, select")].some(field => field.value);
+    if (((currentPath || "home") === key || key === "site-footer") && sitePageOverrides.get(key) && !hasFormInput) route();
+  }).catch(() => {}).finally(() => sitePageRequests.delete(key));
+}
+
 function route() {
   if (communityPhotosAuthListener) {
     window.removeEventListener("trekking-auth-state", communityPhotosAuthListener);
@@ -2382,6 +2502,9 @@ function route() {
   else if (path === "faq") html = faqPage();
   else if (parts[0] === "legal" && legalData[parts[1]]) html = legalPage(parts[1]);
   else html = `<section class="section section-soft"><div class="container text-center py-5"><div class="error-code">404</div><h1 class="h2">Well, this is a scenic detour.</h1><p class="mx-auto" style="max-width:500px">We can't find the page you're looking for. Let's get you back on the trail.</p><a class="btn btn-primary-navy mt-3" href="#/">Take me home</a></div></section>`;
+  window.__trekkingPageTemplateHtml = html;
+  const savedPageHtml = sitePageOverrides.get(path || "home");
+  if (typeof savedPageHtml === "string") html = savedPageHtml;
   if (path) {
     title = `${path.split("/").at(-1).replaceAll("-", " ").replace(/\b\w/g, c => c.toUpperCase())} | TREKKING`;
     const h1 = html.match(/<h1[^>]*>(.*?)<\/h1>/s);
@@ -2500,7 +2623,7 @@ function route() {
     if (submit) submit.innerHTML = `Review enquiry <i class="bi bi-arrow-right ms-2"></i>`;
     setupBookingAccess();
   }
-  if (path === "admin") setupAdminDashboard();
+  if (path === "admin") { setupAdminDashboard(); setupSitePageEditor(); }
   if (path === "planner") {
     const previewNote = main.querySelector("#plannerForm .alert");
     if (previewNote) previewNote.textContent = "Your trip preferences will be saved securely as an enquiry. Submitting does not confirm a booking.";
@@ -2559,7 +2682,9 @@ function route() {
   const existingBreadcrumbLd = document.querySelector("#breadcrumb-structured-data");
   if (existingBreadcrumbLd) existingBreadcrumbLd.remove();
   if (path === "blog/article") addArticleStructuredData();
-  footer.innerHTML = footerTemplate();
+  const generatedFooter = footerTemplate();
+  window.__trekkingFooterTemplateHtml = generatedFooter;
+  footer.innerHTML = typeof sitePageOverrides.get("site-footer") === "string" ? sitePageOverrides.get("site-footer") : generatedFooter;
   footer.querySelector(".footer-socials")?.remove();
   const footerHelp = [...footer.querySelectorAll(".footer-column")].at(-1);
   if (footerHelp) footerHelp.innerHTML = `<h3>Plan with confidence</h3><p>Use the contact form to prepare a question about routes, travel style, or trip planning.</p><a href="#/contact">Open the contact form</a><a href="#/faq">Read the trip planning guide</a><button class="auth-open-button" type="button" data-open-auth>Sign in or create an account</button>`;
@@ -2569,6 +2694,11 @@ function route() {
   updateActiveNavigation(path);
   const footerLegal = footer.querySelector(".footer-legal");
   if (footerLegal) footerLegal.insertAdjacentHTML("beforeend", `<a href="#cookie-settings" data-open-cookie-settings>Cookie settings</a>`);
+  if (typeof sitePageOverrides.get("site-footer") === "string") {
+    footer.innerHTML = sitePageOverrides.get("site-footer");
+    rewritePageLinks(footer);
+    applyStoredSiteAssets(footer);
+  }
   document.querySelectorAll(".mobile-nav .mobile-link").forEach(link => link.addEventListener("click", () => bootstrap.Offcanvas.getInstance(document.querySelector("#mobileNav"))?.hide()));
   document.querySelectorAll(".mobile-submenu a").forEach(link => link.addEventListener("click", () => bootstrap.Offcanvas.getInstance(document.querySelector("#mobileNav"))?.hide()));
   if (document.querySelector(".reviews-swiper")) {
@@ -2589,6 +2719,10 @@ function route() {
       if (field && searchParams.has(name)) field.value = searchParams.get(name);
     });
     requestAnimationFrame(() => searchForm?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
+  if (path !== "admin") {
+    loadSitePageOverride(path);
+    loadSitePageOverride("site-footer");
   }
 }
 function addArticleStructuredData() {
@@ -2846,7 +2980,7 @@ if (main.dataset.staticPage) {
 cookieConsentController = setupCookieConsent();
 authPopupController = setupAuthPopup();
 setupPasswordResetForm();
-loadSiteContent();
+window.__trekkingContentReady = loadSiteContent();
 document.querySelector(".back-to-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 window.addEventListener("scroll", () => document.querySelector(".back-to-top").classList.toggle("is-visible", window.scrollY > 500));
 async function postLocalRequest(endpoint, payload, method = "POST") {

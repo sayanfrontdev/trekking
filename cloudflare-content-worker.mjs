@@ -6,7 +6,7 @@ import { verifyRecaptcha } from "./functions/recaptcha.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400"
 };
@@ -106,6 +106,55 @@ export default {
     if (submissionResponse) return submissionResponse;
 
     const url = new URL(request.url);
+    if (url.pathname === "/api/site-pages" && request.method === "GET") {
+      const pageKey = url.searchParams.get("key");
+      if (pageKey) {
+        if (!/^[a-z0-9/-]{1,80}$/.test(pageKey)) return json({ error: "Invalid page key." }, 400);
+        try {
+          const row = await env.DB.prepare("SELECT content_html, updated_at FROM site_pages WHERE page_key = ?")
+            .bind(pageKey).first();
+          return row
+            ? json({ page: { key: pageKey, html: row.content_html, updatedAt: row.updated_at } }, 200, "public, max-age=60, stale-while-revalidate=300")
+            : json({ error: "No saved page content." }, 404, "public, max-age=30");
+        } catch { return json({ error: "Page content is unavailable." }, 503); }
+      }
+      const admin = await readCurrentUser(request, env);
+      if (!admin || admin.email.toLowerCase() !== ADMIN_EMAIL || !admin.emailVerified) return json({ error: "Admin access is required." }, admin ? 403 : 401);
+      try {
+        const result = await env.DB.prepare("SELECT page_key, updated_at FROM site_pages ORDER BY page_key").all();
+        return json({ pages: result.results || [] });
+      } catch { return json({ error: "Page content is unavailable." }, 503); }
+    }
+    if (url.pathname === "/api/admin/site-pages" && request.method === "PUT") {
+      if (!request.headers.get("Origin") || !sameOriginForWebSocket(request)) return json({ error: "This request could not be verified." }, 403);
+      const admin = await readCurrentUser(request, env);
+      if (!admin || admin.email.toLowerCase() !== ADMIN_EMAIL || !admin.emailVerified) return json({ error: "Admin access is required." }, admin ? 403 : 401);
+      const declaredLength = Number(request.headers.get("Content-Length") || 0);
+      if (declaredLength > 8_000_000) return json({ error: "The page update is too large." }, 413);
+      let body;
+      try {
+        const rawBody = await request.text();
+        if (rawBody.length > 8_000_000) return json({ error: "The page update is too large." }, 413);
+        body = JSON.parse(rawBody);
+      } catch { return json({ error: "The page update could not be read." }, 400); }
+      if (!Array.isArray(body?.pages) || !body.pages.length || body.pages.length > 50) return json({ error: "Choose one or more pages to save." }, 400);
+      const seen = new Set();
+      for (const page of body.pages) {
+        if (typeof page?.key !== "string" || !/^[a-z0-9/-]{1,80}$/.test(page.key) || seen.has(page.key)) return json({ error: "A page key is invalid or duplicated." }, 400);
+        seen.add(page.key);
+        if (typeof page.html !== "string" || !page.html.trim() || page.html.length > 1_000_000) return json({ error: `Page ${page.key} must contain HTML under 1 MB.` }, 400);
+        if (/<\s*script\b|\son[a-z]+\s*=|javascript\s*:/i.test(page.html)) return json({ error: `Page ${page.key} contains unsupported script or event-handler markup.` }, 400);
+      }
+      const updatedAt = new Date().toISOString();
+      try {
+        const statements = body.pages.map(page => env.DB.prepare(
+          "INSERT INTO site_pages (page_key, content_html, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(page_key) DO UPDATE SET content_html = excluded.content_html, updated_at = excluded.updated_at, updated_by = excluded.updated_by"
+        ).bind(page.key, page.html, updatedAt, admin.email.toLowerCase()));
+        await env.DB.batch(statements);
+        return json({ saved: body.pages.length, updatedAt });
+      } catch { return json({ error: "Page content could not be saved. Apply database migration 0013 first." }, 503); }
+    }
+    if (url.pathname === "/api/admin/site-pages" && request.method !== "GET") return json({ error: "Use PUT to save page content." }, 405);
     if (request.method === "GET" && ["/community-photos", "/community-photos/"].includes(url.pathname)) {
       return env.ASSETS.fetch(new Request(new URL("/community-photos.html", request.url), request));
     }
