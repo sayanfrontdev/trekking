@@ -747,6 +747,7 @@ textarea { resize: none; }
 @media (max-width: 430px) {
   .gallery-photo { height: 140px; }
   .eyebrow { letter-spacing: .09em; }
+  .recaptcha-widget iframe { transform: scale(0.7) translateX(-68px); }
 }
 @media (max-width: 575.98px) {
   .auth-header-button .auth-header-label { display: none !important; }
