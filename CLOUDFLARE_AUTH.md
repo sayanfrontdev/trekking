@@ -6,6 +6,8 @@ Booking, trip-planner, and contact submissions are stored in the D1 `inquiries` 
 
 ## reCAPTCHA checkbox
 
+reCAPTCHA is currently disabled in both the browser and Worker. Forms can be submitted without a CAPTCHA token. To re-enable the integration, set `RECAPTCHA_ENABLED` to `true` in `app.js` and `functions/recaptcha.mjs`, confirm the `RECAPTCHA_API_KEY` Worker secret is configured, then rebuild and deploy.
+
 The public forms use the Google Cloud reCAPTCHA checkbox integration. The site loads `enterprise.js`; the Worker creates an assessment for each token. Add every production hostname used by the site to the key's allowed domains (for example `trekking.trekking-india.workers.dev`). In Google Cloud project `trekking-fc5d3`, enable the reCAPTCHA Enterprise API and create an API key restricted to that API. Add that API key to the `trekking` Worker as secret `RECAPTCHA_API_KEY` (do not use the legacy reCAPTCHA secret for this integration), then deploy:
 
 ```powershell

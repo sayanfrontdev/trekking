@@ -1,7 +1,10 @@
 const RECAPTCHA_SITE_KEY = "6Lc2YiAuAAAAAPuWTAV2cNIWnLJoKAiFP2heoayo";
 const RECAPTCHA_PROJECT_ID = "trekking-fc5d3";
+// Set true in both this module and app.js when re-enabling reCAPTCHA.
+const RECAPTCHA_ENABLED = false;
 
 export async function verifyRecaptcha(token, apiKey, request) {
+  if (!RECAPTCHA_ENABLED) return { ok: true };
   if (!apiKey) return { ok: false, error: "reCAPTCHA backend verification is not configured. Add the Google API key in Cloudflare." };
   if (typeof token !== "string" || !token) return { ok: false, error: "Please complete the I'm not a robot check." };
   try {

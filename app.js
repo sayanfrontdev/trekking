@@ -1,4 +1,6 @@
 const RECAPTCHA_SITE_KEY = "6Lc2YiAuAAAAAPuWTAV2cNIWnLJoKAiFP2heoayo";
+// Keep the reCAPTCHA integration available for later, but disabled site-wide for now.
+const RECAPTCHA_ENABLED = false;
 let recaptchaApiPromise;
 let activeRecaptchaToken = "";
 const recaptchaRenderPromises = new WeakMap();
@@ -14,6 +16,7 @@ function loadRecaptchaApi() {
 }
 const captchaFormSelector = 'form[data-auth-panel],#plannerForm,#bookingForm,form[data-message],form[data-ai-chat-form],#passwordResetForm';
 function mountRecaptchas(root = document) {
+  if (!RECAPTCHA_ENABLED) return;
   root.querySelectorAll?.(captchaFormSelector).forEach(form => {
     if (form.querySelector("[data-recaptcha-widget]")) return;
     const widget = document.createElement("div"); widget.className = "recaptcha-widget"; widget.dataset.recaptchaWidget = "";
@@ -60,7 +63,7 @@ function mountRecaptchas(root = document) {
 new MutationObserver(() => mountRecaptchas()).observe(document.documentElement, { childList: true, subtree: true });
 document.addEventListener("submit", async event => {
   const form = event.target;
-  if (!(form instanceof HTMLFormElement) || !form.matches(captchaFormSelector) || form.dataset.recaptchaReady === "true") return;
+  if (!RECAPTCHA_ENABLED || !(form instanceof HTMLFormElement) || !form.matches(captchaFormSelector) || form.dataset.recaptchaReady === "true") return;
   event.preventDefault();
   try {
     mountRecaptchas(document);
