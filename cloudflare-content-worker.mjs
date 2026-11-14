@@ -5,7 +5,7 @@ import { ADMIN_EMAIL, handleSubmissionRequest } from "./functions/submissions.mj
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400"
 };
@@ -17,6 +17,59 @@ function json(body, status = 200, cacheControl = "no-store") {
   });
 }
 
+const chatRequestsByIp = new Map();
+const chatSystemPrompt = "You are the TREKKING website assistant. Answer clearly and helpfully, with a focus on Himalayan travel and the journeys on this site: Sandakphu, Darjeeling, Sikkim, Kashmir, and Himachal. Visitors can submit booking and trip enquiries; these are requests, not confirmed bookings. Payments are available only where the site explicitly offers a configured deposit. Never invent live availability, route conditions, exact current prices, booking confirmations, or discount eligibility; ask visitors to confirm those details with the trip team. Do not ask for passwords, card details, or other sensitive information.";
+
+async function handleChatRequest(request, env) {
+  if (request.method !== "POST") return json({ error: "Use POST to send a chat message." }, 405);
+  if (!env.AI) return json({ error: "The AI chat service is not enabled for this site yet." }, 503);
+
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const now = Date.now();
+  const recent = (chatRequestsByIp.get(ip) || []).filter(time => now - time < 60_000);
+  if (recent.length >= 12) return json({ error: "Please wait a moment before sending another message." }, 429);
+  recent.push(now);
+  chatRequestsByIp.set(ip, recent);
+  if (chatRequestsByIp.size > 2_000) {
+    for (const [key, times] of chatRequestsByIp) {
+      if (!times.some(time => now - time < 60_000)) chatRequestsByIp.delete(key);
+    }
+  }
+
+  const contentLength = Number(request.headers.get("Content-Length") || 0);
+  if (contentLength > 32_000) return json({ error: "That conversation is too long. Start a new chat." }, 413);
+  let body;
+  try { body = await request.json(); }
+  catch { return json({ error: "The message could not be read." }, 400); }
+
+  const messages = Array.isArray(body?.messages) ? body.messages.slice(-12) : [];
+  const input = messages
+    .filter(message => ["user", "assistant"].includes(message?.role) && typeof message.content === "string")
+    .map(message => ({ role: message.role, content: message.content.trim().slice(0, 2_000) }))
+    .filter(message => message.content);
+  if (!input.length || input.at(-1).role !== "user") return json({ error: "Type a question before sending." }, 400);
+  if (input.reduce((total, message) => total + message.content.length, 0) > 12_000) {
+    return json({ error: "That conversation is too long. Start a new chat." }, 413);
+  }
+
+  try {
+    const result = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
+      messages: [{ role: "system", content: chatSystemPrompt }, ...input.map(message => ({
+        role: message.role === "assistant" ? "assistant" : "user",
+        content: message.content
+      }))],
+      max_tokens: 700,
+      temperature: 0.7
+    });
+    const answer = typeof result?.response === "string" ? result.response.trim() : "";
+    if (!answer) return json({ error: "I didn't get a response. Please try asking another way." }, 502);
+    return json({ answer });
+  } catch (error) {
+    console.error("Workers AI chat request failed:", error?.name || "Error");
+    return json({ error: "The assistant is temporarily unavailable. Please try again in a moment." }, 502);
+  }
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -24,9 +77,11 @@ export default {
     if (authResponse) return authResponse;
     const submissionResponse = await handleSubmissionRequest(request, env);
     if (submissionResponse) return submissionResponse;
-    if (request.method !== "GET") return env.ASSETS.fetch(request);
 
     const url = new URL(request.url);
+    if (url.pathname === "/api/chat") return handleChatRequest(request, env);
+    if (request.method !== "GET") return env.ASSETS.fetch(request);
+
     if (url.pathname === "/api/admin/events" && request.headers.get("Upgrade")?.toLowerCase() === "websocket") {
       if (!sameOriginForWebSocket(request)) return json({ error: "This request could not be verified." }, 403);
       const admin = await readCurrentUser(request, env);

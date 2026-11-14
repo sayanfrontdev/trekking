@@ -2681,7 +2681,7 @@ function initializeAiChat() {
         body: JSON.stringify({ messages: history })
       });
       let result;
-      try { result = await response.json(); } catch { throw new Error("Chat server not found. Run npm start and open http://localhost:3000 instead of a static preview."); }
+      try { result = await response.json(); } catch { throw new Error("The AI assistant could not reach its chat service. Please try again shortly."); }
       if (!response.ok) throw new Error(result.error || "The assistant is unavailable right now.");
       history.push({ role: "assistant", content: result.answer });
       addMessage("assistant", result.answer);
