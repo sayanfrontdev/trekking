@@ -1762,6 +1762,15 @@ function setupAdminDashboard() {
   const countdown = main.querySelector("[data-admin-countdown] span");
   if (!status || !submissions || !refresh || !countdown) return;
 
+  const typeLabels = { booking: "Booking request", planner: "Trip plan", contact: "Contact message" };
+  const filters = document.createElement("div");
+  filters.className = "admin-submission-filters";
+  filters.setAttribute("role", "group");
+  filters.setAttribute("aria-label", "Filter submitted forms by type");
+  status.before(filters);
+  let activeFilter = "all";
+  let currentInquiries = [];
+
   const addDetail = (list, label, value) => {
     if (value === undefined || value === null || String(value).trim() === "") return;
     const row = document.createElement("div");
@@ -1775,13 +1784,57 @@ function setupAdminDashboard() {
   };
 
   const render = inquiries => {
+    currentInquiries = inquiries;
+    const definitions = [
+      { id: "all", label: "All forms" },
+      { id: "booking", label: "Bookings" },
+      { id: "planner", label: "Trip plans" },
+      { id: "contact", label: "Contact messages" }
+    ];
+    filters.replaceChildren();
+    definitions.forEach(definition => {
+      const count = definition.id === "all"
+        ? inquiries.length
+        : inquiries.filter(item => item.type === definition.id).length;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `admin-submission-filter${activeFilter === definition.id ? " is-active" : ""}`;
+      button.setAttribute("aria-pressed", String(activeFilter === definition.id));
+      button.textContent = `${definition.label} (${count})`;
+      button.addEventListener("click", () => {
+        activeFilter = definition.id;
+        render(currentInquiries);
+      });
+      filters.append(button);
+    });
+
     submissions.replaceChildren();
-    if (!inquiries.length) {
-      status.textContent = "No submitted forms yet.";
+    const visibleInquiries = activeFilter === "all"
+      ? inquiries.slice()
+      : inquiries.filter(item => item.type === activeFilter);
+    const typeOrder = { booking: 0, planner: 1, contact: 2 };
+    visibleInquiries.sort((left, right) => (typeOrder[left.type] ?? 99) - (typeOrder[right.type] ?? 99)
+      || String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
+    if (!visibleInquiries.length) {
+      status.textContent = inquiries.length ? "No forms in this category." : "No submitted forms yet.";
       return;
     }
-    status.textContent = `${inquiries.length} submitted form${inquiries.length === 1 ? "" : "s"}.`;
-    for (const inquiry of inquiries) {
+    status.textContent = activeFilter === "all"
+      ? `${inquiries.length} submitted form${inquiries.length === 1 ? "" : "s"}.`
+      : `Showing ${visibleInquiries.length} ${typeLabels[activeFilter].toLowerCase()}${visibleInquiries.length === 1 ? "" : "s"}.`;
+    let previousType = "";
+    for (const inquiry of visibleInquiries) {
+      if (inquiry.type !== previousType) {
+        previousType = inquiry.type;
+        const groupHeading = document.createElement("div");
+        groupHeading.className = "admin-submission-group-heading";
+        const groupTitle = document.createElement("h2");
+        groupTitle.textContent = `${typeLabels[inquiry.type] || "Other form"}s`;
+        const countLabel = document.createElement("span");
+        countLabel.textContent = String(visibleInquiries.filter(item => item.type === inquiry.type).length);
+        groupHeading.append(groupTitle, countLabel);
+        submissions.append(groupHeading);
+      }
       const card = document.createElement("article");
       card.className = "admin-submission-card";
       const header = document.createElement("div");
@@ -1789,14 +1842,17 @@ function setupAdminDashboard() {
       const heading = document.createElement("h2");
       heading.className = "h5 mb-1";
       heading.textContent = inquiry.tripName || inquiry.place || inquiry.interest || (inquiry.type === "planner" ? "Trip planning request" : inquiry.type === "contact" ? "Contact enquiry" : "Booking request");
+      const typeBadge = document.createElement("span");
+      typeBadge.className = `admin-form-type is-${inquiry.type || "other"}`;
+      typeBadge.textContent = typeLabels[inquiry.type] || "Other form";
       const badge = document.createElement("span");
       badge.className = `admin-status-badge is-${inquiry.status || "received"}`;
       badge.textContent = inquiry.status || "received";
-      header.append(heading, badge);
+      header.append(typeBadge, heading, badge);
       const meta = document.createElement("p");
       meta.className = "admin-submission-meta";
       const created = inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleString() : "Date unavailable";
-      meta.textContent = `${inquiry.type || "form"} · Ref ${inquiry.reference} · ${created}`;
+      meta.textContent = `Ref ${inquiry.reference} · ${created}`;
       const details = document.createElement("div");
       details.className = "admin-submission-details";
       addDetail(details, "Name", inquiry.name);
