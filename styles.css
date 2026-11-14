@@ -810,10 +810,25 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-photo-card-content h3 { font-size: 17px; }
 .admin-photo-card-content > p:not(.admin-submission-meta) { color: var(--muted); }
 .community-photo-page { display: grid; gap: 44px; }
-.community-photo-upload { padding: clamp(20px, 4vw, 36px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.community-photo-upload { padding: clamp(22px, 4vw, 42px); border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line)); border-radius: 20px; background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 5%, var(--surface)), var(--surface) 48%); box-shadow: var(--shadow); }
 .community-photo-upload > p { max-width: 720px; }
-.community-photo-form { margin-top: 22px; }
+.community-photo-form { margin-top: 28px; }
+.community-photo-form .form-label { margin-bottom: 9px; color: var(--ink); font-size: 13px; font-weight: 700; }
+.community-photo-dropzone { position: relative; display: flex; min-height: 150px; align-items: center; justify-content: center; gap: 16px; padding: 24px; border: 1px dashed color-mix(in srgb, var(--brand) 58%, var(--line)); border-radius: 14px; color: var(--ink); background: color-mix(in srgb, var(--navy-deep) 4%, var(--surface)); text-align: left; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.community-photo-dropzone:hover, .community-photo-dropzone:focus-within, .community-photo-dropzone.is-dragging { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, var(--surface)); }
+.community-photo-dropzone.is-dragging { transform: scale(1.01); }
+.community-photo-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+.community-photo-file-input:focus-visible + .community-photo-dropzone-icon { outline: 2px solid var(--brand); outline-offset: 4px; }
+.community-photo-dropzone-icon { display: grid; width: 54px; height: 54px; flex: 0 0 54px; place-items: center; border: 1px solid color-mix(in srgb, var(--brand) 32%, var(--line)); border-radius: 16px; color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, var(--surface)); font-size: 25px; }
+.community-photo-dropzone-copy { display: grid; gap: 3px; }
+.community-photo-dropzone-copy strong { overflow: hidden; max-width: min(56vw, 520px); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.community-photo-dropzone-copy > span { color: var(--muted); font-size: 13px; }
+.community-photo-browse { color: var(--brand); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.community-photo-dropzone-copy small { margin-top: 5px; color: var(--muted); font-size: 11px; }
+.community-photo-file-preview { margin-top: 12px; }
+.community-photo-file-preview img { display: block; width: min(100%, 460px); max-height: 280px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); object-fit: contain; }
 .community-photo-form-status { min-height: 1.4em; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.community-photo-form-status:not(:empty) { padding: 9px 12px; border-left: 3px solid var(--brand); border-radius: 0 7px 7px 0; background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
 .community-photo-section { min-width: 0; }
 .community-photo-section .section-heading-row { margin-bottom: 22px; }
 .community-photo-section .section-heading-row h2 { margin: 8px 0 0; }
@@ -852,3 +867,4 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 @media (max-width: 575px) { .admin-submission-card { padding: 14px; } .admin-detail { grid-template-columns: 1fr; gap: 1px; } }
 @media (max-width: 767px) { .community-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-photo-card { grid-template-columns: 1fr; } .admin-photo-card > img { height: auto; aspect-ratio: 16 / 10; } }
 @media (max-width: 480px) { .community-photo-grid { grid-template-columns: 1fr; } }
+@media (max-width: 575px) { .community-photo-dropzone { min-height: 132px; gap: 12px; padding: 18px 14px; } .community-photo-dropzone-icon { width: 44px; height: 44px; flex-basis: 44px; border-radius: 13px; font-size: 21px; } .community-photo-dropzone-copy strong { max-width: calc(100vw - 140px); font-size: 14px; } }

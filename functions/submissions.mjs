@@ -155,7 +155,14 @@ async function travelPhotoImage(request, env, id) {
   if (row.status !== "approved" && row.user_id !== user.id && !isAdmin) {
     return new Response("Photo not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
-  return new Response(bytesFromBlob(row.data), { headers: {
+  const chunkResult = await env.DB.prepare("SELECT data FROM community_travel_photo_chunks WHERE photo_id = ? ORDER BY chunk_index")
+    .bind(id).all();
+  const chunks = (chunkResult.results || []).map(chunk => bytesFromBlob(chunk.data));
+  const imageChunks = chunks.length ? chunks : [bytesFromBlob(row.data)];
+  const imageBytes = new Uint8Array(imageChunks.reduce((total, chunk) => total + chunk.byteLength, 0));
+  let imageOffset = 0;
+  for (const chunk of imageChunks) { imageBytes.set(chunk, imageOffset); imageOffset += chunk.byteLength; }
+  return new Response(imageBytes, { headers: {
     "Content-Type": row.mime_type,
     "Cache-Control": "private, no-store",
     "X-Content-Type-Options": "nosniff",
@@ -194,11 +201,12 @@ async function userTravelPhotos(request, env) {
   }
   if (request.method !== "POST") return json({ error: "Use POST to upload a photo." }, 405);
   if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
-  if (Number(request.headers.get("Content-Length") || 0) > 1_100_000) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  const maxPhotoBytes = 5 * 1024 * 1024;
+  if (Number(request.headers.get("Content-Length") || 0) > maxPhotoBytes + 250_000) return json({ error: "Choose an image no larger than 5 MB." }, 413);
   let form;
   try { form = await request.formData(); } catch { return json({ error: "The photo upload could not be read." }, 400); }
   const file = form.get("file");
-  if (!(file instanceof File) || file.size < 1 || file.size > 1_048_576) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  if (!(file instanceof File) || file.size < 1 || file.size > maxPhotoBytes) return json({ error: "Choose an image no larger than 5 MB." }, 413);
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (!validImageSignature(bytes, file.type)) return json({ error: "Upload a valid JPG, PNG, or WebP image." }, 415);
   const existing = await env.DB.prepare("SELECT COUNT(*) AS total FROM community_travel_photos WHERE user_id = ? AND status != 'rejected'")
@@ -206,10 +214,17 @@ async function userTravelPhotos(request, env) {
   if (Number(existing?.total || 0) >= 20) return json({ error: "You can keep up to 20 submitted or approved photos. Delete one before uploading another." }, 429);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
-  await env.DB.prepare(`INSERT INTO community_travel_photos
+  const insertPhoto = env.DB.prepare(`INSERT INTO community_travel_photos
     (id, user_id, caption, location, mime_type, data, status, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`)
-    .bind(id, user.id, clean(form.get("caption"), 180), clean(form.get("location"), 120), file.type, bytes, createdAt).run();
+    VALUES (?, ?, ?, ?, ?, X'', 'pending', ?)`)
+    .bind(id, user.id, clean(form.get("caption"), 180), clean(form.get("location"), 120), file.type, createdAt);
+  const chunkStatements = [];
+  const chunkSize = 900_000;
+  for (let offset = 0, chunkIndex = 0; offset < bytes.length; offset += chunkSize, chunkIndex++) {
+    chunkStatements.push(env.DB.prepare(`INSERT INTO community_travel_photo_chunks (photo_id, chunk_index, data) VALUES (?, ?, ?)`)
+      .bind(id, chunkIndex, bytes.slice(offset, Math.min(offset + chunkSize, bytes.length))));
+  }
+  await env.DB.batch([insertPhoto, ...chunkStatements]);
   await broadcastSubmissionUpdate(env);
   return json({ id, status: "pending", message: "Photo submitted for review. Only you can see it until an admin approves it." }, 201);
 }

@@ -1632,7 +1632,7 @@ function galleryPage() {
 }
 
 function communityPhotosPage() {
-  return `${pageHero("Trail moments, shared by travellers", "A members-only collection of candid moments from the journeys our community takes. Upload a photo for review; approved photos are visible to signed-in members.", photo("photo-1500530855697-b586d89ba3ee"))}<section class="page-content"><div class="container community-photo-page"><div class="content-panel community-photo-upload"><span class="eyebrow">Traveller community</span><h2 class="h3 mt-2">Add your travel moment</h2><p>Share a photo from a trip. Our team reviews every upload before it appears to other members. JPG, PNG, or WebP, up to 1 MB.</p><div class="community-photo-locked" data-community-locked hidden><p class="mb-3">Sign in to view member photos or share your own.</p><button class="btn btn-primary-navy" type="button" data-open-auth>Sign in or create an account</button></div><div data-community-content hidden><form class="community-photo-form" data-community-photo-form><div class="row g-3"><div class="col-md-6"><label class="form-label" for="communityPhotoFile">Choose a photo</label><input class="form-control" id="communityPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" required></div><div class="col-md-6"><label class="form-label" for="communityPhotoLocation">Where was it taken? <span class="fw-normal">(optional)</span></label><input class="form-control" id="communityPhotoLocation" maxlength="120" placeholder="A place or trail"></div><div class="col-12"><label class="form-label" for="communityPhotoCaption">Caption <span class="fw-normal">(optional)</span></label><textarea class="form-control" id="communityPhotoCaption" maxlength="180" rows="2" placeholder="A short note about this moment"></textarea></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Submit photo for review <i class="bi bi-arrow-up-right ms-2"></i></button><p class="community-photo-form-status" data-community-upload-status role="status" aria-live="polite"></p></div></div></form></div></div><section class="community-photo-section" data-community-own-section hidden><div class="section-heading-row"><div><span class="eyebrow">Your uploads</span><h2 class="h3">Your submissions</h2></div></div><div class="community-photo-grid" data-community-own-photos></div></section><section class="community-photo-section"><div class="section-heading-row"><div><span class="eyebrow">From the community</span><h2 class="h3">Approved travel moments</h2></div></div><p class="community-photo-feed-status" data-community-feed-status role="status" aria-live="polite"></p><div class="community-photo-grid" data-community-approved-photos></div></section></div></section>`;
+  return `${pageHero("Trail moments, shared by travellers", "A members-only collection of candid moments from the journeys our community takes. Upload a photo for review; approved photos are visible to signed-in members.", photo("photo-1500530855697-b586d89ba3ee"))}<section class="page-content"><div class="container community-photo-page"><div class="content-panel community-photo-upload"><span class="eyebrow">Traveller community</span><h2 class="h3 mt-2">Add your travel moment</h2><p>Share a photo from a trip. Our team reviews every upload before it appears to other members. JPG, PNG, or WebP, up to 5 MB.</p><div class="community-photo-locked" data-community-locked hidden><p class="mb-3">Sign in to view member photos or share your own.</p><button class="btn btn-primary-navy" type="button" data-open-auth>Sign in or create an account</button></div><div data-community-content hidden><form class="community-photo-form" data-community-photo-form><div class="row g-3"><div class="col-12"><label class="form-label" for="communityPhotoFile">Choose a travel photo</label><label class="community-photo-dropzone" data-community-dropzone for="communityPhotoFile"><input class="community-photo-file-input" id="communityPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" required><span class="community-photo-dropzone-icon" aria-hidden="true"><i class="bi bi-cloud-arrow-up"></i></span><span class="community-photo-dropzone-copy"><strong data-community-file-name>Drag and drop your photo here</strong><span data-community-file-hint>or <span class="community-photo-browse">browse files</span> from your device</span><small>JPG, PNG, or WebP · up to 5 MB</small></span></label><div class="community-photo-file-preview" data-community-file-preview hidden></div></div><div class="col-md-6"><label class="form-label" for="communityPhotoLocation">Where was it taken? <span class="fw-normal">(optional)</span></label><input class="form-control" id="communityPhotoLocation" maxlength="120" placeholder="A place or trail"></div><div class="col-md-6"><label class="form-label" for="communityPhotoCaption">Caption <span class="fw-normal">(optional)</span></label><input class="form-control" id="communityPhotoCaption" maxlength="180" placeholder="A short note about this moment"></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Share photo for review <i class="bi bi-arrow-up-right ms-2"></i></button><p class="community-photo-form-status" data-community-upload-status role="status" aria-live="polite"></p></div></div></form></div></div><section class="community-photo-section" data-community-own-section hidden><div class="section-heading-row"><div><span class="eyebrow">Your uploads</span><h2 class="h3">Your submissions</h2></div></div><div class="community-photo-grid" data-community-own-photos></div></section><section class="community-photo-section"><div class="section-heading-row"><div><span class="eyebrow">From the community</span><h2 class="h3">Approved travel moments</h2></div></div><p class="community-photo-feed-status" data-community-feed-status role="status" aria-live="polite"></p><div class="community-photo-grid" data-community-approved-photos></div></section></div></section>`;
 }
 
 function setupCommunityPhotos(root) {
@@ -1644,6 +1644,47 @@ function setupCommunityPhotos(root) {
   const feedStatus = root.querySelector("[data-community-feed-status]");
   const uploadForm = root.querySelector("[data-community-photo-form]");
   const uploadStatus = root.querySelector("[data-community-upload-status]");
+  const photoInput = root.querySelector("#communityPhotoFile");
+  const dropzone = root.querySelector("[data-community-dropzone]");
+  const fileName = root.querySelector("[data-community-file-name]");
+  const fileHint = root.querySelector("[data-community-file-hint]");
+  const filePreview = root.querySelector("[data-community-file-preview]");
+  const maxPhotoBytes = 5 * 1024 * 1024;
+  let previewObjectUrl = "";
+  const clearPhotoSelection = () => {
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+    photoInput.value = "";
+    fileName.textContent = "Drag and drop your photo here";
+    fileHint.innerHTML = 'or <span class="community-photo-browse">browse files</span> from your device';
+    filePreview.replaceChildren();
+    filePreview.hidden = true;
+  };
+  const selectPhoto = file => {
+    if (!file) return;
+    if (! ["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      clearPhotoSelection();
+      uploadStatus.textContent = "Choose a JPG, PNG, or WebP image."; return;
+    }
+    if (file.size > maxPhotoBytes) {
+      clearPhotoSelection();
+      uploadStatus.textContent = "Choose an image no larger than 5 MB."; return;
+    }
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    fileName.textContent = file.name;
+    fileHint.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB · ready to share`;
+    uploadStatus.textContent = "";
+    filePreview.replaceChildren();
+    const preview = document.createElement("img"); preview.alt = "Selected travel photo preview"; previewObjectUrl = URL.createObjectURL(file); preview.src = previewObjectUrl; filePreview.append(preview); filePreview.hidden = false;
+  };
+  photoInput.addEventListener("change", () => selectPhoto(photoInput.files[0]));
+  for (const eventName of ["dragenter", "dragover"]) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.add("is-dragging"); });
+  for (const eventName of ["dragleave", "drop"]) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove("is-dragging"); });
+  dropzone.addEventListener("drop", event => {
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    const transfer = new DataTransfer(); transfer.items.add(file); photoInput.files = transfer.files; selectPhoto(file);
+  });
   const makePhotoCard = (photoItem, isOwnQueue = false) => {
     const card = document.createElement("article"); card.className = "community-photo-card";
     const image = document.createElement("img"); image.src = photoItem.imageUrl; image.alt = photoItem.caption || `Travel photo from ${photoItem.location || "a community member"}`; image.loading = "lazy";
@@ -1708,13 +1749,13 @@ function setupCommunityPhotos(root) {
     event.preventDefault();
     if (!uploadForm.reportValidity()) return;
     const file = root.querySelector("#communityPhotoFile").files[0];
-    if (!file || file.size > 1_048_576) { uploadStatus.textContent = "Choose an image smaller than 1 MB."; return; }
+    if (!file || file.size > maxPhotoBytes) { uploadStatus.textContent = "Choose an image no larger than 5 MB."; return; }
     const submit = uploadForm.querySelector('button[type="submit"]'); submit.disabled = true; uploadStatus.textContent = "Uploading your photo…";
     try {
       const data = new FormData(); data.set("file", file); data.set("caption", root.querySelector("#communityPhotoCaption").value); data.set("location", root.querySelector("#communityPhotoLocation").value);
       const response = await fetch("/api/travel-photos", { method: "POST", body: data });
       const result = await response.json(); if (!response.ok) throw new Error(result.error || "The photo could not be uploaded.");
-      uploadForm.reset(); uploadStatus.textContent = result.message || "Photo submitted for review.";
+      uploadForm.reset(); clearPhotoSelection(); uploadStatus.textContent = result.message || "Photo submitted for review.";
       await load();
     } catch (error) { uploadStatus.textContent = error.message || "The photo could not be uploaded."; }
     finally { submit.disabled = false; }

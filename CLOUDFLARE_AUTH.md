@@ -6,7 +6,7 @@ Booking, trip-planner, and contact submissions are stored in the D1 `inquiries` 
 
 ## Member travel photo gallery
 
-Signed-in users can submit JPG, PNG, or WebP photos up to 1 MB. Photos are kept private until the verified administrator approves them; approved images are available only to signed-in users. Uploaders can delete their own photos, and the server checks photo ownership for every deletion. Admin photo submissions use the existing live admin update channel.
+Signed-in users can submit JPG, PNG, or WebP photos up to 5 MB by choosing a file or dragging it onto the upload area. Image bytes are stored in 900 KB D1 chunks because D1 limits each BLOB or row to 2 MB. Photos are kept private until the verified administrator approves them; approved images are available only to signed-in users. Uploaders can delete their own photos, and the server checks photo ownership for every deletion. Admin photo submissions use the existing live admin update channel. Apply migration `0012_community_travel_photo_chunks.sql` after migration `0011_community_travel_photos.sql` before enabling uploads.
 
 Apply the added D1 table migration and deploy the Worker and site assets:
 
