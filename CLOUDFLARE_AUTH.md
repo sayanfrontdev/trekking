@@ -4,6 +4,18 @@ Email/password accounts and sessions are stored in D1 by the Cloudflare Worker. 
 
 Booking, trip-planner, and contact submissions are stored in the D1 `inquiries` table and shown in the admin page. Admin access is restricted to the verified Google account `sayanmandal72011902@gmail.com`.
 
+## Member travel photo gallery
+
+Signed-in users can submit JPG, PNG, or WebP photos up to 1 MB. Photos are kept private until the verified administrator approves them; approved images are available only to signed-in users. Uploaders can delete their own photos, and the server checks photo ownership for every deletion. Admin photo submissions use the existing live admin update channel.
+
+Apply the added D1 table migration and deploy the Worker and site assets:
+
+```powershell
+npm run migrate:d1:seed
+npm run build
+npx wrangler deploy --config wrangler.toml
+```
+
 ## reCAPTCHA checkbox
 
 reCAPTCHA is currently disabled in both the browser and Worker. Forms can be submitted without a CAPTCHA token. To re-enable the integration, set `RECAPTCHA_ENABLED` to `true` in `app.js` and `functions/recaptcha.mjs`, confirm the `RECAPTCHA_API_KEY` Worker secret is configured, then rebuild and deploy.
@@ -16,7 +28,7 @@ npm run build
 npx wrangler deploy --config wrangler.toml
 ```
 
-The checkbox is required for account login, signup, password reset, trip planning, booking, contact, newsletter, and AI chat submissions. The Cloudflare Worker sends each single-use token to Google's CreateAssessment endpoint and accepts it only when Google reports it valid and its hostname matches the request hostname. Utility forms such as search and cookie preferences do not submit to the server and are not challenged.
+When re-enabled, the checkbox will be required for account login, signup, password reset, trip planning, booking, contact, newsletter, and AI chat submissions. The Cloudflare Worker sends each single-use token to Google's CreateAssessment endpoint and accepts it only when Google reports it valid and its hostname matches the request hostname. Utility forms such as search and cookie preferences are not challenged.
 
 ## Google sign-in
 

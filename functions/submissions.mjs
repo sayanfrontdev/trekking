@@ -131,6 +131,113 @@ async function subscribeNewsletter(request, env) {
   return json({ status: "subscribed", alreadySubscribed: false }, 201);
 }
 
+function validImageSignature(bytes, mimeType) {
+  if (mimeType === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mimeType === "image/png") return bytes.length >= 8 && [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value);
+  if (mimeType === "image/webp") return bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+  return false;
+}
+
+function bytesFromBlob(value) {
+  if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  return Uint8Array.from(value || []);
+}
+
+async function travelPhotoImage(request, env, id) {
+  if (request.method !== "GET") return json({ error: "Use GET to view this photo." }, 405);
+  const user = await readCurrentUser(request, env);
+  if (!user) return json({ error: "Sign in to view community travel photos." }, 401);
+  const row = await env.DB.prepare(`SELECT p.user_id, p.mime_type, p.data, p.status
+    FROM community_travel_photos p WHERE p.id = ?`).bind(id).first();
+  if (!row) return new Response("Photo not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  const isAdmin = user.email.toLowerCase() === ADMIN_EMAIL && user.emailVerified;
+  if (row.status !== "approved" && row.user_id !== user.id && !isAdmin) {
+    return new Response("Photo not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  }
+  return new Response(bytesFromBlob(row.data), { headers: {
+    "Content-Type": row.mime_type,
+    "Cache-Control": "private, no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Disposition": "inline"
+  } });
+}
+
+async function userTravelPhotos(request, env) {
+  const user = await readCurrentUser(request, env);
+  if (!user) return json({ error: "Sign in to view or share travel photos." }, 401);
+  if (request.method === "GET") {
+    const result = await env.DB.prepare(`SELECT p.id, p.user_id, p.caption, p.location, p.status, p.created_at, u.name AS uploader_name
+      FROM community_travel_photos p JOIN auth_users u ON u.id = p.user_id
+      WHERE p.status = 'approved' OR p.user_id = ?
+      ORDER BY CASE WHEN p.status = 'approved' THEN 0 ELSE 1 END, p.created_at DESC LIMIT 250`)
+      .bind(user.id).all();
+    return json({ photos: (result.results || []).map(row => ({
+      id: row.id,
+      owner: row.user_id === user.id,
+      caption: row.caption,
+      location: row.location,
+      status: row.status,
+      createdAt: row.created_at,
+      uploaderName: row.uploader_name,
+      imageUrl: `/api/travel-photos/${encodeURIComponent(row.id)}/image`
+    })) });
+  }
+  if (request.method === "DELETE") {
+    if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
+    const id = decodeURIComponent(new URL(request.url).pathname.split("/").at(-1));
+    const result = await env.DB.prepare("DELETE FROM community_travel_photos WHERE id = ? AND user_id = ?")
+      .bind(id, user.id).run();
+    if (!result.meta?.changes) return json({ error: "You can delete only your own photo." }, 404);
+    await broadcastSubmissionUpdate(env);
+    return json({ deleted: true, id });
+  }
+  if (request.method !== "POST") return json({ error: "Use POST to upload a photo." }, 405);
+  if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
+  if (Number(request.headers.get("Content-Length") || 0) > 1_100_000) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  let form;
+  try { form = await request.formData(); } catch { return json({ error: "The photo upload could not be read." }, 400); }
+  const file = form.get("file");
+  if (!(file instanceof File) || file.size < 1 || file.size > 1_048_576) return json({ error: "Choose an image smaller than 1 MB." }, 413);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!validImageSignature(bytes, file.type)) return json({ error: "Upload a valid JPG, PNG, or WebP image." }, 415);
+  const existing = await env.DB.prepare("SELECT COUNT(*) AS total FROM community_travel_photos WHERE user_id = ? AND status != 'rejected'")
+    .bind(user.id).first();
+  if (Number(existing?.total || 0) >= 20) return json({ error: "You can keep up to 20 submitted or approved photos. Delete one before uploading another." }, 429);
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  await env.DB.prepare(`INSERT INTO community_travel_photos
+    (id, user_id, caption, location, mime_type, data, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`)
+    .bind(id, user.id, clean(form.get("caption"), 180), clean(form.get("location"), 120), file.type, bytes, createdAt).run();
+  await broadcastSubmissionUpdate(env);
+  return json({ id, status: "pending", message: "Photo submitted for review. Only you can see it until an admin approves it." }, 201);
+}
+
+async function adminTravelPhotos(request, env) {
+  if (!sameOrigin(request)) return json({ error: "This request could not be verified." }, 403);
+  const admin = await currentAdmin(request, env);
+  if (admin.response) return admin.response;
+  if (request.method === "GET") {
+    const result = await env.DB.prepare(`SELECT p.id, p.caption, p.location, p.created_at, u.name AS uploader_name, u.email AS uploader_email
+      FROM community_travel_photos p JOIN auth_users u ON u.id = p.user_id
+      WHERE p.status = 'pending' ORDER BY p.created_at ASC LIMIT 100`).all();
+    return json({ photos: (result.results || []).map(row => ({ ...row, imageUrl: `/api/travel-photos/${encodeURIComponent(row.id)}/image` })) });
+  }
+  const match = /^\/api\/admin\/travel-photos\/([^/]+)$/.exec(new URL(request.url).pathname);
+  if (!match || request.method !== "PATCH") return json({ error: "Unsupported photo review action." }, 405);
+  let body;
+  try { body = await readBody(request); } catch { return json({ error: "The review action could not be read." }, 400); }
+  if (!["approved", "rejected"].includes(body?.status)) return json({ error: "Choose approve or reject." }, 400);
+  const id = decodeURIComponent(match[1]);
+  const reviewedAt = new Date().toISOString();
+  const result = await env.DB.prepare(`UPDATE community_travel_photos SET status = ?, reviewed_at = ?, reviewed_by = ?
+    WHERE id = ? AND status = 'pending'`).bind(body.status, reviewedAt, admin.user.email, id).run();
+  if (!result.meta?.changes) return json({ error: "This photo is no longer waiting for review." }, 404);
+  await broadcastSubmissionUpdate(env);
+  return json({ id, status: body.status, reviewedAt });
+}
+
 function publicInquiry(row) {
   return {
     reference: row.reference,
@@ -193,6 +300,36 @@ async function sendDecisionEmail(env, inquiry, status) {
 export async function handleSubmissionRequest(request, env) {
   const url = new URL(request.url);
   const { pathname } = url;
+  if (pathname === "/api/travel-photos") {
+    try { return await userTravelPhotos(request, env); }
+    catch (error) {
+      console.error("D1 community photo request failed", error.name || "Error");
+      return json({ error: "Community photos are temporarily unavailable. Please try again." }, 500);
+    }
+  }
+  const travelPhotoImageMatch = /^\/api\/travel-photos\/([^/]+)\/image$/.exec(pathname);
+  if (travelPhotoImageMatch) {
+    try { return await travelPhotoImage(request, env, decodeURIComponent(travelPhotoImageMatch[1])); }
+    catch (error) {
+      console.error("D1 community photo image failed", error.name || "Error");
+      return new Response("Photo unavailable", { status: 500, headers: { "Cache-Control": "no-store" } });
+    }
+  }
+  if (pathname.startsWith("/api/admin/travel-photos")) {
+    try { return await adminTravelPhotos(request, env); }
+    catch (error) {
+      console.error("D1 community photo review failed", error.name || "Error");
+      return json({ error: "Photo review is temporarily unavailable. Please try again." }, 500);
+    }
+  }
+  const travelPhotoMatch = /^\/api\/travel-photos\/([^/]+)$/.exec(pathname);
+  if (travelPhotoMatch && request.method === "DELETE") {
+    try { return await userTravelPhotos(request, env); }
+    catch (error) {
+      console.error("D1 community photo delete failed", error.name || "Error");
+      return json({ error: "The photo could not be deleted. Please try again." }, 500);
+    }
+  }
   if (pathname === "/api/payments/config" && request.method === "GET") {
     return json({ enabled: false, amountInr: null, currency: "INR" });
   }

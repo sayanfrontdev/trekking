@@ -1,6 +1,7 @@
 const RECAPTCHA_SITE_KEY = "6Lc2YiAuAAAAAPuWTAV2cNIWnLJoKAiFP2heoayo";
 // Keep the reCAPTCHA integration available for later, but disabled site-wide for now.
 const RECAPTCHA_ENABLED = false;
+let communityPhotosAuthListener = null;
 let recaptchaApiPromise;
 let activeRecaptchaToken = "";
 const recaptchaRenderPromises = new WeakMap();
@@ -170,6 +171,7 @@ let customerReviews = [
 let legalData = {
   privacy: { title: "Privacy policy", intro: "Your trust matters to us. Here's how we handle the information you share when exploring or booking a TREKKING journey.", sections: [
     ["Information we collect", "We may collect contact details and trip preferences that you choose to share through our forms or booking enquiries. Payment information is handled by the payment provider you select; please review that provider's privacy notice."],
+    ["Community travel photos", "If you upload a travel photo, we store the image, its optional caption and location, and the account that submitted it. Uploads remain private while awaiting moderation. If approved, the photo and uploader display name are visible to signed-in members. You can delete your own photo at any time; account deletion also removes photos linked to that account."],
     ["How we use information", "We use information to respond to enquiries, coordinate requested travel arrangements, provide customer support, and improve this website. We do not sell personal information."],
     ["Cookies and tracking", "This website may use essential cookies for basic functionality. Optional analytics or marketing technologies should only be enabled with your consent where required."],
     ["Third-party services", "Maps, payment providers, social networks and other external services may process data under their own privacy policies. We only share information needed to fulfil a service you request."],
@@ -179,6 +181,7 @@ let legalData = {
   ] },
   terms: { title: "Terms & conditions", intro: "These terms explain the basics of using our website and enquiring about or booking a journey. Please read them before confirming a trip.", sections: [
     ["Using this website", "Use the site lawfully and do not interfere with its operation or attempt to access systems or information that are not intended for you."],
+    ["Community photo uploads", "Upload only travel photos that you have the right to share and that do not violate another person's privacy. Photos are reviewed before being shown to signed-in members. You may delete your own uploads at any time; TREKKING may reject or remove content that is inappropriate or not authorized."],
     ["Bookings and confirmation", "A booking is confirmed only when we provide written confirmation and the required payment has been received. Enquiries and itinerary requests are not confirmed bookings."],
     ["Pricing and availability", "Prices, departure dates and availability can change until a booking is confirmed. Any inclusions, exclusions and taxes will be stated in the applicable trip details and confirmation."],
     ["Payments", "Payment schedules and accepted methods will be shared before booking. Do not send payment details through unsecured messages. Applicable payment provider terms also apply."],
@@ -1245,7 +1248,7 @@ function articleCard(article, featured = false) {
   return `<article class="blog-card">${image(article.image, article.title)}<span class="blog-category">${article.category}</span><h3><a href="#/blog/article">${article.title}</a></h3><p>${article.excerpt}</p><div class="blog-meta">${article.author} <span class="mx-1">·</span> ${article.read}</div></article>`;
 }
 function footerTemplate() {
-  return `<div class="site-footer"><div class="footer-main"><div class="container"><div class="row g-4"><div class="col-lg-4 col-md-6 footer-brand"><a href="#/"><img src="images/logo.svg" alt="TREKKING"></a><p>Thoughtful journeys for people who want to feel a place, not just see it. Come find your own way into the mountains.</p><div class="footer-socials"><a href="https://instagram.com" aria-label="Instagram"><i class="bi bi-instagram"></i></a><a href="https://facebook.com" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a href="https://youtube.com" aria-label="YouTube"><i class="bi bi-youtube"></i></a></div></div><div class="col-6 col-lg-2 col-md-3 footer-column"><h3>Explore</h3><a href="#/">Home</a><a href="#/about">About us</a><a href="#/destinations">Destinations</a><a href="#/packages">Tour packages</a><a href="#/blog">Journal</a><a href="#/contact">Contact</a><a href="#/gallery">Gallery</a></div><div class="col-6 col-lg-2 col-md-3 footer-column"><h3>Popular places</h3><a href="#/destination/sandakphu">Sandakphu</a><a href="#/destination/darjeeling">Darjeeling</a><a href="#/destination/sikkim">Sikkim</a><a href="#/destination/kashmir">Kashmir</a><a href="#/destination/himachal">Himachal Pradesh</a><a href="#/departures">Upcoming departures</a></div><div class="col-lg-4 col-md-6 footer-column"><h3>Here to help</h3><p><i class="bi bi-telephone"></i>+91 12345 67890</p><p><i class="bi bi-envelope"></i>hello@trekking.example</p><p><i class="bi bi-whatsapp"></i>WhatsApp us</p><p><i class="bi bi-geo-alt"></i>Office address — add your business address</p><a href="#/reviews">Traveller reviews</a><a href="#/faq">FAQs</a></div></div></div></div><div class="footer-bottom"><div class="container"><p>© ${new Date().getFullYear()} TREKKING. Explore More. Experience Life.</p><div class="footer-legal"><a href="#/legal/privacy">Privacy</a><a href="#/legal/terms">Terms</a><a href="#/legal/cancellation">Cancellations</a><a href="#/legal/disclaimer">Disclaimer</a><a href="#/legal/cookies">Cookies</a><a href="#/faq">FAQs</a></div></div></div></div>`;
+  return `<div class="site-footer"><div class="footer-main"><div class="container"><div class="row g-4"><div class="col-lg-4 col-md-6 footer-brand"><a href="#/"><img src="images/logo.svg" alt="TREKKING"></a><p>Thoughtful journeys for people who want to feel a place, not just see it. Come find your own way into the mountains.</p><div class="footer-socials"><a href="https://instagram.com" aria-label="Instagram"><i class="bi bi-instagram"></i></a><a href="https://facebook.com" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a href="https://youtube.com" aria-label="YouTube"><i class="bi bi-youtube"></i></a></div></div><div class="col-6 col-lg-2 col-md-3 footer-column"><h3>Explore</h3><a href="#/">Home</a><a href="#/about">About us</a><a href="#/destinations">Destinations</a><a href="#/packages">Tour packages</a><a href="#/blog">Journal</a><a href="#/contact">Contact</a><a href="#/gallery">Gallery</a><a href="#/community-photos">Traveller photos</a></div><div class="col-6 col-lg-2 col-md-3 footer-column"><h3>Popular places</h3><a href="#/destination/sandakphu">Sandakphu</a><a href="#/destination/darjeeling">Darjeeling</a><a href="#/destination/sikkim">Sikkim</a><a href="#/destination/kashmir">Kashmir</a><a href="#/destination/himachal">Himachal Pradesh</a><a href="#/departures">Upcoming departures</a></div><div class="col-lg-4 col-md-6 footer-column"><h3>Here to help</h3><p><i class="bi bi-telephone"></i>+91 12345 67890</p><p><i class="bi bi-envelope"></i>hello@trekking.example</p><p><i class="bi bi-whatsapp"></i>WhatsApp us</p><p><i class="bi bi-geo-alt"></i>Office address — add your business address</p><a href="#/reviews">Traveller reviews</a><a href="#/faq">FAQs</a></div></div></div></div><div class="footer-bottom"><div class="container"><p>© ${new Date().getFullYear()} TREKKING. Explore More. Experience Life.</p><div class="footer-legal"><a href="#/legal/privacy">Privacy</a><a href="#/legal/terms">Terms</a><a href="#/legal/cancellation">Cancellations</a><a href="#/legal/disclaimer">Disclaimer</a><a href="#/legal/cookies">Cookies</a><a href="#/faq">FAQs</a></div></div></div></div>`;
 }
 function homePage() {
   return `<section class="hero"><!-- <img class="hero-image" src="${photo("photo-1464822759023-fed622ff2c3b", 2000)}" alt="Snow-covered Himalayan peaks above a sea of clouds"> --><video class="hero-video" src="images/cinematic-video.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video><div class="container hero-content"><span class="eyebrow">Take the scenic route</span><h1>Out there is<br><em>where you belong.</em></h1><p class="hero-copy">Small-group journeys, local stories and the kind of mountain air that stays with you long after you come home.</p><div class="hero-buttons"><a class="btn btn-primary-navy" href="#/packages">Find your next journey <i class="bi bi-arrow-up-right ms-2"></i></a><a class="btn btn-quiet" href="#/about"><i class="bi bi-play-circle me-2"></i>Get to know us</a></div><div class="hero-note"><span class="hero-note-icon"><i class="bi bi-compass" aria-hidden="true"></i></span><span><strong>Start with a place.</strong><br>Then shape a route that fits you.</span></div></div></section>
@@ -1627,6 +1630,86 @@ function galleryPage() {
   const gallery = ["photo-1464822759023-fed622ff2c3b","photo-1500530855697-b586d89ba3ee","photo-1470770841072-f978cf4d019e","photo-1500534623283-312aade485b7","photo-1472396961693-142e6e269027","photo-1551632811-561732d1e306","photo-1470252649378-9c29740c9fa8","photo-1500530855697-b586d89ba3ee","photo-1464822759023-fed622ff2c3b","photo-1470770841072-f978cf4d019e","photo-1500534623283-312aade485b7"];
   return `${pageHero("A little window to the mountains", "A collection of moments, landscapes and little pauses from the places we love.", photo("photo-1500530855697-b586d89ba3ee"))}<section class="page-content"><div class="container"><div class="photo-grid">${gallery.map((p,i)=>image(photo(p,800), `Mountain travel moment ${i+1}`)).join("")}</div><p class="small text-muted mt-3">Photography shown for design preview. Add your own licensed trip photography before launch.</p></div></section>`;
 }
+
+function communityPhotosPage() {
+  return `${pageHero("Trail moments, shared by travellers", "A members-only collection of candid moments from the journeys our community takes. Upload a photo for review; approved photos are visible to signed-in members.", photo("photo-1500530855697-b586d89ba3ee"))}<section class="page-content"><div class="container community-photo-page"><div class="content-panel community-photo-upload"><span class="eyebrow">Traveller community</span><h2 class="h3 mt-2">Add your travel moment</h2><p>Share a photo from a trip. Our team reviews every upload before it appears to other members. JPG, PNG, or WebP, up to 1 MB.</p><div class="community-photo-locked" data-community-locked hidden><p class="mb-3">Sign in to view member photos or share your own.</p><button class="btn btn-primary-navy" type="button" data-open-auth>Sign in or create an account</button></div><div data-community-content hidden><form class="community-photo-form" data-community-photo-form><div class="row g-3"><div class="col-md-6"><label class="form-label" for="communityPhotoFile">Choose a photo</label><input class="form-control" id="communityPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" required></div><div class="col-md-6"><label class="form-label" for="communityPhotoLocation">Where was it taken? <span class="fw-normal">(optional)</span></label><input class="form-control" id="communityPhotoLocation" maxlength="120" placeholder="A place or trail"></div><div class="col-12"><label class="form-label" for="communityPhotoCaption">Caption <span class="fw-normal">(optional)</span></label><textarea class="form-control" id="communityPhotoCaption" maxlength="180" rows="2" placeholder="A short note about this moment"></textarea></div><div class="col-12"><button class="btn btn-primary-navy" type="submit">Submit photo for review <i class="bi bi-arrow-up-right ms-2"></i></button><p class="community-photo-form-status" data-community-upload-status role="status" aria-live="polite"></p></div></div></form></div></div><section class="community-photo-section" data-community-own-section hidden><div class="section-heading-row"><div><span class="eyebrow">Your uploads</span><h2 class="h3">Your submissions</h2></div></div><div class="community-photo-grid" data-community-own-photos></div></section><section class="community-photo-section"><div class="section-heading-row"><div><span class="eyebrow">From the community</span><h2 class="h3">Approved travel moments</h2></div></div><p class="community-photo-feed-status" data-community-feed-status role="status" aria-live="polite"></p><div class="community-photo-grid" data-community-approved-photos></div></section></div></section>`;
+}
+
+function setupCommunityPhotos(root) {
+  const locked = root.querySelector("[data-community-locked]");
+  const content = root.querySelector("[data-community-content]");
+  const ownSection = root.querySelector("[data-community-own-section]");
+  const ownGrid = root.querySelector("[data-community-own-photos]");
+  const approvedGrid = root.querySelector("[data-community-approved-photos]");
+  const feedStatus = root.querySelector("[data-community-feed-status]");
+  const uploadForm = root.querySelector("[data-community-photo-form]");
+  const uploadStatus = root.querySelector("[data-community-upload-status]");
+  const makePhotoCard = (photoItem, isOwnQueue = false) => {
+    const card = document.createElement("article"); card.className = "community-photo-card";
+    const image = document.createElement("img"); image.src = photoItem.imageUrl; image.alt = photoItem.caption || `Travel photo from ${photoItem.location || "a community member"}`; image.loading = "lazy";
+    const body = document.createElement("div"); body.className = "community-photo-card-body";
+    const title = document.createElement("h3"); title.textContent = photoItem.caption || photoItem.location || "A moment on the trail";
+    body.append(title);
+    if (photoItem.location && photoItem.caption) { const place = document.createElement("p"); place.className = "community-photo-location"; place.textContent = photoItem.location; body.append(place); }
+    if (isOwnQueue) {
+      const note = document.createElement("p"); note.className = `community-photo-status is-${photoItem.status}`;
+      note.textContent = photoItem.status === "rejected" ? "Not approved · only you can see this photo" : "Waiting for team approval · only you can see this photo";
+      body.append(note);
+    } else {
+      const credit = document.createElement("p"); credit.className = "community-photo-credit"; credit.textContent = `Shared by ${photoItem.uploaderName || "a traveller"}`; body.append(credit);
+    }
+    if (photoItem.owner) {
+      const remove = document.createElement("button"); remove.type = "button"; remove.className = "btn btn-outline-navy btn-sm community-photo-delete"; remove.textContent = "Delete my photo";
+      remove.addEventListener("click", async () => {
+        remove.disabled = true;
+        try {
+          const response = await fetch(`/api/travel-photos/${encodeURIComponent(photoItem.id)}`, { method: "DELETE" });
+          const result = await response.json(); if (!response.ok) throw new Error(result.error || "The photo could not be deleted.");
+          await load();
+        } catch (error) { feedStatus.textContent = error.message || "The photo could not be deleted."; remove.disabled = false; }
+      });
+      body.append(remove);
+    }
+    card.append(image, body); return card;
+  };
+  const load = async () => {
+    feedStatus.textContent = "Loading member photos…";
+    try {
+      const response = await fetch("/api/travel-photos", { cache: "no-store" });
+      const result = await response.json();
+      if (response.status === 401) {
+        locked.hidden = false; content.hidden = true; ownSection.hidden = true; feedStatus.textContent = ""; return;
+      }
+      if (!response.ok) throw new Error(result.error || "Member photos could not be loaded.");
+      locked.hidden = true; content.hidden = false;
+      const photos = Array.isArray(result.photos) ? result.photos : [];
+      const own = photos.filter(item => item.owner && item.status !== "approved");
+      const approved = photos.filter(item => item.status === "approved");
+      ownSection.hidden = !own.length;
+      ownGrid.replaceChildren(...own.map(item => makePhotoCard(item, true)));
+      approvedGrid.replaceChildren(...approved.map(item => makePhotoCard(item)));
+      feedStatus.textContent = approved.length ? `${approved.length} approved photo${approved.length === 1 ? "" : "s"}.` : "No approved community photos yet. Be the first to share a moment.";
+    } catch (error) { feedStatus.textContent = error.message || "Member photos could not be loaded."; }
+  };
+  uploadForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (!uploadForm.reportValidity()) return;
+    const file = root.querySelector("#communityPhotoFile").files[0];
+    if (!file || file.size > 1_048_576) { uploadStatus.textContent = "Choose an image smaller than 1 MB."; return; }
+    const submit = uploadForm.querySelector('button[type="submit"]'); submit.disabled = true; uploadStatus.textContent = "Uploading your photo…";
+    try {
+      const data = new FormData(); data.set("file", file); data.set("caption", root.querySelector("#communityPhotoCaption").value); data.set("location", root.querySelector("#communityPhotoLocation").value);
+      const response = await fetch("/api/travel-photos", { method: "POST", body: data });
+      const result = await response.json(); if (!response.ok) throw new Error(result.error || "The photo could not be uploaded.");
+      uploadForm.reset(); uploadStatus.textContent = result.message || "Photo submitted for review.";
+      await load();
+    } catch (error) { uploadStatus.textContent = error.message || "The photo could not be uploaded."; }
+    finally { submit.disabled = false; }
+  });
+  communityPhotosAuthListener = () => { if (root.isConnected) load(); };
+  window.addEventListener("trekking-auth-state", communityPhotosAuthListener);
+  load();
+}
 function aboutPage() {
   return `${pageHero("Travel should feel like something.", "We're a small team of curious people who believe the best journeys start with listening — to a place, to its people, and to what you need from a little time away.", photo("photo-1470770841072-f978cf4d019e"))}<section class="section"><div class="container"><div class="feature-split"><div class="feature-image">${image(photo("photo-1500530855697-b586d89ba3ee", 1000), "A sunrise in the hills")}${image(photo("photo-1551632811-561732d1e306", 500), "Walking together", "image-inset")}</div><div class="feature-copy"><span class="eyebrow">A different kind of journey</span><h2>Less checklist.<br>More connection.</h2><p>TREKKING began with a simple idea: travel can bring you closer to the places you visit when the people who know them best help show the way.</p><p>Today, we work with local trip leaders and small community partners to create unhurried journeys through the Himalayas. We sweat the details so there's room for the moments that can't be planned.</p><div class="feature-list"><div><i class="bi bi-person-heart"></i> People before itineraries</div><div><i class="bi bi-signpost-split"></i> Curiosity over checklists</div><div><i class="bi bi-tree"></i> Respect for local places</div><div><i class="bi bi-chat-heart"></i> Thoughtful from hello to home</div></div><a class="btn btn-primary-navy" href="#/packages">Come find your journey</a></div></div></div></section><section class="section section-soft"><div class="container">${sectionHeading("What matters to us", "Good travel is a relationship", "A place is never a backdrop. We're guests in somebody else's home, and we want every journey to feel mindful of that.", true)}<div class="row g-4"><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-people fs-3 text-primary"></i><h3 class="h5 mt-3">Go local</h3><p class="small mb-0">Work with local guides and hosts who bring real knowledge and warmth to every journey.</p></div></div><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-hourglass-split fs-3 text-primary"></i><h3 class="h5 mt-3">Make room</h3><p class="small mb-0">Keep groups small and days unhurried, with the space to listen, wander and be present.</p></div></div><div class="col-md-4"><div class="content-panel h-100"><i class="bi bi-heart fs-3 text-primary"></i><h3 class="h5 mt-3">Travel thoughtfully</h3><p class="small mb-0">Ask better questions about impact and keep learning how to show up well in the places we visit.</p></div></div></div></div></section>`;
 }
@@ -1748,7 +1831,7 @@ async function resolvePaymentStatus(kind) {
   }
 }
 function adminPage() {
-  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests and other enquiries. Accepting a request does not confirm a trip.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div></div></div></section>`;
+  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests, enquiries, and traveller photo submissions.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div><section class="admin-photo-review"><div class="admin-photo-review-heading"><div><span class="eyebrow">Community gallery</span><h2 class="h4 mt-2">Traveller photos awaiting approval</h2></div><span class="admin-photo-pending-count" data-admin-photo-count>0</span></div><p class="admin-status" role="status" aria-live="polite" data-admin-photo-status>Loading photo submissions…</p><div class="admin-photo-submissions" data-admin-photo-submissions></div></section></div></div></section>`;
 }
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
@@ -1931,6 +2014,9 @@ function setupAdminDashboard() {
   const refresh = main.querySelector("[data-admin-refresh]");
   const liveIndicator = main.querySelector("[data-admin-countdown]");
   if (!status || !submissions || !refresh || !liveIndicator) return;
+  const photoStatus = main.querySelector("[data-admin-photo-status]");
+  const photoSubmissions = main.querySelector("[data-admin-photo-submissions]");
+  const photoCount = main.querySelector("[data-admin-photo-count]");
   liveIndicator.setAttribute("aria-label", "Submission live-update connection status");
   liveIndicator.innerHTML = `<i class="bi bi-broadcast" aria-hidden="true"></i><span data-admin-live-state>Connecting live updates…</span>`;
   const liveState = liveIndicator.querySelector("[data-admin-live-state]");
@@ -1954,6 +2040,43 @@ function setupAdminDashboard() {
     detail.textContent = String(value);
     row.append(term, detail);
     list.append(row);
+  };
+
+  const loadTravelPhotos = async () => {
+    if (!photoStatus || !photoSubmissions) return;
+    photoStatus.textContent = "Loading photo submissions…";
+    try {
+      const response = await fetch("/api/admin/travel-photos", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Photo submissions could not be loaded.");
+      const photos = Array.isArray(result.photos) ? result.photos : [];
+      photoCount.textContent = String(photos.length);
+      photoSubmissions.replaceChildren();
+      photoStatus.textContent = photos.length ? `${photos.length} photo${photos.length === 1 ? "" : "s"} waiting for approval.` : "No traveller photos are waiting for approval.";
+      for (const photoItem of photos) {
+        const card = document.createElement("article"); card.className = "admin-photo-card";
+        const image = document.createElement("img"); image.src = photoItem.imageUrl; image.alt = photoItem.caption || "Photo awaiting approval"; image.loading = "lazy";
+        const content = document.createElement("div"); content.className = "admin-photo-card-content";
+        const title = document.createElement("h3"); title.textContent = photoItem.caption || photoItem.location || "Traveller photo";
+        const meta = document.createElement("p"); meta.className = "admin-submission-meta"; meta.textContent = `${photoItem.uploader_name || "Member"} · ${photoItem.uploader_email || ""} · ${photoItem.created_at ? new Date(photoItem.created_at).toLocaleString() : ""}`;
+        const location = document.createElement("p"); location.textContent = photoItem.location || "No location provided.";
+        const actions = document.createElement("div"); actions.className = "admin-submission-actions";
+        for (const [decision, label, style] of [["approved", "Approve photo", "btn-primary-navy"], ["rejected", "Reject photo", "btn-outline-navy"]]) {
+          const button = document.createElement("button"); button.type = "button"; button.className = `btn btn-sm ${style}`; button.textContent = label;
+          button.addEventListener("click", async () => {
+            actions.querySelectorAll("button").forEach(item => { item.disabled = true; });
+            photoStatus.textContent = decision === "approved" ? "Approving photo…" : "Rejecting photo…";
+            try {
+              const result = await postLocalRequest(`/api/admin/travel-photos/${encodeURIComponent(photoItem.id)}`, { status: decision }, "PATCH");
+              photoStatus.textContent = result.status === "approved" ? "Photo approved and added to the members gallery." : "Photo rejected and kept out of the members gallery.";
+              await loadTravelPhotos();
+            } catch (error) { photoStatus.textContent = error.message || "The photo review could not be saved."; actions.querySelectorAll("button").forEach(item => { item.disabled = false; }); }
+          });
+          actions.append(button);
+        }
+        content.append(title, meta, location, actions); card.append(image, content); photoSubmissions.append(card);
+      }
+    } catch (error) { photoStatus.textContent = error.message || "Photo submissions could not be loaded."; }
   };
 
   const render = inquiries => {
@@ -2073,6 +2196,7 @@ function setupAdminDashboard() {
     if (loading) return;
     loading = true;
     status.textContent = "Loading submitted forms…";
+    loadTravelPhotos();
     refresh.disabled = true;
     try {
       const response = await fetch("/api/admin/inquiries", { cache: "no-store" });
@@ -2148,6 +2272,10 @@ function setupAdminDashboard() {
 }
 
 function route() {
+  if (communityPhotosAuthListener) {
+    window.removeEventListener("trekking-auth-state", communityPhotosAuthListener);
+    communityPhotosAuthListener = null;
+  }
   const path = main.dataset.staticPage || (location.hash === "#tripSearch" ? "" : location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, ""));
   const parts = path.split("/");
   let html;
@@ -2172,6 +2300,7 @@ function route() {
   else if (path === "departures") html = currentDeparturesPage();
   else if (path === "reviews") html = reviewsPage();
   else if (path === "gallery") html = distinctGalleryPage();
+  else if (path === "community-photos") html = communityPhotosPage();
   else if (path === "blog") html = blogPage();
   else if (path === "blog/article") html = articlePage();
   else if (path === "faq") html = faqPage();
@@ -2307,6 +2436,7 @@ function route() {
   }
   if (path === "planner") setupPlannerWizard();
   if (path === "gallery") setupGalleryLightbox(main);
+  if (path === "community-photos") setupCommunityPhotos(main);
   if (!path) {
     main.insertAdjacentHTML("beforeend", storyFilmTemplate());
     storyFilmCleanup = setupStoryFilm();

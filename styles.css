@@ -799,6 +799,34 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-submission-filter { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--surface); font-size: 13px; font-weight: 700; }
 .admin-submission-filter:hover, .admin-submission-filter.is-active { border-color: var(--brand); color: var(--brand); background: var(--surface-soft); }
 .admin-submissions { display: grid; gap: 14px; }
+.admin-photo-review { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--line); }
+.admin-photo-review-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.admin-photo-review-heading h2 { margin-bottom: 0; }
+.admin-photo-pending-count { display: inline-grid; min-width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--brand-ink); background: var(--brand); font-weight: 800; }
+.admin-photo-submissions { display: grid; gap: 14px; }
+.admin-photo-card { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.admin-photo-card > img { width: 100%; height: 190px; border-radius: 9px; object-fit: cover; }
+.admin-photo-card-content { align-self: center; }
+.admin-photo-card-content h3 { font-size: 17px; }
+.admin-photo-card-content > p:not(.admin-submission-meta) { color: var(--muted); }
+.community-photo-page { display: grid; gap: 44px; }
+.community-photo-upload { padding: clamp(20px, 4vw, 36px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.community-photo-upload > p { max-width: 720px; }
+.community-photo-form { margin-top: 22px; }
+.community-photo-form-status { min-height: 1.4em; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.community-photo-section { min-width: 0; }
+.community-photo-section .section-heading-row { margin-bottom: 22px; }
+.community-photo-section .section-heading-row h2 { margin: 8px 0 0; }
+.community-photo-feed-status { min-height: 1.5em; }
+.community-photo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.community-photo-card { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.community-photo-card > img { display: block; width: 100%; aspect-ratio: 4 / 3; background: var(--surface-soft); object-fit: cover; }
+.community-photo-card-body { padding: 16px; }
+.community-photo-card-body h3 { margin: 0 0 7px; font-size: 16px; letter-spacing: -.02em; }
+.community-photo-location, .community-photo-credit { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+.community-photo-status { margin: 0 0 12px; color: var(--brand); font-size: 12px; font-weight: 700; }
+.community-photo-status.is-rejected { color: #c33b32; }
+.community-photo-delete { margin-top: 3px; }
 .admin-submission-group-heading { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 2px 8px; border-bottom: 1px solid var(--line); }
 .admin-submission-group-heading h2 { margin: 0; font-size: 16px; font-weight: 800; }
 .admin-submission-group-heading > span { display: inline-grid; min-width: 28px; height: 28px; place-items: center; border-radius: 999px; color: var(--brand); background: var(--surface-soft); font-size: 12px; font-weight: 800; }
@@ -822,3 +850,5 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .site-decision-notification p { margin: 9px 0 12px; font-size: 14px; line-height: 1.5; }
 .site-decision-notification-close { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: transparent; font-size: 20px; line-height: 1; }
 @media (max-width: 575px) { .admin-submission-card { padding: 14px; } .admin-detail { grid-template-columns: 1fr; gap: 1px; } }
+@media (max-width: 767px) { .community-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-photo-card { grid-template-columns: 1fr; } .admin-photo-card > img { height: auto; aspect-ratio: 16 / 10; } }
+@media (max-width: 480px) { .community-photo-grid { grid-template-columns: 1fr; } }
