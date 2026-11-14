@@ -20,24 +20,9 @@ function json(body, status = 200, cacheControl = "no-store") {
 const chatRequestsByIp = new Map();
 const chatSystemPrompt = "You are the TREKKING website assistant. Answer clearly and helpfully, with a focus on Himalayan travel and the journeys on this site: Sandakphu, Darjeeling, Sikkim, Kashmir, and Himachal. Visitors can submit booking and trip enquiries; these are requests, not confirmed bookings. Payments are available only where the site explicitly offers a configured deposit. Never invent live availability, route conditions, exact current prices, booking confirmations, or discount eligibility; ask visitors to confirm those details with the trip team. Do not ask for passwords, card details, or other sensitive information.";
 
-function readChatAnswer(value, depth = 0) {
-  if (depth > 4 || value == null) return "";
-  if (typeof value === "string") return value.trim();
-  if (Array.isArray(value)) return value.map(item => readChatAnswer(item, depth + 1)).filter(Boolean).join("\n").trim();
-  if (typeof value !== "object") return "";
-  for (const key of ["response", "output_text", "text"]) {
-    const answer = readChatAnswer(value[key], depth + 1);
-    if (answer) return answer;
-  }
-  const messageAnswer = readChatAnswer(value.choices?.[0]?.message?.content, depth + 1)
-    || readChatAnswer(value.choices?.[0]?.text, depth + 1);
-  if (messageAnswer) return messageAnswer;
-  return readChatAnswer(value.content, depth + 1) || readChatAnswer(value.result, depth + 1);
-}
-
 async function handleChatRequest(request, env) {
   if (request.method !== "POST") return json({ error: "Use POST to send a chat message." }, 405);
-  if (!env.AI) return json({ error: "The AI chat service is not enabled for this site yet." }, 503);
+  if (!env.GEMINI_API_KEY) return json({ error: "The Google AI Studio chat service is not configured yet." }, 503);
 
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const now = Date.now();
@@ -68,22 +53,43 @@ async function handleChatRequest(request, env) {
   }
 
   try {
-    const result = await env.AI.run("@cf/google/gemma-4-26b-a4b-it", {
-      messages: [{ role: "system", content: chatSystemPrompt }, ...input.map(message => ({
-        role: message.role === "assistant" ? "assistant" : "user",
-        content: message.content
-      }))],
-      max_tokens: 700,
-      temperature: 0.7
+    const model = env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+    const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": env.GEMINI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: chatSystemPrompt }] },
+        contents: input.map(message => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }]
+        })),
+        generationConfig: { temperature: 0.7, maxOutputTokens: 700 }
+      }),
+      signal: AbortSignal.timeout(45_000)
     });
-    const answer = readChatAnswer(result);
+    let result;
+    try { result = await upstream.json(); }
+    catch { return json({ error: "Google AI Studio returned an invalid response. Please try again." }, 502); }
+    if (!upstream.ok) {
+      const providerStatus = typeof result?.error?.status === "string" ? result.error.status : "unknown";
+      console.error("Google AI Studio chat request failed:", upstream.status, providerStatus);
+      if (upstream.status === 429) return json({ error: "The AI assistant has reached its current usage limit. Please try again later." }, 429);
+      if ([401, 403].includes(upstream.status)) return json({ error: "Google AI Studio rejected the API key. Check that GEMINI_API_KEY is valid and has Gemini API access." }, 502);
+      if (upstream.status === 404) return json({ error: "The configured Gemini model is unavailable. Please check GEMINI_MODEL in the Worker settings." }, 502);
+      return json({ error: "Google AI Studio could not answer just now. Please try again in a moment." }, 502);
+    }
+    const answer = Array.isArray(result?.candidates?.[0]?.content?.parts)
+      ? result.candidates[0].content.parts.map(part => typeof part.text === "string" ? part.text : "").join("").trim()
+      : "";
     if (!answer) {
-      console.error("Workers AI returned no text; response fields:", Object.keys(result || {}).join(", ") || "none");
-      return json({ error: "The AI assistant couldn't form a reply. Please try again." }, 502);
+      return json({ error: "Google AI Studio didn't return a reply. Please try asking another way." }, 502);
     }
     return json({ answer });
   } catch (error) {
-    console.error("Workers AI chat request failed:", error?.name || "Error");
+    console.error("Google AI Studio chat request failed:", error?.name || "Error");
     return json({ error: "The assistant is temporarily unavailable. Please try again in a moment." }, 502);
   }
 }
