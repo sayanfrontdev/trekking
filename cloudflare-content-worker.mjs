@@ -20,6 +20,21 @@ function json(body, status = 200, cacheControl = "no-store") {
 const chatRequestsByIp = new Map();
 const chatSystemPrompt = "You are the TREKKING website assistant. Answer clearly and helpfully, with a focus on Himalayan travel and the journeys on this site: Sandakphu, Darjeeling, Sikkim, Kashmir, and Himachal. Visitors can submit booking and trip enquiries; these are requests, not confirmed bookings. Payments are available only where the site explicitly offers a configured deposit. Never invent live availability, route conditions, exact current prices, booking confirmations, or discount eligibility; ask visitors to confirm those details with the trip team. Do not ask for passwords, card details, or other sensitive information.";
 
+function readChatAnswer(value, depth = 0) {
+  if (depth > 4 || value == null) return "";
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) return value.map(item => readChatAnswer(item, depth + 1)).filter(Boolean).join("\n").trim();
+  if (typeof value !== "object") return "";
+  for (const key of ["response", "output_text", "text"]) {
+    const answer = readChatAnswer(value[key], depth + 1);
+    if (answer) return answer;
+  }
+  const messageAnswer = readChatAnswer(value.choices?.[0]?.message?.content, depth + 1)
+    || readChatAnswer(value.choices?.[0]?.text, depth + 1);
+  if (messageAnswer) return messageAnswer;
+  return readChatAnswer(value.content, depth + 1) || readChatAnswer(value.result, depth + 1);
+}
+
 async function handleChatRequest(request, env) {
   if (request.method !== "POST") return json({ error: "Use POST to send a chat message." }, 405);
   if (!env.AI) return json({ error: "The AI chat service is not enabled for this site yet." }, 503);
@@ -61,8 +76,11 @@ async function handleChatRequest(request, env) {
       max_tokens: 700,
       temperature: 0.7
     });
-    const answer = typeof result?.response === "string" ? result.response.trim() : "";
-    if (!answer) return json({ error: "I didn't get a response. Please try asking another way." }, 502);
+    const answer = readChatAnswer(result);
+    if (!answer) {
+      console.error("Workers AI returned no text; response fields:", Object.keys(result || {}).join(", ") || "none");
+      return json({ error: "The AI assistant couldn't form a reply. Please try again." }, 502);
+    }
     return json({ answer });
   } catch (error) {
     console.error("Workers AI chat request failed:", error?.name || "Error");
