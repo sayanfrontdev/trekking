@@ -1689,7 +1689,20 @@ function setupCommunityPhotos(root) {
       ownGrid.replaceChildren(...own.map(item => makePhotoCard(item, true)));
       approvedGrid.replaceChildren(...approved.map(item => makePhotoCard(item)));
       feedStatus.textContent = approved.length ? `${approved.length} approved photo${approved.length === 1 ? "" : "s"}.` : "No approved community photos yet. Be the first to share a moment.";
-    } catch (error) { feedStatus.textContent = error.message || "Member photos could not be loaded."; }
+    } catch (error) {
+      feedStatus.textContent = error.message || "Member photos could not be loaded.";
+      // Keep the upload form available to signed-in members when the gallery
+      // query fails (for example, while the D1 photo migration is pending).
+      try {
+        const sessionResponse = await fetch("/api/auth/me", { cache: "no-store" });
+        const session = await sessionResponse.json();
+        if (sessionResponse.ok && session.user) {
+          locked.hidden = true;
+          content.hidden = false;
+          ownSection.hidden = true;
+        }
+      } catch {}
+    }
   };
   uploadForm.addEventListener("submit", async event => {
     event.preventDefault();
