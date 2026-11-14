@@ -179,7 +179,7 @@ async function beginOAuth(provider, request, env) {
     redirect_uri: callback,
     response_type: "code",
     response_mode: google ? "query" : "form_post",
-    scope: google ? "openid email profile" : "openid email name",
+    scope: google ? "openid email profile" : "email name",
     state,
     nonce
   });
@@ -262,18 +262,25 @@ async function oauthCallback(provider, request, env) {
     const claims = await verifiedClaims(provider, identityToken);
     const expectedAudience = provider === "google" ? env.GOOGLE_CLIENT_ID : env.APPLE_CLIENT_ID;
     const expectedIssuer = provider === "google" ? ["accounts.google.com", "https://accounts.google.com"] : ["https://appleid.apple.com"];
-    const expectedNonce = provider === "apple" ? await sha256(flow.nonce) : flow.nonce;
+    const expectedNonce = flow.nonce;
     const verified = claims.email_verified === true || claims.email_verified === "true";
     if (claims.aud !== expectedAudience || !expectedIssuer.includes(claims.iss) || Number(claims.exp) * 1000 <= Date.now() || claims.nonce !== expectedNonce || !verified || !EMAIL_RE.test(claims.email || "")) {
       return oauthError("The identity response could not be verified.", 401);
     }
     const email = claims.email.toLowerCase();
+    let appleName = "";
+    if (provider === "apple" && params.has("user")) {
+      try {
+        const appleUser = JSON.parse(params.get("user"));
+        appleName = [appleUser?.name?.firstName, appleUser?.name?.lastName].filter(Boolean).join(" ");
+      } catch { /* Apple only includes the profile object on first authorization. */ }
+    }
     const subColumn = provider === "google" ? "google_sub" : "apple_sub";
     let user = await env.DB.prepare(`SELECT * FROM auth_users WHERE ${subColumn} = ?`).bind(claims.sub).first();
     if (!user) user = await env.DB.prepare("SELECT * FROM auth_users WHERE email = ?").bind(email).first();
     if (!user) {
       const id = crypto.randomUUID();
-      const name = cleanText(claims.name, 120) || email.split("@")[0];
+      const name = cleanText(provider === "apple" ? appleName : claims.name, 120) || email.split("@")[0];
       await env.DB.prepare("INSERT INTO auth_users (id, email, name, email_verified, created_at) VALUES (?, ?, ?, 1, ?)")
         .bind(id, email, name, new Date().toISOString()).run();
       user = await env.DB.prepare("SELECT * FROM auth_users WHERE id = ?").bind(id).first();

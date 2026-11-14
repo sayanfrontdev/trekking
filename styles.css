@@ -687,8 +687,8 @@ textarea { resize: none; }
   .departure-row > :nth-child(3), .departure-row > :nth-child(4) { display: none; }
   .mobile-booking-cta { position: fixed; z-index: 9; right: 13px; bottom: 13px; left: 13px; display: flex; align-items: center; justify-content: space-between; padding: 14px 17px; border-radius: 10px; color: var(--brand-ink); background: var(--brand); box-shadow: 0 8px 30px rgba(4,22,58,.28); font-size: 13px; font-weight: 700; }
   .back-to-top { bottom: 80px; right: 17px; }
-  body.has-ai-chat .back-to-top { right: 82px; bottom: 82px; }
-  body.has-ai-chat { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+  body.has-ai-chat .back-to-top { right: auto; bottom: 82px; left: 20px; }
+  /* body.has-ai-chat { padding-bottom: calc(150px + env(safe-area-inset-bottom)); } */
   body.ai-chat-open .mobile-booking-cta, body.ai-chat-open .back-to-top { visibility: hidden; }
   .site-footer, .site-footer .container, .site-footer .row, .site-footer .footer-column { min-width: 0; }
   .site-footer .container { padding-right: max(16px, env(safe-area-inset-right)); padding-left: max(16px, env(safe-area-inset-left)); }
