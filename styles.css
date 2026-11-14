@@ -165,6 +165,7 @@ p { color: var(--muted); }
   text-transform: uppercase;
 }
 .recaptcha-widget iframe { max-width: 100%; }
+.recaptcha-hint { display: block; margin: -5px 0 10px; color: var(--muted); font-size: 11px; line-height: 1.45; }
 [data-theme="dark"] .recaptcha-widget { box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
 .site-header { background: color-mix(in srgb, var(--surface) 95%, transparent); border-bottom: 1px solid var(--line); backdrop-filter: blur(16px); }
 /* body.destination-menu-open { overflow: hidden; } */

@@ -17,7 +17,12 @@ function mountRecaptchas(root = document) {
   root.querySelectorAll?.(captchaFormSelector).forEach(form => {
     if (form.querySelector("[data-recaptcha-widget]")) return;
     const widget = document.createElement("div"); widget.className = "recaptcha-widget"; widget.dataset.recaptchaWidget = "";
-    form.querySelector('button[type="submit"]')?.before(widget);
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) { submitButton.disabled = true; submitButton.before(widget); }
+    const hint = document.createElement("small");
+    hint.className = "recaptcha-hint";
+    hint.textContent = "Complete the security check to enable this form.";
+    widget.after(hint);
     const renderPromise = loadRecaptchaApi().then(api => {
       if (widget.isConnected) widget.dataset.recaptchaId = api.render(widget, {
         sitekey: RECAPTCHA_SITE_KEY,
@@ -25,14 +30,23 @@ function mountRecaptchas(root = document) {
         size: window.matchMedia("(max-width: 360px)").matches ? "compact" : "normal",
         callback: token => {
           widget.dataset.recaptchaResponse = token;
+          if (submitButton) submitButton.disabled = false;
+          hint.textContent = "Check complete. You can submit the form.";
           const status = form.closest(".auth-dialog")?.querySelector(".auth-form-status") || form.querySelector("[aria-live='polite']");
           if (status?.textContent.includes("I'm not a robot")) status.textContent = "Check complete. Submit the form to continue.";
           const toastText = document.querySelector("#siteToast .toast-body span");
           if (toastText?.textContent.includes("I'm not a robot")) showToast("Check complete. Submit the form to continue.");
         },
-        "expired-callback": () => { delete widget.dataset.recaptchaResponse; }
+        "expired-callback": () => {
+          delete widget.dataset.recaptchaResponse;
+          if (submitButton) submitButton.disabled = true;
+          hint.textContent = "The check expired. Please verify again before submitting.";
+        }
       });
-    }).catch(() => { widget.textContent = "reCAPTCHA could not load. Check the allowed domain and key type, then refresh."; });
+    }).catch(() => {
+      widget.textContent = "reCAPTCHA could not load. Check the allowed domain and key type, then refresh.";
+      hint.textContent = "The form is unavailable until reCAPTCHA loads.";
+    });
     recaptchaRenderPromises.set(widget, renderPromise);
   });
 }
