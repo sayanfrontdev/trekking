@@ -1,6 +1,7 @@
 const RECAPTCHA_SITE_KEY = "6Lc2YiAuAAAAAPuWTAV2cNIWnLJoKAiFP2heoayo";
 let recaptchaApiPromise;
 let activeRecaptchaToken = "";
+const recaptchaRenderPromises = new WeakMap();
 function loadRecaptchaApi() {
   if (!recaptchaApiPromise) recaptchaApiPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
@@ -17,9 +18,14 @@ function mountRecaptchas(root = document) {
     if (form.querySelector("[data-recaptcha-widget]")) return;
     const widget = document.createElement("div"); widget.className = "recaptcha-widget"; widget.dataset.recaptchaWidget = "";
     form.querySelector('button[type="submit"]')?.before(widget);
-    loadRecaptchaApi().then(api => {
-      if (widget.isConnected) widget.dataset.recaptchaId = api.render(widget, { sitekey: RECAPTCHA_SITE_KEY, theme: "light" });
-    }).catch(() => { widget.textContent = "reCAPTCHA could not load. Refresh and try again."; });
+    const renderPromise = loadRecaptchaApi().then(api => {
+      if (widget.isConnected) widget.dataset.recaptchaId = api.render(widget, {
+        sitekey: RECAPTCHA_SITE_KEY,
+        theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+        size: window.matchMedia("(max-width: 360px)").matches ? "compact" : "normal"
+      });
+    }).catch(() => { widget.textContent = "reCAPTCHA could not load. Check the allowed domain and key type, then refresh."; });
+    recaptchaRenderPromises.set(widget, renderPromise);
   });
 }
 new MutationObserver(() => mountRecaptchas()).observe(document.documentElement, { childList: true, subtree: true });
@@ -28,10 +34,17 @@ document.addEventListener("submit", async event => {
   if (!(form instanceof HTMLFormElement) || !form.matches(captchaFormSelector) || form.dataset.recaptchaReady === "true") return;
   event.preventDefault();
   try {
+    mountRecaptchas(document);
     const api = await loadRecaptchaApi();
     const widget = form.querySelector("[data-recaptcha-widget]");
+    if (!widget) throw new Error("The reCAPTCHA checkbox could not be displayed. Refresh the page and try again.");
+    await recaptchaRenderPromises.get(widget);
+    if (!widget.dataset.recaptchaId) throw new Error("The reCAPTCHA checkbox could not load. Check the allowed domain and key type, then refresh.");
     const token = widget?.dataset.recaptchaId ? api.getResponse(Number(widget.dataset.recaptchaId)) : "";
-    if (!token) throw new Error("Please complete the I'm not a robot check.");
+    if (!token) {
+      widget.scrollIntoView({ behavior: "smooth", block: "center" });
+      throw new Error("Please check the I'm not a robot box shown above the submit button, then submit again.");
+    }
     activeRecaptchaToken = token;
     form.dataset.recaptchaReady = "true";
     form.requestSubmit(event.submitter);
