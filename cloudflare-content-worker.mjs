@@ -115,7 +115,7 @@ export default {
       const id = env.SUBMISSION_HUB.idFromName("admin-submissions");
       return env.SUBMISSION_HUB.get(id).fetch(request);
     }
-    if (url.pathname === "/admin.html") {
+    if (url.pathname === "/admin.html" || url.pathname === "/admin") {
       const user = await readCurrentUser(request, env);
       const status = !user ? 401 : user.email.toLowerCase() !== ADMIN_EMAIL || !user.emailVerified ? 403 : 200;
       if (status !== 200) {
@@ -183,6 +183,11 @@ export default {
       }
     }
 
+    if (url.pathname !== "/" && !url.pathname.endsWith("/") && !/\.[^/]+$/.test(url.pathname)) {
+      const pageUrl = new URL(request.url);
+      pageUrl.pathname = `${pageUrl.pathname}.html`;
+      return env.ASSETS.fetch(new Request(pageUrl, request));
+    }
     return env.ASSETS.fetch(request);
   }
 };

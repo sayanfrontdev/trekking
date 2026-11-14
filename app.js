@@ -240,11 +240,12 @@ let sectionNavigationCleanup;
 const statsAnimationTimers = new Set();
 const routeHref = path => pageFile(path);
 function pageFile(path) {
-  if (!path) return "index.html";
-  if (path.startsWith("destination/")) return `destination-${path.split("/")[1]}.html`;
-  if (path.startsWith("trip/")) return `tour-${path.split("/")[1]}.html`;
-  if (path.startsWith("legal/")) return `${{ privacy: "privacy-policy", terms: "terms-conditions", cancellation: "cancellation-refund-policy", disclaimer: "travel-disclaimer", cookies: "cookie-policy" }[path.split("/")[1]] || "404"}.html`;
-  return ({
+  if (!path || path === "index") return "/";
+  let filename;
+  if (path.startsWith("destination/")) filename = `destination-${path.split("/")[1]}.html`;
+  else if (path.startsWith("trip/")) filename = `tour-${path.split("/")[1]}.html`;
+  else if (path.startsWith("legal/")) filename = `${{ privacy: "privacy-policy", terms: "terms-conditions", cancellation: "cancellation-refund-policy", disclaimer: "travel-disclaimer", cookies: "cookie-policy" }[path.split("/")[1]] || "404"}.html`;
+  else filename = ({
     packages: "tour-packages.html",
     planner: "trip-planner.html",
     booking: "booking-details.html",
@@ -258,11 +259,21 @@ function pageFile(path) {
     faq: "faq.html",
     "blog/article": "blog-how-to-prepare.html"
   })[path] || `${path.replaceAll("/", "-")}.html`;
+  return `/${filename.replace(/\.html$/i, "")}`;
 }
 function rewritePageLinks(root) {
   root.querySelectorAll('a[href^="#/"]').forEach(link => {
     const path = link.getAttribute("href").replace(/^#\/?/, "").split("?")[0].replace(/\/$/, "");
     link.setAttribute("href", pageFile(path));
+  });
+  root.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute("href");
+    if (!href || !/\.html(?=[?#]|$)/i.test(href)) return;
+    const url = new URL(href, location.href);
+    if (url.origin !== location.origin) return;
+    url.pathname = url.pathname.replace(/index\.html$/i, "").replace(/\.html$/i, "");
+    if (!url.pathname) url.pathname = "/";
+    link.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
   });
 }
 function updateActiveNavigation(path) {
@@ -270,7 +281,7 @@ function updateActiveNavigation(path) {
   const navigationLinks = document.querySelectorAll(".site-header a.nav-link, .site-header .dropdown-item, .site-header .mega-menu a, .site-header .header-actions a, .mobile-nav .mobile-link, #site-footer .footer-column a, #site-footer .footer-legal a");
   navigationLinks.forEach(link => {
     const href = link.getAttribute("href");
-    const isCurrent = href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:") && new URL(href, location.href).pathname.split("/").at(-1) === currentFile;
+    const isCurrent = href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:") && new URL(href, location.href).pathname === currentFile;
     link.classList.toggle("active", Boolean(isCurrent));
     if (isCurrent) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -279,20 +290,20 @@ function updateActiveNavigation(path) {
   document.querySelectorAll(".site-header .nav-item.dropdown").forEach(item => {
     const hasCurrentChild = item.querySelector(".dropdown-menu a.active");
     const toggle = item.querySelector(":scope > .nav-link");
-    const isCurrentGroup = (path.startsWith("destination/") && toggle?.getAttribute("href") === "destinations.html")
-      || ((["packages", "trekking", "weekend-trips", "departures", "trip-results", "trip-detail"].includes(path) || path.startsWith("trip/")) && toggle?.getAttribute("href") === "tour-packages.html");
+    const isCurrentGroup = (path.startsWith("destination/") && toggle?.getAttribute("href") === "/destinations")
+      || ((["packages", "trekking", "weekend-trips", "departures", "trip-results", "trip-detail"].includes(path) || path.startsWith("trip/")) && toggle?.getAttribute("href") === "/tour-packages");
     if (toggle && (hasCurrentChild || isCurrentGroup)) toggle.classList.add("active");
   });
 
   const activateRelatedLinks = selector => document.querySelectorAll(selector).forEach(link => link.classList.add("active"));
-  if (path === "blog/article") activateRelatedLinks('.site-header .nav-link[href="blog.html"], #site-footer .footer-column a[href="blog.html"]');
-  if (path.startsWith("destination/")) activateRelatedLinks('.mobile-nav .mobile-link[href="destinations.html"]');
+  if (path === "blog/article") activateRelatedLinks('.site-header .nav-link[href="/blog"], #site-footer .footer-column a[href="/blog"]');
+  if (path.startsWith("destination/")) activateRelatedLinks('.mobile-nav .mobile-link[href="/destinations"]');
   if (["packages", "trekking", "weekend-trips", "departures", "trip-results", "trip-detail"].includes(path) || path.startsWith("trip/")) {
-    activateRelatedLinks('#site-footer .footer-column a[href="tour-packages.html"]');
-    activateRelatedLinks('.mobile-nav .mobile-link[href="tour-packages.html"]');
+    activateRelatedLinks('#site-footer .footer-column a[href="/tour-packages"]');
+    activateRelatedLinks('.mobile-nav .mobile-link[href="/tour-packages"]');
   }
   if (["confirmation", "payment", "payment-success", "payment-failed"].includes(path)) {
-    activateRelatedLinks('.site-header .header-actions a[href="booking-details.html"]');
+    activateRelatedLinks('.site-header .header-actions a[href="/booking-details"]');
   }
 }
 function setupSectionNavigation(root) {
@@ -2234,6 +2245,7 @@ function route() {
   if (footerHelp) footerHelp.innerHTML = `<h3>Plan with confidence</h3><p>Use the contact form to prepare a question about routes, travel style, or trip planning.</p><a href="#/contact">Open the contact form</a><a href="#/faq">Read the trip planning guide</a><button class="auth-open-button" type="button" data-open-auth>Sign in or create an account</button>`;
   rewritePageLinks(footer);
   applyStoredSiteAssets(document);
+  rewritePageLinks(document);
   updateActiveNavigation(path);
   const footerLegal = footer.querySelector(".footer-legal");
   if (footerLegal) footerLegal.insertAdjacentHTML("beforeend", `<a href="#cookie-settings" data-open-cookie-settings>Cookie settings</a>`);
