@@ -224,7 +224,7 @@ function destinationMenuTemplate() {
   return `<li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle" href="destinations.html" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">Destinations</a><div class="dropdown-menu mega-menu"><div class="row g-4"><div class="col-md-4"><span class="mega-label">Find your landscape</span><a class="mega-feature" data-destination-feature-link data-default-href="destinations.html" href="destinations.html"><img data-destination-feature data-default-image="${feature.image}" src="${feature.image}" alt="${feature.title} landscape"><span data-destination-feature-title data-default-title="${feature.title}">${feature.title}<i class="bi bi-arrow-up-right"></i></span></a></div><div class="col-md-4"><span class="mega-label">The Himalayas</span>${destinations.slice(0, 3).map(destinationLink).join("")}</div><div class="col-md-4"><span class="mega-label">Slow travel favorites</span>${destinations.slice(3).map(destinationLink).join("")}<a href="destinations.html" class="mega-all">Explore all destinations <i class="bi bi-arrow-right"></i></a></div></div></div></li>`;
 }
 function siteHeaderTemplate() {
-  return `<div class="announcement-bar"><div class="container"><p class="mb-0"><i class="bi bi-stars me-2"></i>New season, new stories — <a href="upcoming-departures.html">discover upcoming departures</a></p></div></div><header class="site-header sticky-top"><nav class="navbar"><div class="container flex-wrap"><a class="navbar-brand" href="index.html"><img src="images/logo.svg" alt="TREKKING" width="154" height="41"><span class="brand-tagline">Explore More. Experience Life.</span></a><div class="header-actions d-flex align-items-center gap-2 ms-auto"><button class="btn theme-toggle" type="button" aria-label="Switch color theme"><i class="bi bi-moon-stars"></i></button><a class="btn btn-outline-navy" href="booking-details.html">Book now</a><a class="btn btn-primary-navy" href="trip-planner.html">Plan your trip</a></div><div class="navbar-collapse"><ul class="navbar-nav flex-row flex-wrap justify-content-center"><li class="nav-item"><a class="nav-link" href="index.html">Home</a></li><li class="nav-item"><a class="nav-link" href="destinations.html">Destinations</a></li><li class="nav-item"><a class="nav-link" href="destination-sandakphu.html">Sandakphu</a></li><li class="nav-item"><a class="nav-link" href="destination-sikkim.html">Sikkim</a></li><li class="nav-item"><a class="nav-link" href="destination-darjeeling.html">Darjeeling</a></li><li class="nav-item"><a class="nav-link" href="destination-kashmir.html">Kashmir</a></li><li class="nav-item"><a class="nav-link" href="destination-himachal.html">Himachal</a></li><li class="nav-item"><a class="nav-link" href="tour-packages.html">Tour packages</a></li><li class="nav-item"><a class="nav-link" href="trekking.html">Trekking</a></li><li class="nav-item"><a class="nav-link" href="weekend-trips.html">Weekend trips</a></li><li class="nav-item"><a class="nav-link" href="about.html">About</a></li><li class="nav-item"><a class="nav-link" href="blog.html">Journal</a></li><li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li></ul></div></div></nav></header>`;
+  return `<div class="announcement-bar"><div class="container"><p class="mb-0"><i class="bi bi-stars me-2"></i>New season, new stories — <a href="upcoming-departures.html">discover upcoming departures</a></p></div></div><header class="site-header sticky-top"><nav class="navbar"><div class="container flex-wrap"><a class="navbar-brand" href="index.html"><img src="images/logo.svg" alt="TREKKING" width="154" height="41"><span class="brand-tagline">Explore More. Experience Life.</span></a><div class="header-actions d-flex align-items-center gap-2 ms-auto"><button class="btn theme-toggle" type="button" aria-label="Switch color theme"><i class="bi bi-moon-stars"></i></button><div class="theme-color-control"><button class="btn theme-color-button" type="button" aria-label="Choose a site color" aria-expanded="false" aria-controls="siteColorPalette" title="Choose a site color"><i class="bi bi-palette-fill" aria-hidden="true"></i><span class="theme-color-current" aria-hidden="true"></span></button><div class="theme-palette-popover" id="siteColorPalette" role="dialog" aria-label="Choose a site color" hidden></div></div><a class="btn btn-outline-navy" href="booking-details.html">Book now</a><a class="btn btn-primary-navy" href="trip-planner.html">Plan your trip</a></div><div class="navbar-collapse"><ul class="navbar-nav flex-row flex-wrap justify-content-center"><li class="nav-item"><a class="nav-link" href="index.html">Home</a></li><li class="nav-item"><a class="nav-link" href="destinations.html">Destinations</a></li><li class="nav-item"><a class="nav-link" href="destination-sandakphu.html">Sandakphu</a></li><li class="nav-item"><a class="nav-link" href="destination-sikkim.html">Sikkim</a></li><li class="nav-item"><a class="nav-link" href="destination-darjeeling.html">Darjeeling</a></li><li class="nav-item"><a class="nav-link" href="destination-kashmir.html">Kashmir</a></li><li class="nav-item"><a class="nav-link" href="destination-himachal.html">Himachal</a></li><li class="nav-item"><a class="nav-link" href="tour-packages.html">Tour packages</a></li><li class="nav-item"><a class="nav-link" href="trekking.html">Trekking</a></li><li class="nav-item"><a class="nav-link" href="weekend-trips.html">Weekend trips</a></li><li class="nav-item"><a class="nav-link" href="about.html">About</a></li><li class="nav-item"><a class="nav-link" href="blog.html">Journal</a></li><li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li></ul></div></div></nav></header>`;
 }
 if (!document.querySelector(".site-header")) document.body.insertAdjacentHTML("afterbegin", siteHeaderTemplate());
 if (!document.querySelector("#mobileNav")) {
@@ -327,6 +327,8 @@ if (!document.querySelector(".mobile-booking-cta")) document.body.insertAdjacent
 if (!document.querySelector(".back-to-top")) document.body.insertAdjacentHTML("beforeend", `<button class="back-to-top" type="button" aria-label="Back to top"><i class="bi bi-arrow-up"></i></button>`);
 if (!document.querySelector("#siteToast")) document.body.insertAdjacentHTML("beforeend", `<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="siteToast" class="toast" role="status" aria-live="polite" aria-atomic="true"><div class="toast-body"><i class="bi bi-check-circle-fill text-success me-2"></i><span>Thanks! Your request is ready.</span></div></div></div>`);
 const themeButton = document.querySelector(".theme-toggle");
+const colorThemeButton = document.querySelector(".theme-color-button");
+const colorThemePopover = document.querySelector(".theme-palette-popover");
 let storyFilmCleanup;
 let statsVisibilityHandler;
 let blogPaginationCleanup;
@@ -2722,16 +2724,117 @@ function showToast(message, variant = "success") {
   toast.setAttribute("aria-live", variant === "error" ? "assertive" : "polite");
   bootstrap.Toast.getOrCreateInstance(toast, { delay: 5000 }).show();
 }
+const accentPalettes = [
+  { id: "orange", name: "Mountain orange", brand: "#c84a00", hover: "#a83c00", lightLink: "#a83c00", darkLink: "#ff7a3d" },
+  { id: "teal", name: "Alpine teal", brand: "#087667", hover: "#066253", lightLink: "#066253", darkLink: "#36c5aa" },
+  { id: "violet", name: "Rhododendron violet", brand: "#6243b8", hover: "#50369d", lightLink: "#50369d", darkLink: "#b7a0ff" },
+  { id: "blue", name: "Himalayan blue", brand: "#2459aa", hover: "#1c478d", lightLink: "#1c478d", darkLink: "#83b5ff" },
+  { id: "rose", name: "Rhododendron rose", brand: "#b23463", hover: "#942a52", lightLink: "#942a52", darkLink: "#ff8cb5" },
+  { id: "forest", name: "Forest green", brand: "#28613e", hover: "#1f4e31", lightLink: "#1f4e31", darkLink: "#82d59a" },
+  { id: "berry", name: "Berry red", brand: "#aa3636", hover: "#8e2b2b", lightLink: "#8e2b2b", darkLink: "#ff9292" },
+  { id: "cyan", name: "Glacier cyan", brand: "#006b87", hover: "#00566e", lightLink: "#00566e", darkLink: "#63d5f2" },
+  { id: "plum", name: "Himalayan plum", brand: "#803d80", hover: "#693269", lightLink: "#693269", darkLink: "#e1a1df" },
+  { id: "gold", name: "Sunrise gold", brand: "#875800", hover: "#704900", lightLink: "#704900", darkLink: "#f2c36b" },
+  { id: "coral", name: "Coral trail", brand: "#c44246", hover: "#a93438", lightLink: "#a93438", darkLink: "#ff999b" },
+  { id: "slate", name: "Mountain slate", brand: "#475569", hover: "#354253", lightLink: "#354253", darkLink: "#b5c7df" }
+];
+let activeAccentPalette = accentPalettes[0];
+const renderAccentPaletteOptions = () => {
+  if (!colorThemePopover) return;
+  const heading = document.createElement("div");
+  heading.className = "theme-palette-heading";
+  heading.innerHTML = "<strong>Choose a color</strong><span>Updates the site accent</span>";
+  const options = accentPalettes.map(palette => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "theme-palette-option";
+    option.dataset.accentPalette = palette.id;
+    option.setAttribute("aria-pressed", "false");
+    const swatch = document.createElement("span");
+    swatch.className = "theme-palette-swatch";
+    swatch.style.setProperty("--palette-option-color", palette.brand);
+    swatch.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.className = "theme-palette-label";
+    label.textContent = palette.name;
+    const selected = document.createElement("i");
+    selected.className = "bi bi-check2 theme-palette-selected";
+    selected.setAttribute("aria-hidden", "true");
+    option.append(swatch, label, selected);
+    return option;
+  });
+  colorThemePopover.replaceChildren(heading, ...options);
+};
+const setColorPalettePopoverOpen = open => {
+  colorThemePopover.hidden = !open;
+  colorThemeButton.setAttribute("aria-expanded", String(open));
+  if (open) {
+    const buttonBounds = colorThemeButton.getBoundingClientRect();
+    const popoverBounds = colorThemePopover.getBoundingClientRect();
+    const popoverHeight = popoverBounds.height;
+    const popoverTop = Math.max(8, Math.min(buttonBounds.bottom + 10, window.innerHeight - popoverHeight - 8));
+    const popoverLeft = Math.max(12, Math.min(buttonBounds.right - popoverBounds.width, window.innerWidth - popoverBounds.width - 12));
+    colorThemePopover.style.setProperty("--theme-popover-top", `${popoverTop}px`);
+    colorThemePopover.style.setProperty("--theme-popover-left", `${popoverLeft}px`);
+    colorThemePopover.querySelector(`[data-accent-palette="${activeAccentPalette.id}"]`)?.focus();
+  } else {
+    colorThemePopover.style.removeProperty("--theme-popover-top");
+    colorThemePopover.style.removeProperty("--theme-popover-left");
+  }
+};
+renderAccentPaletteOptions();
+function applyAccentPalette(id, save = true) {
+  activeAccentPalette = accentPalettes.find(palette => palette.id === id) || accentPalettes[0];
+  const root = document.documentElement;
+  root.style.setProperty("--brand", activeAccentPalette.brand);
+  root.style.setProperty("--brand-hover", activeAccentPalette.hover);
+  root.style.setProperty("--accent", activeAccentPalette.brand);
+  root.style.setProperty("--navy", root.dataset.theme === "dark" ? activeAccentPalette.darkLink : activeAccentPalette.lightLink);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", activeAccentPalette.brand);
+  const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${activeAccentPalette.brand}"/><path d="M8 46 25 24l9 12 6-8 16 18H8Z" fill="#fff"/><path d="m25 24 5 7-5-2-4 5 4-10Zm15 4 3 4-4-1-3 4 4-7Z" fill="#fff"/><path d="M17 49h30v4H17z" fill="#fff"/></svg>`;
+  const faviconUrl = `data:image/svg+xml,${encodeURIComponent(faviconSvg)}`;
+  document.querySelectorAll('link[rel="icon"][type="image/svg+xml"], link[rel="apple-touch-icon"]').forEach(icon => icon.setAttribute("href", faviconUrl));
+  if (save) localStorage.setItem("trekking-color-theme", activeAccentPalette.id);
+  if (colorThemeButton) {
+    colorThemeButton.style.setProperty("--theme-swatch", activeAccentPalette.brand);
+    colorThemeButton.setAttribute("aria-label", `Choose a site color. Current color: ${activeAccentPalette.name}`);
+    colorThemeButton.title = `Current color: ${activeAccentPalette.name}. Click to choose a color.`;
+  }
+  colorThemePopover?.querySelectorAll("[data-accent-palette]").forEach(option => {
+    option.setAttribute("aria-pressed", String(option.dataset.accentPalette === activeAccentPalette.id));
+  });
+}
+colorThemeButton.addEventListener("click", () => {
+  setColorPalettePopoverOpen(colorThemePopover.hidden);
+});
+colorThemePopover.addEventListener("click", event => {
+  const choice = event.target.closest("[data-accent-palette]");
+  if (!choice) return;
+  applyAccentPalette(choice.dataset.accentPalette);
+  setColorPalettePopoverOpen(false);
+  colorThemeButton.focus();
+});
+document.addEventListener("click", event => {
+  if (!colorThemePopover.hidden && !event.target.closest(".theme-color-control")) setColorPalettePopoverOpen(false);
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !colorThemePopover.hidden) {
+    setColorPalettePopoverOpen(false);
+    colorThemeButton.focus();
+  }
+});
 function persistTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem("trekking-theme", theme);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#fd6003");
+  document.documentElement.style.setProperty("--navy", theme === "dark" ? activeAccentPalette.darkLink : activeAccentPalette.lightLink);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", activeAccentPalette.brand);
   const dark = theme === "dark";
   themeButton.innerHTML = `<i class="bi ${dark ? "bi-sun" : "bi-moon-stars"}"></i>`;
   themeButton.setAttribute("aria-label", `Switch to ${dark ? "light" : "dark"} mode`);
   themeButton.title = `Switch to ${dark ? "light" : "dark"} mode`;
 }
 themeButton.addEventListener("click", () => persistTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+applyAccentPalette(localStorage.getItem("trekking-color-theme"), false);
 persistTheme(localStorage.getItem("trekking-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 if (main.dataset.staticPage) {
   route();
@@ -2778,7 +2881,7 @@ async function startRazorpayCheckout(reference) {
     order_id: order.orderId,
     prefill: { name: order.name, email: order.email },
     notes: { booking_reference: reference },
-    theme: { color: "#fd6003" },
+    theme: { color: getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() || "#fd6003" },
     handler: async payment => {
       try {
         await postLocalRequest("/api/payments/verify", {
