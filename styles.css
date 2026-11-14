@@ -139,6 +139,7 @@ p { color: var(--muted); }
 .password-reset-panel h1 { color: var(--ink); }
 .auth-dialog :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .auth-dialog [hidden] { display: none !important; }
+.recaptcha-widget { min-height: 78px; margin: 14px 0 4px; overflow: visible; }
 .site-header { background: color-mix(in srgb, var(--surface) 95%, transparent); border-bottom: 1px solid var(--line); backdrop-filter: blur(16px); }
 /* body.destination-menu-open { overflow: hidden; } */
 body.destination-menu-open::after { position: fixed; z-index: 1010; inset: 0; content: ""; pointer-events: none; background: rgba(15, 27, 45, .28); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }

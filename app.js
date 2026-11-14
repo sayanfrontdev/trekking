@@ -1,3 +1,51 @@
+const RECAPTCHA_SITE_KEY = "6Lc2YiAuAAAAAPuWTAV2cNIWnLJoKAiFP2heoayo";
+let recaptchaApiPromise;
+let activeRecaptchaToken = "";
+function loadRecaptchaApi() {
+  if (!recaptchaApiPromise) recaptchaApiPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; script.async = true; script.defer = true;
+    script.onload = () => window.grecaptcha.ready(() => resolve(window.grecaptcha));
+    script.onerror = () => reject(new Error("reCAPTCHA could not load. Check your connection and try again."));
+    document.head.append(script);
+  });
+  return recaptchaApiPromise;
+}
+const captchaFormSelector = 'form[data-auth-panel],#plannerForm,#bookingForm,form[data-message],form[data-ai-chat-form],#passwordResetForm';
+function mountRecaptchas(root = document) {
+  root.querySelectorAll?.(captchaFormSelector).forEach(form => {
+    if (form.querySelector("[data-recaptcha-widget]")) return;
+    const widget = document.createElement("div"); widget.className = "recaptcha-widget"; widget.dataset.recaptchaWidget = "";
+    form.querySelector('button[type="submit"]')?.before(widget);
+    loadRecaptchaApi().then(api => {
+      if (widget.isConnected) widget.dataset.recaptchaId = api.render(widget, { sitekey: RECAPTCHA_SITE_KEY, theme: "light" });
+    }).catch(() => { widget.textContent = "reCAPTCHA could not load. Refresh and try again."; });
+  });
+}
+new MutationObserver(() => mountRecaptchas()).observe(document.documentElement, { childList: true, subtree: true });
+document.addEventListener("submit", async event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || !form.matches(captchaFormSelector) || form.dataset.recaptchaReady === "true") return;
+  event.preventDefault();
+  try {
+    const api = await loadRecaptchaApi();
+    const widget = form.querySelector("[data-recaptcha-widget]");
+    const token = widget?.dataset.recaptchaId ? api.getResponse(Number(widget.dataset.recaptchaId)) : "";
+    if (!token) throw new Error("Please complete the I'm not a robot check.");
+    activeRecaptchaToken = token;
+    form.dataset.recaptchaReady = "true";
+    form.requestSubmit(event.submitter);
+    delete form.dataset.recaptchaReady;
+    activeRecaptchaToken = "";
+  } catch (error) {
+    const status = form.closest(".auth-dialog")?.querySelector(".auth-form-status") || form.querySelector("[aria-live='polite']");
+    if (status) status.textContent = error.message;
+    else if (typeof showToast === "function") showToast(error.message, "error");
+    else window.alert(error.message);
+  }
+}, true);
+mountRecaptchas();
+
 let profilePortraits = {
   "photo-1534528741775-53994a69daeb": "images/profile-aditi.svg",
   "photo-1500648767791-00dcc994a43e": "images/profile-rohan.svg",
@@ -844,7 +892,7 @@ function setupAuthPopup() {
         const response = await fetch("/api/auth/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: event.target.querySelector("#authForgotEmail").value })
+          body: JSON.stringify({ email: event.target.querySelector("#authForgotEmail").value, recaptchaToken: activeRecaptchaToken })
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "The reset request could not be completed.");
@@ -873,7 +921,8 @@ function setupAuthPopup() {
         body: JSON.stringify({
           name: isSignup ? event.target.querySelector("#authSignupName").value : undefined,
           email: event.target.querySelector(isSignup ? "#authSignupEmail" : "#authLoginEmail").value,
-          password: event.target.querySelector(isSignup ? "#authSignupPassword" : "#authLoginPassword").value
+          password: event.target.querySelector(isSignup ? "#authSignupPassword" : "#authLoginPassword").value,
+          recaptchaToken: activeRecaptchaToken
         })
       });
       const result = await response.json();
@@ -1600,7 +1649,7 @@ function setupPasswordResetForm() {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password })
+        body: JSON.stringify({ token, password, recaptchaToken: activeRecaptchaToken })
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Your password could not be updated.");
@@ -2432,7 +2481,7 @@ async function postLocalRequest(endpoint, payload, method = "POST") {
   const response = await fetch(endpoint, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ ...payload, recaptchaToken: activeRecaptchaToken })
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || "The request could not be saved.");
@@ -2769,7 +2818,7 @@ function initializeAiChat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history })
+        body: JSON.stringify({ messages: history, recaptchaToken: activeRecaptchaToken })
       });
       let result;
       try { result = await response.json(); } catch { throw new Error("The AI assistant could not reach its chat service. Please try again shortly."); }

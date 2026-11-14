@@ -2,6 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { handleAuthRequest } from "./functions/auth.mjs";
 import { readCurrentUser } from "./functions/auth.mjs";
 import { ADMIN_EMAIL, handleSubmissionRequest } from "./functions/submissions.mjs";
+import { verifyRecaptcha } from "./functions/recaptcha.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,6 +42,8 @@ async function handleChatRequest(request, env) {
   let body;
   try { body = await request.json(); }
   catch { return json({ error: "The message could not be read." }, 400); }
+  const captcha = await verifyRecaptcha(body?.recaptchaToken, env.RECAPTCHA_SECRET_KEY, request);
+  if (!captcha.ok) return json({ error: captcha.error }, 400);
 
   const messages = Array.isArray(body?.messages) ? body.messages.slice(-12) : [];
   const input = messages
