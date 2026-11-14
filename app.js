@@ -22,7 +22,15 @@ function mountRecaptchas(root = document) {
       if (widget.isConnected) widget.dataset.recaptchaId = api.render(widget, {
         sitekey: RECAPTCHA_SITE_KEY,
         theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
-        size: window.matchMedia("(max-width: 360px)").matches ? "compact" : "normal"
+        size: window.matchMedia("(max-width: 360px)").matches ? "compact" : "normal",
+        callback: token => {
+          widget.dataset.recaptchaResponse = token;
+          const status = form.closest(".auth-dialog")?.querySelector(".auth-form-status") || form.querySelector("[aria-live='polite']");
+          if (status?.textContent.includes("I'm not a robot")) status.textContent = "Check complete. Submit the form to continue.";
+          const toastText = document.querySelector("#siteToast .toast-body span");
+          if (toastText?.textContent.includes("I'm not a robot")) showToast("Check complete. Submit the form to continue.");
+        },
+        "expired-callback": () => { delete widget.dataset.recaptchaResponse; }
       });
     }).catch(() => { widget.textContent = "reCAPTCHA could not load. Check the allowed domain and key type, then refresh."; });
     recaptchaRenderPromises.set(widget, renderPromise);
@@ -40,7 +48,7 @@ document.addEventListener("submit", async event => {
     if (!widget) throw new Error("The reCAPTCHA checkbox could not be displayed. Refresh the page and try again.");
     await recaptchaRenderPromises.get(widget);
     if (!widget.dataset.recaptchaId) throw new Error("The reCAPTCHA checkbox could not load. Check the allowed domain and key type, then refresh.");
-    const token = widget?.dataset.recaptchaId ? api.getResponse(Number(widget.dataset.recaptchaId)) : "";
+    const token = widget?.dataset.recaptchaResponse || (widget?.dataset.recaptchaId ? api.getResponse(Number(widget.dataset.recaptchaId)) : "");
     if (!token) {
       widget.scrollIntoView({ behavior: "smooth", block: "center" });
       throw new Error("Please check the I'm not a robot box shown above the submit button, then submit again.");
@@ -50,6 +58,8 @@ document.addEventListener("submit", async event => {
     form.requestSubmit(event.submitter);
     delete form.dataset.recaptchaReady;
     activeRecaptchaToken = "";
+    api.reset(Number(widget.dataset.recaptchaId));
+    delete widget.dataset.recaptchaResponse;
   } catch (error) {
     const status = form.closest(".auth-dialog")?.querySelector(".auth-form-status") || form.querySelector("[aria-live='polite']");
     if (status) status.textContent = error.message;
