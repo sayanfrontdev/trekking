@@ -359,6 +359,26 @@ function pageFile(path) {
   })[path] || `${path.replaceAll("/", "-")}.html`;
   return `/${filename.replace(/\.html$/i, "")}`;
 }
+function seoImageFor(path, trip) {
+  if (trip?.image) return trip.image;
+  if (path.startsWith("destination/")) {
+    const destination = destinations.find(item => item.slug === path.split("/")[1]);
+    if (destination?.image) return destination.image;
+  }
+  if (path.startsWith("trip/")) {
+    const selectedTrip = trips.find(item => item.slug === path.split("/")[1]);
+    if (selectedTrip?.image) return selectedTrip.image;
+  }
+  if (path.startsWith("legal/")) return "images/himachal-baspa-valley.jpg";
+  if (path.startsWith("blog")) return "images/sandakphu-tonglu-hut.jpg";
+  if (/sikkim/i.test(path)) return "images/sikkim-tsomgo.jpg";
+  if (/darjeeling|weekend/i.test(path)) return "images/darjeeling-kanchenjunga.jpg";
+  if (/kashmir/i.test(path)) return "images/kashmir-pahalgam-trail.jpg";
+  if (/himachal/i.test(path)) return "images/himachal-baspa-valley.jpg";
+  if (/sandakphu|trekking/i.test(path)) return "images/sandakphu-ridge.jpg";
+  if (path === "gallery" || path === "destinations") return "images/sikkim-tsomgo.jpg";
+  return "images/sandakphu-ridge.jpg";
+}
 function rewritePageLinks(root) {
   root.querySelectorAll('a[href^="#/"]').forEach(link => {
     const path = link.getAttribute("href").replace(/^#\/?/, "").split("?")[0].replace(/\/$/, "");
@@ -2509,9 +2529,27 @@ function route() {
   }
   document.title = title;
   document.querySelector('meta[name="description"]').setAttribute("content", description);
-  document.querySelector('link[rel="canonical"]').setAttribute("href", new URL(pageFile(path), location.href).href);
+  const canonicalUrl = new URL(pageFile(path), location.href).href;
+  document.querySelector('link[rel="canonical"]').setAttribute("href", canonicalUrl);
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if (ogUrl) ogUrl.setAttribute("content", canonicalUrl);
+  const pageHeroImage = main.querySelector(".page-hero")?.style.getPropertyValue("--page-image") || "";
+  const heroImageMatch = pageHeroImage.match(/url\(["']?(.*?)["']?\)/);
+  const socialImage = new URL(heroImageMatch?.[1] || seoImageFor(path, detailTrip), location.href).href;
+  const ogImage = document.querySelector('meta[property="og:image"]');
+  if (ogImage) ogImage.setAttribute("content", socialImage);
+  const ogImageAlt = document.querySelector('meta[property="og:image:alt"]');
+  if (ogImageAlt) ogImageAlt.setAttribute("content", `${title.replace(/\s\|\sTREKKING.*$/, "")} travel photo`);
+  const twitterImage = document.querySelector('meta[name="twitter:image"]');
+  if (twitterImage) twitterImage.setAttribute("content", socialImage);
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  if (twitterTitle) twitterTitle.setAttribute("content", title);
+  const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+  if (twitterDescription) twitterDescription.setAttribute("content", description);
   const ogTitle = document.querySelector('meta[property="og:title"]');
   if (ogTitle) ogTitle.setAttribute("content", title);
+  const ogType = document.querySelector('meta[property="og:type"]');
+  if (ogType) ogType.setAttribute("content", path === "blog/article" ? "article" : "website");
   const ogDescription = document.querySelector('meta[property="og:description"]');
   if (ogDescription) ogDescription.setAttribute("content", description);
   const existingLd = document.querySelector("#article-structured-data");

@@ -916,9 +916,7 @@ async function handleBookingStatus(request, response, reference) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
   if (request.method === "GET" && ["/community-photos", "/community-photos/"].includes(url.pathname)) {
-    response.writeHead(302, { Location: "/#/community-photos", "Cache-Control": "no-store" });
-    response.end();
-    return;
+    url.pathname = "/community-photos.html";
   }
   if (url.pathname.startsWith("/auth/")) return handleOAuthRequest(request, response, url);
   if (url.pathname === "/api/chat") return handleChat(request, response);
