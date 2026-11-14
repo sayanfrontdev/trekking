@@ -19,6 +19,8 @@ function mountRecaptchas(root = document) {
     const widget = document.createElement("div"); widget.className = "recaptcha-widget"; widget.dataset.recaptchaWidget = "";
     const submitButton = form.querySelector('button[type="submit"]');
     if (submitButton) { submitButton.disabled = true; submitButton.before(widget); }
+    const formStatus = form.querySelector(".form-hint");
+    const initialFormStatus = formStatus?.textContent || "";
     const hint = document.createElement("small");
     hint.className = "recaptcha-hint";
     hint.textContent = "Complete the security check to enable this form.";
@@ -34,8 +36,13 @@ function mountRecaptchas(root = document) {
           hint.textContent = "Check complete. You can submit the form.";
           const status = form.closest(".auth-dialog")?.querySelector(".auth-form-status") || form.querySelector("[aria-live='polite']");
           if (status?.textContent.includes("I'm not a robot")) status.textContent = "Check complete. Submit the form to continue.";
+          if (formStatus?.textContent.includes("I'm not a robot")) formStatus.textContent = initialFormStatus;
           const toastText = document.querySelector("#siteToast .toast-body span");
-          if (toastText?.textContent.includes("I'm not a robot")) showToast("Check complete. Submit the form to continue.");
+          if (toastText?.textContent.includes("I'm not a robot")) {
+            const toast = document.querySelector("#siteToast");
+            window.bootstrap?.Toast?.getInstance(toast)?.hide();
+            toastText.textContent = "Check complete. Submit the form to continue.";
+          }
         },
         "expired-callback": () => {
           delete widget.dataset.recaptchaResponse;
