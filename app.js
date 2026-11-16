@@ -654,6 +654,7 @@ function setupAuthPopup() {
   const sessionKey = "trekking-auth-prompt-seen";
   let returnFocus = null;
   let signedInUser = null;
+  let authPopupOpenedAutomatically = false;
   const trekkingQuotes = [
     "{name}, let the next trail remind you how far curiosity can take you.",
     "{name}, the best views often arrive one patient step at a time.",
@@ -890,6 +891,7 @@ function setupAuthPopup() {
     if (signedInUser) status.textContent = `Signed in as ${signedInUser.email}.`;
     loadAccountRequests();
     window.dispatchEvent(new CustomEvent("trekking-auth-state", { detail: { user: signedInUser } }));
+    if (signedInUser && authPopupOpenedAutomatically) close();
   }
 
   function setMode(mode) {
@@ -925,11 +927,12 @@ function setupAuthPopup() {
     overlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("auth-popup-open");
     sessionStorage.setItem(sessionKey, "true");
+    authPopupOpenedAutomatically = false;
     window.setTimeout(() => { overlay.hidden = true; }, 220);
     returnFocus?.focus();
   }
   function open(force = false) {
-    if (!force && sessionStorage.getItem(sessionKey) === "true") return;
+    if (!force && (signedInUser || sessionStorage.getItem(sessionKey) === "true")) return;
     const cookieDialog = document.querySelector("#cookieConsent");
     if (cookieDialog && !cookieDialog.hidden) return;
     returnFocus = document.activeElement;
@@ -937,6 +940,7 @@ function setupAuthPopup() {
     overlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("auth-popup-open");
     overlay.classList.add("is-open");
+    authPopupOpenedAutomatically = !force;
     setMode("login");
     if (signedInUser) loadAccountRequests();
   }
