@@ -2365,13 +2365,14 @@ function setupAdminDashboard() {
 
 function setupSitePageEditor() {
   const select = main.querySelector("[data-cms-page]");
-  const editor = main.querySelector("[data-cms-html]");
+  const editor = main.querySelector("[data-cms-sections]");
   const status = main.querySelector("[data-cms-status]");
   const frame = main.querySelector("[data-cms-frame]");
   const loadButton = main.querySelector("[data-cms-load]");
   const saveButton = main.querySelector("[data-cms-save]");
   const importButton = main.querySelector("[data-cms-import]");
   if (!select || !editor || !status || !frame) return;
+  let editorEntries = [];
   const setStatus = (message, isError = false) => {
     status.textContent = message;
     status.classList.toggle("text-danger", isError);
@@ -2394,12 +2395,89 @@ function setupSitePageEditor() {
     if (typeof html !== "string" || !html.trim()) throw new Error("The page template was not generated.");
     return html;
   };
+  const cleanEditorMarkup = root => {
+    root.querySelectorAll("script, iframe, object, embed").forEach(node => node.remove());
+    root.querySelectorAll("*").forEach(node => {
+      [...node.attributes].forEach(attribute => {
+        if (/^on/i.test(attribute.name) || ((attribute.name === "href" || attribute.name === "src") && /^\s*javascript:/i.test(attribute.value))) node.removeAttribute(attribute.name);
+      });
+      if (node.hasAttribute("data-cms-editable")) {
+        node.removeAttribute("data-cms-editable");
+        node.removeAttribute("contenteditable");
+        node.removeAttribute("aria-label");
+      }
+      if (node.hasAttribute("data-cms-preview-disabled")) {
+        node.disabled = false;
+        node.removeAttribute("disabled");
+        node.removeAttribute("data-cms-preview-disabled");
+      }
+    });
+  };
+  const renderSections = html => {
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    editor.replaceChildren();
+    editorEntries = [];
+    [...parsed.body.childNodes].forEach((node, index) => {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+        editorEntries.push({ staticHtml: node.textContent });
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        editorEntries.push({ staticHtml: node.nodeType === Node.COMMENT_NODE ? `<!--${node.data}-->` : node.textContent });
+        return;
+      }
+      const section = document.importNode(node, true);
+      cleanEditorMarkup(section);
+      const candidates = [...section.querySelectorAll("h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,label,.eyebrow,.journey-badge,.experience-badge,a.btn,a.text-link")];
+      candidates.filter(candidate => !candidate.querySelector("h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,label,.eyebrow,.journey-badge,.experience-badge,a.btn,a.text-link"))
+        .forEach((candidate, editableIndex) => {
+          if (!candidate.textContent.trim()) return;
+          candidate.setAttribute("contenteditable", "true");
+          candidate.setAttribute("data-cms-editable", "true");
+          candidate.setAttribute("aria-label", `Edit text ${editableIndex + 1}`);
+        });
+      section.querySelectorAll("input,select,textarea,button").forEach(control => {
+        if (!control.disabled) {
+          control.disabled = true;
+          control.setAttribute("data-cms-preview-disabled", "true");
+        }
+      });
+      const titleNode = section.querySelector("h1,h2,h3,h4,h5,h6,.eyebrow") || section;
+      const title = (titleNode.textContent || "").replace(/\s+/g, " ").trim().slice(0, 90) || `Content section ${index + 1}`;
+      const card = document.createElement("article");
+      card.className = "cms-section-card";
+      const heading = document.createElement("h3");
+      heading.className = "cms-section-card-title";
+      heading.textContent = `${index + 1}. ${title}`;
+      const hint = document.createElement("p");
+      hint.className = "cms-section-card-hint";
+      hint.textContent = "Click outlined text to edit";
+      const preview = document.createElement("div");
+      preview.className = "cms-section-preview";
+      preview.addEventListener("click", event => {
+        if (event.target.closest("a,button")) event.preventDefault();
+      });
+      preview.addEventListener("submit", event => event.preventDefault());
+      preview.append(section);
+      card.append(heading, hint, preview);
+      editor.append(card);
+      editorEntries.push({ preview });
+    });
+  };
+  const getEditedContent = () => editorEntries.map(entry => {
+    if (entry.staticHtml !== undefined) return entry.staticHtml;
+    const section = entry.preview.firstElementChild;
+    if (!section) return "";
+    const clone = section.cloneNode(true);
+    cleanEditorMarkup(clone);
+    return clone.outerHTML;
+  }).join("");
   const loadPage = async () => {
     const key = select.value;
     const response = await fetch(`/api/site-pages?key=${encodeURIComponent(key)}`, { cache: "no-store" });
     if (response.ok) {
       const result = await response.json();
-      editor.value = result.page.html;
+      renderSections(result.page.html);
       setStatus(`Loaded saved content. Last updated ${new Date(result.page.updatedAt).toLocaleString()}.`);
       return;
     }
@@ -2407,21 +2485,22 @@ function setupSitePageEditor() {
       const result = await response.json().catch(() => ({}));
       throw new Error(result.error || "Could not load saved content.");
     }
-    editor.value = await loadTemplate(key);
-    setStatus("This page has not been imported yet. Review the template, then save it.");
+    renderSections(await loadTemplate(key));
+    setStatus("This page has not been imported yet. Review its sections, then save it.");
   };
   loadButton?.addEventListener("click", () => loadPage().catch(error => setStatus(error.message, true)));
   select.addEventListener("change", () => loadPage().catch(error => setStatus(error.message, true)));
   saveButton?.addEventListener("click", async () => {
     saveButton.disabled = true;
     try {
+      const html = getEditedContent();
       const response = await fetch("/api/admin/site-pages", {
         method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pages: [{ key: select.value, html: editor.value }] })
+        body: JSON.stringify({ pages: [{ key: select.value, html }] })
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save this page.");
-      sitePageOverrides.set(select.value, editor.value);
+      sitePageOverrides.set(select.value, html);
       setStatus("Page saved. Visitors will see this content on their next page load.");
     } catch (error) { setStatus(error.message, true); }
     finally { saveButton.disabled = false; }
@@ -2444,7 +2523,7 @@ function setupSitePageEditor() {
         if (!response.ok) throw new Error(result.error || "Could not save imported pages.");
       }
       pages.forEach(page => sitePageOverrides.set(page.key, page.html));
-      setStatus(`Imported ${pages.length} pages to Cloudflare D1. You can edit each page from the selector.`);
+      setStatus(`Imported ${pages.length} pages to Cloudflare D1. You can edit each page section by section.`);
       await loadPage();
     } catch (error) { setStatus(error.message, true); }
     finally { importButton.disabled = false; }

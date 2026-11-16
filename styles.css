@@ -827,6 +827,14 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
 .admin-submission-filter:hover, .admin-submission-filter.is-active { border-color: var(--brand); color: var(--brand); background: var(--surface-soft); }
 .admin-submissions { display: grid; gap: 14px; }
 .admin-photo-review { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--line); }
+.cms-section-editor-list { display: grid; gap: 16px; margin: 18px 0 12px; }
+.cms-section-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.cms-section-card-title { margin: 0; padding: 14px 16px 2px; color: var(--ink); font-size: 15px; }
+.cms-section-card-hint { margin: 0; padding: 0 16px 10px; color: var(--muted); font-size: 12px; }
+.cms-section-preview { max-height: 440px; overflow: auto; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--surface-soft); }
+.cms-section-preview [data-cms-editable] { cursor: text; outline: 1px dashed color-mix(in srgb, var(--brand) 60%, transparent); outline-offset: 3px; }
+.cms-section-preview [data-cms-editable]:hover, .cms-section-preview [data-cms-editable]:focus { outline: 2px solid var(--brand); background: color-mix(in srgb, var(--brand) 8%, transparent); }
+.cms-section-preview img { max-width: 100%; }
 .admin-photo-review-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .admin-photo-review-heading h2 { margin-bottom: 0; }
 .admin-photo-pending-count { display: inline-grid; min-width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--brand-ink); background: var(--brand); font-weight: 800; }
