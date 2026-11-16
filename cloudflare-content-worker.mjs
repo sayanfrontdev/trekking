@@ -181,6 +181,16 @@ export default {
           status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store" }
         });
       }
+      const adminPageUrl = new URL(request.url);
+      adminPageUrl.pathname = "/admin";
+      const adminPageResponse = await env.ASSETS.fetch(new Request(adminPageUrl, request));
+      const privateHeaders = new Headers(adminPageResponse.headers);
+      privateHeaders.set("Cache-Control", "private, no-store");
+      return new Response(adminPageResponse.body, {
+        status: adminPageResponse.status,
+        statusText: adminPageResponse.statusText,
+        headers: privateHeaders
+      });
     }
     if (url.pathname === "/api/site-content") {
       try {

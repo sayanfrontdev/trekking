@@ -2535,14 +2535,33 @@ function loadSitePageOverride(path) {
   const key = path || "home";
   if (path === "admin" || !cmsPages.some(page => page[0] === key) || sitePageOverrides.has(key) || sitePageRequests.has(key)) return;
   sitePageRequests.add(key);
-  fetch(`/api/site-pages?key=${encodeURIComponent(key)}`, { cache: "no-store" }).then(async response => {
+  fetch(`/api/site-pages?key=${encodeURIComponent(key)}&v=${Date.now()}`, { cache: "no-store" }).then(async response => {
     if (response.status === 404) { sitePageOverrides.set(key, null); return; }
     if (!response.ok) return;
     const result = await response.json();
     if (typeof result.page?.html === "string") sitePageOverrides.set(key, result.page.html);
     const currentPath = main.dataset.staticPage || (location.hash === "#tripSearch" ? "" : location.hash.replace(/^#\/?/, "").split("?")[0].replace(/\/$/, ""));
-    const hasFormInput = [...main.querySelectorAll("input, textarea, select")].some(field => field.value);
-    if (((currentPath || "home") === key || key === "site-footer") && sitePageOverrides.get(key) && !hasFormInput) route();
+    if ((currentPath || "home") === key || key === "site-footer") {
+      const fields = [...main.querySelectorAll("input, textarea, select")];
+      const fieldKey = field => `${field.tagName}:${field.id || field.name || field.type || ""}`;
+      const savedValues = fields.map((field, index) => ({
+        key: fieldKey(field),
+        occurrence: fields.slice(0, index).filter(candidate => fieldKey(candidate) === fieldKey(field)).length,
+        value: field.type === "file" ? undefined : field.value,
+        checked: field.type === "checkbox" || field.type === "radio" ? field.checked : undefined,
+        selected: field.tagName === "SELECT" && field.multiple ? [...field.options].map(option => option.selected) : undefined
+      }));
+      route();
+      const nextFields = [...main.querySelectorAll("input, textarea, select")];
+      savedValues.forEach(saved => {
+        const matches = nextFields.filter(field => fieldKey(field) === saved.key);
+        const field = matches[saved.occurrence];
+        if (!field) return;
+        if (saved.value !== undefined) field.value = saved.value;
+        if (saved.checked !== undefined) field.checked = saved.checked;
+        if (saved.selected) saved.selected.forEach((selected, index) => { if (field.options[index]) field.options[index].selected = selected; });
+      });
+    }
   }).catch(() => {}).finally(() => sitePageRequests.delete(key));
 }
 
