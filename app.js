@@ -2569,7 +2569,7 @@ function route() {
   else if (path === "contact") html = contactPage();
   else if (path === "planner") html = plannerPage();
   else if (path === "booking") html = bookingPage();
-  else if (path === "admin") html = adminPage();
+  else if (path === "admin" && main.dataset.staticPage === "admin") html = adminPage();
   else if (path === "confirmation" || path === "payment-success" || path === "payment-failed" || path === "payment") html = honestStatusPage(path === "payment" ? "confirmation" : path);
   else if (path === "reset-password") html = passwordResetPage();
   else if (path === "departures") html = currentDeparturesPage();
@@ -2702,7 +2702,7 @@ function route() {
     if (submit) submit.innerHTML = `Review enquiry <i class="bi bi-arrow-right ms-2"></i>`;
     setupBookingAccess();
   }
-  if (path === "admin") { setupAdminDashboard(); setupSitePageEditor(); }
+  if (path === "admin" && main.dataset.staticPage === "admin") { setupAdminDashboard(); setupSitePageEditor(); }
   if (path === "planner") {
     const previewNote = main.querySelector("#plannerForm .alert");
     if (previewNote) previewNote.textContent = "Your trip preferences will be saved securely as an enquiry. Submitting does not confirm a booking.";

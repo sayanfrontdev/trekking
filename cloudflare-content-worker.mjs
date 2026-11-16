@@ -170,7 +170,7 @@ export default {
       const id = env.SUBMISSION_HUB.idFromName("admin-submissions");
       return env.SUBMISSION_HUB.get(id).fetch(request);
     }
-    if (url.pathname === "/admin.html" || url.pathname === "/admin") {
+    if (["/admin.html", "/admin", "/admin/"].includes(url.pathname)) {
       const user = await readCurrentUser(request, env);
       const status = !user ? 401 : user.email.toLowerCase() !== ADMIN_EMAIL || !user.emailVerified ? 403 : 200;
       if (status !== 200) {
