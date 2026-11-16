@@ -222,7 +222,8 @@ function oauthReady(provider, env) {
 
 async function beginOAuth(provider, request, env) {
   if (!oauthReady(provider, env)) return json({ error: `${provider} sign-in credentials are not configured in Cloudflare Worker secrets.` }, 503);
-  const state = randomToken(24);
+  const returnToAdmin = new URL(request.url).searchParams.get("return_to") === "/admin";
+  const state = `${randomToken(24)}${returnToAdmin ? ".admin" : ""}`;
   const nonce = randomToken(24);
   await env.DB.prepare("DELETE FROM auth_oauth_states WHERE expires_at <= ?").bind(Date.now()).run();
   await env.DB.prepare("INSERT INTO auth_oauth_states (state, provider, nonce, expires_at) VALUES (?, ?, ?, ?)")
@@ -238,6 +239,7 @@ async function beginOAuth(provider, request, env) {
     state,
     nonce
   });
+  if (google && returnToAdmin) params.set("prompt", "select_account");
   const endpoint = google ? "https://accounts.google.com/o/oauth2/v2/auth" : "https://appleid.apple.com/auth/authorize";
   return Response.redirect(`${endpoint}?${params}`, 302);
 }
@@ -346,7 +348,8 @@ async function oauthCallback(provider, request, env) {
       .bind(claims.sub, avatar || null, user.id).run();
     user = await env.DB.prepare("SELECT * FROM auth_users WHERE id = ?").bind(user.id).first();
     const session = await createSession(request, env, user);
-    return new Response(null, { status: 303, headers: { Location: "/", "Set-Cookie": session.headers.get("Set-Cookie"), "Cache-Control": "no-store" } });
+    const destination = state.endsWith(".admin") ? "/admin" : "/";
+    return new Response(null, { status: 303, headers: { Location: destination, "Set-Cookie": session.headers.get("Set-Cookie"), "Cache-Control": "no-store" } });
   } catch (error) {
     console.error(`${provider} sign-in failed`, error);
     return oauthError("The identity provider could not complete sign-in. Please try email and password.", 502);

@@ -175,9 +175,9 @@ export default {
       const status = !user ? 401 : user.email.toLowerCase() !== ADMIN_EMAIL || !user.emailVerified ? 403 : 200;
       if (status !== 200) {
         const message = status === 401
-          ? "Sign in with the authorized Google account before opening the admin page."
-          : `Admin access is restricted to ${ADMIN_EMAIL}.`;
-        return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Admin access restricted</title><body style="font:16px system-ui;max-width:620px;margin:12vh auto;padding:24px;color:#10213a"><h1>Admin access restricted</h1><p>${message}</p><p><a href="/">Return to the site and sign in</a></p></body></html>`, {
+          ? "Sign in with the authorized Google account to continue."
+          : `Admin access is restricted to ${ADMIN_EMAIL}. Choose that Google account to continue.`;
+        return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Admin access restricted</title><body style="font:16px system-ui;max-width:620px;margin:12vh auto;padding:24px;color:#10213a"><h1>Admin access restricted</h1><p>${message}</p><p><a href="/auth/google?return_to=%2Fadmin">${status === 401 ? "Sign in with Google" : "Choose a different Google account"}</a></p><p><a href="/">Return to the site</a></p></body></html>`, {
           status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store" }
         });
       }
