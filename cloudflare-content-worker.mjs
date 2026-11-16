@@ -114,8 +114,8 @@ export default {
           const row = await env.DB.prepare("SELECT content_html, updated_at FROM site_pages WHERE page_key = ?")
             .bind(pageKey).first();
           return row
-            ? json({ page: { key: pageKey, html: row.content_html, updatedAt: row.updated_at } }, 200, "public, max-age=60, stale-while-revalidate=300")
-            : json({ error: "No saved page content." }, 404, "public, max-age=30");
+            ? json({ page: { key: pageKey, html: row.content_html, updatedAt: row.updated_at } }, 200, "no-store")
+            : json({ error: "No saved page content." }, 404, "no-store");
         } catch { return json({ error: "Page content is unavailable." }, 503); }
       }
       const admin = await readCurrentUser(request, env);

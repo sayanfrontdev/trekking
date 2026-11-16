@@ -2396,7 +2396,7 @@ function setupSitePageEditor() {
     return html;
   };
   const cleanEditorMarkup = root => {
-    root.querySelectorAll("script, iframe, object, embed").forEach(node => node.remove());
+    root.querySelectorAll("script, iframe, object, embed, grammarly-extension, superhuman-go-underlines, [data-grammarly-shadow-root]").forEach(node => node.remove());
     root.querySelectorAll("*").forEach(node => {
       [...node.attributes].forEach(attribute => {
         if (/^on/i.test(attribute.name) || ((attribute.name === "href" || attribute.name === "src") && /^\s*javascript:/i.test(attribute.value))) node.removeAttribute(attribute.name);
