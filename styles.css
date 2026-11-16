@@ -926,6 +926,7 @@ html[data-theme="dark"] .site-header .navbar .navbar-nav > li > .nav-link.dropdo
   .site-header .navbar-toggler { width: 32px; margin-left: 0 !important; padding: 4px; }
   .site-header .navbar-toggler-icon { width: 1.2em; height: 1.2em; }
   .theme-palette-popover { position: fixed; top: var(--theme-popover-top, 76px); right: auto; left: var(--theme-popover-left, 12px); max-height: min(360px, calc(100dvh - 90px)); overflow: auto; }
+  .content-panel { padding: 14px; }
 }
 @media (max-width: 359.98px) {
   .site-header .brand-tagline { display: none; }
