@@ -1923,7 +1923,7 @@ async function resolvePaymentStatus(kind) {
   }
 }
 function adminPage() {
-  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests, enquiries, and traveller photo submissions.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div><section class="admin-photo-review"><div class="admin-photo-review-heading"><div><span class="eyebrow">Community gallery</span><h2 class="h4 mt-2">Traveller photos awaiting approval</h2></div><span class="admin-photo-pending-count" data-admin-photo-count>0</span></div><p class="admin-status" role="status" aria-live="polite" data-admin-photo-status>Loading photo submissions…</p><div class="admin-photo-submissions" data-admin-photo-submissions></div></section><section class="admin-photo-review mt-5" aria-labelledby="site-content-heading"><div class="admin-photo-review-heading"><div><span class="eyebrow">Website content</span><h2 class="h4 mt-2" id="site-content-heading">Manage page content</h2></div></div><p>Choose a page, then click its text below to edit it section by section. Layout, images, and interactive features are preserved.</p><div class="d-flex flex-wrap gap-2 mb-3"><label class="visually-hidden" for="cms-page-select">Select a page</label><select class="form-select" id="cms-page-select" data-cms-page style="max-width:360px">${cmsPages.map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}</select><button class="btn btn-outline-navy" type="button" data-cms-load>Load page</button><button class="btn btn-primary-navy" type="button" data-cms-save>Save page</button><button class="btn btn-outline-navy" type="button" data-cms-import>Import all current pages</button></div><p class="admin-status" role="status" aria-live="polite" data-cms-status>Select a page to edit its content.</p><div class="cms-section-editor-list" data-cms-sections aria-describedby="cms-page-help"></div><small id="cms-page-help">Click any outlined text to edit it. Use Save page when finished. Images and links are preserved as they are.</small><iframe title="Page template loader" data-cms-frame hidden></iframe></section></div></div></section>`;
+  return `<section class="section section-soft"><div class="container py-4 py-lg-5"><div class="content-panel admin-dashboard"><div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4"><div><span class="eyebrow">Private workspace</span><h1 class="h2 mt-2 mb-2">Submitted forms</h1><p class="mb-0">Review booking requests, enquiries, and traveller photo submissions.</p></div><div class="admin-refresh-controls"><span class="admin-refresh-countdown" data-admin-countdown aria-label="Automatic refresh countdown"><i class="bi bi-clock" aria-hidden="true"></i> <span>5</span>s</span><button class="btn btn-outline-navy" type="button" data-admin-refresh><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></div></div><p class="admin-status" role="status" aria-live="polite" data-admin-status>Checking access…</p><div class="admin-submissions" data-admin-submissions></div><section class="admin-photo-review"><div class="admin-photo-review-heading"><div><span class="eyebrow">Community gallery</span><h2 class="h4 mt-2">Traveller photos awaiting approval</h2></div><span class="admin-photo-pending-count" data-admin-photo-count>0</span></div><p class="admin-status" role="status" aria-live="polite" data-admin-photo-status>Loading photo submissions…</p><div class="admin-photo-submissions" data-admin-photo-submissions></div></section><section class="admin-photo-review mt-5" aria-labelledby="site-content-heading"><div class="admin-photo-review-heading"><div><span class="eyebrow">Website content</span><h2 class="h4 mt-2" id="site-content-heading">Manage page content</h2></div></div><p>Click outlined text to edit copy. Open “Edit images and buttons / links” in each section to change image URLs, alt text, button text, or link destinations.</p><div class="d-flex flex-wrap gap-2 mb-3"><label class="visually-hidden" for="cms-page-select">Select a page</label><select class="form-select" id="cms-page-select" data-cms-page style="max-width:360px">${cmsPages.map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}</select><button class="btn btn-outline-navy" type="button" data-cms-load>Load page</button><button class="btn btn-primary-navy" type="button" data-cms-save>Save page</button><button class="btn btn-outline-navy" type="button" data-cms-import>Import all current pages</button></div><p class="admin-status" role="status" aria-live="polite" data-cms-status>Select a page to edit its content.</p><div class="cms-section-editor-list" data-cms-sections aria-describedby="cms-page-help"></div><small id="cms-page-help">Click any outlined text to edit it. Use Save page when finished. Existing interactive attributes and form IDs are preserved.</small><iframe title="Page template loader" data-cms-frame hidden></iframe></section></div></div></section>`;
 }
 function currentDeparturesPage() {
   return `${pageHero("Explore current journey options", "Live departure dates and availability are not published here. Review the routes below, then confirm dates, conditions, inclusions, and pricing before booking.", photo("photo-1483728642387-6c3bdd6c93e5"))}<section class="page-content"><div class="container"><div class="content-panel mb-4"><h2 class="h4">Availability is confirmed by enquiry</h2><p class="mb-0">Mountain access and travel arrangements can change with conditions. Ask for a current itinerary and written quote for the dates you have in mind.</p></div><div class="row g-4">${trips.map(trip => `<div class="col-md-6 col-lg-4">${tripCard(trip)}</div>`).join("")}</div></div></section>`;
@@ -2411,6 +2411,9 @@ function setupSitePageEditor() {
         node.removeAttribute("disabled");
         node.removeAttribute("data-cms-preview-disabled");
       }
+      node.removeAttribute("data-cms-image-index");
+      node.removeAttribute("data-cms-picture-source-index");
+      node.removeAttribute("data-cms-link-index");
     });
   };
   const renderSections = html => {
@@ -2459,7 +2462,67 @@ function setupSitePageEditor() {
       });
       preview.addEventListener("submit", event => event.preventDefault());
       preview.append(section);
-      card.append(heading, hint, preview);
+      const mediaEditor = document.createElement("details");
+      mediaEditor.className = "cms-section-media-editor";
+      const mediaSummary = document.createElement("summary");
+      mediaSummary.textContent = "Edit images and buttons / links";
+      const mediaFields = document.createElement("div");
+      mediaFields.className = "cms-section-media-fields";
+      mediaEditor.append(mediaSummary, mediaFields);
+      const addMediaField = (labelText, value, onInput) => {
+        const label = document.createElement("label");
+        label.className = "cms-section-media-field";
+        const labelCopy = document.createElement("span");
+        labelCopy.textContent = labelText;
+        const input = document.createElement("input");
+        input.className = "form-control";
+        input.type = "text";
+        input.value = value || "";
+        input.addEventListener("input", () => onInput(input.value));
+        label.append(labelCopy, input);
+        mediaFields.append(label);
+      };
+      [...section.querySelectorAll("img")].forEach((image, imageIndex) => {
+        image.dataset.cmsImageIndex = String(imageIndex);
+        addMediaField(`Image ${imageIndex + 1} URL`, image.getAttribute("src"), value => {
+          if (value.trim()) image.setAttribute("src", value.trim());
+          else image.removeAttribute("src");
+        });
+        addMediaField(`Image ${imageIndex + 1} alt text`, image.getAttribute("alt"), value => image.setAttribute("alt", value));
+        const picture = image.closest("picture");
+        [...(picture?.querySelectorAll("source") || [])].forEach((source, sourceIndex) => {
+          source.dataset.cmsPictureSourceIndex = String(sourceIndex);
+          addMediaField(`Image ${imageIndex + 1} responsive source ${sourceIndex + 1}`, source.getAttribute("srcset"), value => {
+            if (value.trim()) source.setAttribute("srcset", value.trim());
+            else source.removeAttribute("srcset");
+          });
+        });
+      });
+      [...section.querySelectorAll("a")].forEach((link, linkIndex) => {
+        link.dataset.cmsLinkIndex = String(linkIndex);
+        addMediaField(`Link ${linkIndex + 1} URL`, link.getAttribute("href"), value => {
+          if (value.trim()) link.setAttribute("href", value.trim());
+          else link.removeAttribute("href");
+        });
+        addMediaField(`Link ${linkIndex + 1} button / link text`, link.textContent.replace(/\s+/g, " ").trim(), value => {
+          const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
+          const textNodes = [];
+          while (walker.nextNode()) {
+            if (!walker.currentNode.parentElement?.closest("i,svg,[aria-hidden='true']")) textNodes.push(walker.currentNode);
+          }
+          if (textNodes.length) {
+            textNodes[0].textContent = value;
+            textNodes.slice(1).forEach(textNode => { textNode.textContent = ""; });
+          } else link.insertBefore(document.createTextNode(value), link.firstChild);
+        });
+      });
+      if (!mediaFields.childElementCount) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "cms-section-media-empty";
+        emptyMessage.textContent = "This section has no images or links.";
+        mediaFields.append(emptyMessage);
+      }
+      card.append(heading, hint, preview, mediaEditor);
       editor.append(card);
       editorEntries.push({ preview });
     });
