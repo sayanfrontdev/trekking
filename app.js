@@ -3442,8 +3442,9 @@ document.addEventListener("change", event => {
 
 function initializeAiChat() {
   if (document.querySelector("#aiChatWidget")) return;
+  const defaultGreeting = "Hi! Ask me anything. I can help with Himalayan trips, planning, packing, or general questions.";
   document.body.classList.add("has-ai-chat");
-  document.body.insertAdjacentHTML("beforeend", `<div class="ai-chat-widget" id="aiChatWidget"><section class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Ask our AI assistant" aria-modal="false" hidden><header class="ai-chat-header"><span class="ai-chat-avatar"><i class="bi bi-stars" aria-hidden="true"></i></span><div><strong>Ask anything</strong><small>AI travel assistant</small></div><button class="ai-chat-close" type="button" data-ai-chat-close aria-label="Close assistant"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header><div class="ai-chat-messages" data-ai-chat-messages role="log" aria-live="polite" aria-relevant="additions text"><div class="ai-chat-message ai-chat-reply">Hi! Ask me anything. I can help with Himalayan trips, planning, packing, or general questions.</div></div><div class="ai-chat-suggestions" data-ai-chat-suggestions><button type="button" data-ai-prompt="Help me choose a trip">Help me choose a trip</button><button type="button" data-ai-prompt="What should I pack for a Himalayan trek?">Packing tips</button></div><form class="ai-chat-form" data-ai-chat-form><label class="visually-hidden" for="aiChatInput">Your question</label><textarea id="aiChatInput" name="message" rows="1" maxlength="2000" placeholder="Ask me anything…" required></textarea><button type="submit" aria-label="Send message"><i class="bi bi-arrow-up" aria-hidden="true"></i></button></form><p class="ai-chat-status" data-ai-chat-status aria-live="polite"></p></section><button class="ai-chat-toggle" type="button" aria-expanded="false" aria-controls="aiChatPanel" aria-label="Open AI assistant"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i><span>Ask AI</span></button></div>`);
+  document.body.insertAdjacentHTML("beforeend", `<div class="ai-chat-widget" id="aiChatWidget"><section class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Ask our AI assistant" aria-modal="false" hidden><header class="ai-chat-header"><span class="ai-chat-avatar"><i class="bi bi-stars" aria-hidden="true"></i></span><div><strong>Ask anything</strong><small>AI travel assistant</small></div><button class="ai-chat-close" type="button" data-ai-chat-close aria-label="Close assistant"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header><div class="ai-chat-messages" data-ai-chat-messages role="log" aria-live="polite" aria-relevant="additions text"><div class="ai-chat-message ai-chat-reply" data-ai-chat-greeting>${defaultGreeting}</div></div><div class="ai-chat-suggestions" data-ai-chat-suggestions><button type="button" data-ai-prompt="Help me choose a trip">Help me choose a trip</button><button type="button" data-ai-prompt="What should I pack for a Himalayan trek?">Packing tips</button></div><form class="ai-chat-form" data-ai-chat-form><label class="visually-hidden" for="aiChatInput">Your question</label><textarea id="aiChatInput" name="message" rows="1" maxlength="2000" placeholder="Ask me anything…" required></textarea><button type="submit" aria-label="Send message"><i class="bi bi-arrow-up" aria-hidden="true"></i></button></form><p class="ai-chat-status" data-ai-chat-status aria-live="polite"></p></section><button class="ai-chat-toggle" type="button" aria-expanded="false" aria-controls="aiChatPanel" aria-label="Open AI assistant"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i><span>Ask AI</span></button></div>`);
 
   const widget = document.querySelector("#aiChatWidget");
   const panel = widget.querySelector("#aiChatPanel");
@@ -3452,8 +3453,16 @@ function initializeAiChat() {
   const form = widget.querySelector("[data-ai-chat-form]");
   const input = widget.querySelector("#aiChatInput");
   const messagesEl = widget.querySelector("[data-ai-chat-messages]");
+  const greeting = widget.querySelector("[data-ai-chat-greeting]");
   const status = widget.querySelector("[data-ai-chat-status]");
   const history = [];
+
+  window.addEventListener("trekking-auth-state", event => {
+    const firstName = event.detail?.user?.name?.trim().split(/\s+/)[0];
+    greeting.textContent = firstName
+      ? `Hi, ${firstName}! Ask me anything. I can help with Himalayan trips, planning, packing, or general questions.`
+      : defaultGreeting;
+  });
 
   function setOpen(isOpen) {
     panel.hidden = !isOpen;
